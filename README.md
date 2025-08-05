@@ -4,11 +4,20 @@ An intelligent development framework that automatically adapts its approach base
 
 ## 🧠 Core Innovation
 
-**Intelligent Node Classification**: Automatically detects whether a feature is a:
-- **Leaf Node** → Autonomous AI development with E2E testing focus
-- **Core Node** → Careful oversight with comprehensive testing layers
+**Dependency-Based Intelligent Classification**: Automatically analyzes actual code dependencies to determine optimal development approach:
 
-Inspired by Erik Schultz's talk on [Vibe Coding](https://youtu.be/fHWFF_pnqDk?si=lzHZFO4TNMKGP7As).
+- **🔍 Dependency Analysis** → Scans codebase and builds Mermaid dependency graphs  
+- **📊 Quantified Classification** → Uses in-degree/out-degree metrics for precise categorization
+- **🎯 Component-Level Precision** → Classifies individual functions/classes, not just features
+- **🔄 Mixed Approach Support** → Handles specs spanning multiple node types with phase-based implementation
+
+### Classification Results:
+- **Leaf Node** → Autonomous AI development with E2E testing focus
+- **Core Node** → Careful oversight with comprehensive testing layers  
+- **Business Logic** → Standard TDD with integration testing
+- **Mixed Approach** → Selective strategies per component type
+
+Inspired by Erik Schultz's talk on [Vibe Coding](https://youtu.be/fHWFF_pnqDk?si=lzHZFO4TNMKGP7As), enhanced with data-driven dependency analysis.
 
 ## 🚀 Quick Start
 
@@ -49,44 +58,85 @@ Inspired by Erik Schultz's talk on [Vibe Coding](https://youtu.be/fHWFF_pnqDk?si
 - **`core-node-agent.md`** - Careful oversight for critical system components
 - **Additional subagents** - Context fetching, git workflow, testing, etc.
 
-## 🎯 Node Classification System
+## 🎯 Advanced Dependency-Based Classification
 
-### Leaf Node Indicators
-✅ **Autonomous Development Suitable**
-- Standalone features with minimal dependencies
-- UI components that don't affect core workflows  
-- Report generation or data export features
-- Utility functions used in limited contexts
-- Features with clear boundaries
+### 🔍 Intelligent Analysis Process
 
+The system now performs comprehensive dependency analysis to make precise classifications:
+
+1. **Codebase Scanning** - Identifies all functions, classes, and modules
+2. **Dependency Mapping** - Generates visual Mermaid dependency graphs
+3. **Impact Analysis** - Calculates "blast radius" of changes
+4. **Component Classification** - Uses in-degree/out-degree metrics for precise categorization
+
+### 📊 Classification Categories
+
+#### Leaf Nodes (Autonomous Development)
+✅ **Low In-Degree, High Out-Degree**
+- Few or no components depend on them
+- Can be removed without breaking other features
+- UI components with one-way data flow
+- Report generators and exporters
+- Feature-specific components
+
+**Metrics**: In-degree ≤ 2, Out-degree ≥ 1
 **Approach**: E2E-focused testing, rapid implementation, acceptable technical debt
 
-### Core Node Indicators  
-⚠️ **Oversight Required**
-- Database schema changes affecting multiple features
-- Authentication/authorization modifications
-- Core API changes that other systems depend on
-- Framework or architecture modifications
-- Performance-critical components
+#### Core Nodes (Careful Oversight)
+⚠️ **High In-Degree, Low Out-Degree**
+- Many components depend on them
+- Critical path components
+- Infrastructure and shared services
+- Components with bidirectional dependencies
 
+**Metrics**: In-degree ≥ 3, Out-degree ≤ 2
 **Approach**: Comprehensive layer testing, architecture-first, multiple implementation modes
 
-## 🔄 Adaptive Workflow
+#### Business Logic Nodes (Standard Development)
+🔄 **Medium In-Degree and Out-Degree**
+- Orchestrates between core and leaf nodes
+- Contains domain-specific logic
+- Controllers and service layers
 
-### 1. Code Impact Analysis
-Automatically analyzes feature requirements against classification criteria
+**Metrics**: Balanced dependency relationships
+**Approach**: Standard TDD with integration testing focus
 
-### 2. User Confirmation
-Presents classification and recommended approach for user approval
+#### Mixed Approach (Component-Selective)
+🎯 **Multiple Node Types in Single Spec**
+- Different components require different approaches
+- Phase-based implementation (core → business → leaf)
+- Risk-based development prioritization
 
-### 3. Adaptive Planning
+**Approach**: Selective strategies per component type
+
+## 🔄 Enhanced Adaptive Workflow
+
+### 1. Dependency-Based Code Analysis
+- **Codebase Scanning**: Scans all project files for functions and classes
+- **Dependency Mapping**: Creates visual Mermaid graphs showing component relationships
+- **Impact Calculation**: Measures "blast radius" of proposed changes
+- **Component Classification**: Generates detailed classification tables with metrics
+
+### 2. Comprehensive Documentation
+- **`dependency_map.mermaid`**: Visual dependency graph with color-coded node types
+- **`node_classification.md`**: Detailed analysis table with in-degree/out-degree metrics
+- **Risk Assessment**: Quantified impact levels for each component
+
+### 3. User Confirmation with Data
+Presents dependency analysis results and classification with supporting evidence
+
+### 4. Adaptive Planning by Node Type
 - **Leaf Nodes**: E2E test setup → Autonomous implementation → User validation
-- **Core Nodes**: Choose implementation mode → Comprehensive testing → Review cycles
+- **Core Nodes**: Choose implementation mode → Comprehensive testing → Review cycles  
+- **Mixed Approach**: Phase-based implementation (core → business → leaf)
 
-### 4. Mode Selection (Core Nodes Only)
+### 5. Mode Selection (Core Nodes Only)
 - **Full Agent**: AI handles everything with review points
 - **Agent Planning**: AI plans, user implements  
 - **User-Led**: User implements, AI validates
+
+### 6. Component-Selective Execution
+For mixed approach specs, applies different development strategies to different components based on their individual classifications
 
 ## 📁 Project Structure
 
@@ -94,8 +144,8 @@ Presents classification and recommended approach for user approval
 agent-os-adaptive/
 ├── instructions/           # Core workflow instructions
 │   ├── plan-product.md    # Product initialization
-│   ├── create-spec.md     # Feature specification
-│   ├── execute-tasks.md   # Task execution  
+│   ├── create-spec.md     # Feature specification (enhanced with dependency analysis)
+│   ├── execute-tasks.md   # Task execution (supports mixed approach)
 │   └── analyze-product.md # Existing codebase analysis
 ├── standards/             # Development standards
 │   ├── tech-stack.md      # Technology preferences
@@ -105,24 +155,43 @@ agent-os-adaptive/
     ├── leaf-node-agent.md # Autonomous implementation
     ├── core-node-agent.md # Oversight-heavy approach
     └── ...                # Additional utility agents
+
+# Generated during spec creation:
+.agent-os/specs/YYYY-MM-DD-spec-name/
+├── spec.md                # Spec requirements
+├── tasks.md               # Implementation tasks
+└── sub-specs/
+    ├── dependency_map.mermaid      # Visual dependency graph
+    ├── node_classification.md      # Component analysis table
+    ├── technical-spec.md           # Technical requirements
+    └── tests.md                    # Testing specifications
 ```
 
-## 🎯 Benefits
+## 🎯 Enhanced Benefits
 
-### Intelligent Adaptation
-- **Right Tool for the Job**: Matches development approach to feature complexity
-- **Risk Management**: Prevents technical debt in critical systems
-- **Speed Optimization**: Accelerates low-risk feature development
+### Data-Driven Intelligence
+- **Dependency Analysis**: Makes decisions based on actual code relationships, not just heuristics
+- **Visual Documentation**: Mermaid graphs provide clear dependency visualization
+- **Quantified Risk**: Uses metrics (in-degree/out-degree) for objective classification
+- **Impact Prediction**: Calculates "blast radius" before making changes
 
-### Quality Assurance
-- **Leaf Nodes**: E2E testing ensures user functionality works
-- **Core Nodes**: Comprehensive testing catches integration issues
-- **Adaptive Standards**: Quality level matches feature importance
+### Precision Classification
+- **Component-Level Granularity**: Classifies individual functions/classes, not just features
+- **Mixed Approach Support**: Handles specs that span multiple node types
+- **Evidence-Based Decisions**: Shows dependency data to support recommendations
+- **Fallback Mechanisms**: Uses legacy indicators when dependency analysis unavailable
+
+### Adaptive Development Strategies
+- **Phase-Based Implementation**: Core → Business → Leaf progression for mixed specs
+- **Selective Testing**: E2E for leaves, comprehensive for core, standard for business logic
+- **Risk-Proportional Quality**: Code quality requirements match component criticality
+- **Autonomous vs Oversight**: Right level of AI involvement per component type
 
 ### Developer Experience
-- **Autonomous Mode**: AI handles routine features independently
-- **Collaborative Mode**: Human oversight for critical components  
-- **Flexible Control**: Choose your involvement level
+- **Transparent Reasoning**: Shows why each classification was made
+- **Visual Dependencies**: Understand system architecture at a glance
+- **Flexible Control**: Choose involvement level per component, not just per feature
+- **Documentation Artifacts**: Generates reusable dependency maps and classification tables
 
 ## 🔧 Configuration
 

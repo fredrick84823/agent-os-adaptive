@@ -103,16 +103,33 @@ encoding: UTF-8
 <classification_detection>
   <check_for>
     - Code Impact Assessment results in spec documentation
-    - Node classification: leaf_node_candidate vs core_node_requires_oversight
+    - Dependency analysis files: dependency_map.mermaid and node_classification.md
+    - Node classification: leaf_node_candidate vs core_node_requires_oversight vs mixed_approach
     - Implementation mode selection for core nodes
     - E2E testing data requirements
+    - Component-level classifications from dependency analysis
   </check_for>
   <extract_metadata>
-    - node_type: [leaf | core]
+    - node_type: [leaf | core | mixed]
     - implementation_mode: [full_agent | agent_planning | user_led] (for core nodes)
-    - testing_approach: [e2e_focused | comprehensive_layers]
+    - testing_approach: [e2e_focused | comprehensive_layers | selective]
     - has_user_testing_data: [true | false]
+    - dependency_analysis_available: [true | false]
+    - component_classifications: [array of component classifications]
+    - dependency_impact_level: [minimal | moderate | high]
   </extract_metadata>
+  <dependency_analysis_integration>
+    <if_dependency_files_exist>
+      1. READ @sub-specs/dependency_map.mermaid for visual dependency understanding
+      2. READ @sub-specs/node_classification.md for detailed component analysis
+      3. EXTRACT component-specific development approaches
+      4. IDENTIFY which components need careful oversight vs autonomous development
+      5. PLAN implementation strategy based on component-level classifications
+    </if_dependency_files_exist>
+    <fallback_to_legacy>
+      Use traditional indicator-based classification if dependency analysis unavailable
+    </fallback_to_legacy>
+  </dependency_analysis_integration>
 </classification_detection>
 
 <instructions>
@@ -263,6 +280,58 @@ encoding: UTF-8
       </template>
     </user_led_mode>
   </core_node_plan>
+
+  <mixed_approach_plan>
+    <focus>
+      - Selective development strategies based on component classification
+      - Autonomous development for leaf components
+      - Careful oversight for core components
+      - Component-specific testing approaches
+    </focus>
+    <template>
+      ## Implementation Plan for [TASK_NAME] (Mixed Approach - Component-Selective)
+
+      **Classification:** Mixed Approach Required
+      **Approach:** Selective development strategies based on dependency analysis
+
+      Based on the dependency analysis in @sub-specs/node_classification.md:
+
+      ### Leaf Components (Autonomous Development)
+      - **[LEAF_COMPONENT_1]** - Rapid implementation with E2E focus
+      - **[LEAF_COMPONENT_2]** - Autonomous development acceptable
+
+      ### Core Components (Careful Oversight)
+      - **[CORE_COMPONENT_1]** - Traditional TDD with review points
+      - **[CORE_COMPONENT_2]** - Comprehensive testing required
+
+      ### Business Logic Components (Standard Development)
+      - **[BUSINESS_COMPONENT_1]** - Standard development approach
+      - **[BUSINESS_COMPONENT_2]** - Integration testing focus
+
+      ### Implementation Strategy
+
+      1. **Phase 1: Core Components (Careful)**
+         - [TESTING_DATA_SOURCE: user-provided or generated]
+         - Write comprehensive unit tests for core components
+         - Implement core architecture with review checkpoints
+         - Ensure stability before proceeding
+
+      2. **Phase 2: Business Logic (Standard)**
+         - Implement business logic components with standard TDD
+         - Integration testing between core and business layers
+         - Validate interfaces and contracts
+
+      3. **Phase 3: Leaf Components (Autonomous)**
+         - Rapid implementation of leaf components
+         - E2E testing focus for user-facing features
+         - Acceptable technical debt for leaf nodes
+
+      **Dependencies to Install:**
+      - [LIBRARY_NAME] - [PURPOSE]
+
+      **Test Strategy:** Selective - comprehensive for core, E2E for leaf
+    </template>
+  </mixed_approach_plan>
 </plan_adaptation_by_classification>
 
 <plan_selection_logic>
@@ -274,6 +343,8 @@ encoding: UTF-8
     USE core_node_plan.agent_planning_mode template
   ELIF node_type == "core" AND implementation_mode == "user_led":
     USE core_node_plan.user_led_mode template
+  ELIF node_type == "mixed":
+    USE mixed_approach_plan template
   ELSE:
     USE standard plan_template (fallback)
 </plan_selection_logic>
@@ -457,6 +528,37 @@ encoding: UTF-8
       5. Assist with any testing or deployment issues
     </workflow>
   </core_node_user_led>
+
+  <mixed_approach_execution>
+    <characteristics>
+      - Component-selective development strategies
+      - Phase-based implementation (core → business → leaf)
+      - Adaptive testing approach per component type
+      - Risk-based development prioritization
+    </characteristics>
+    <workflow>
+      1. Analyze dependency classification from @sub-specs/node_classification.md
+      2. Phase 1: Implement core components with comprehensive testing
+         - Write unit tests for core components
+         - Careful implementation with review checkpoints
+         - Integration testing for core interfaces
+      3. Phase 2: Implement business logic components with standard approach
+         - Standard TDD for business logic
+         - Integration testing between layers
+         - Validate component contracts
+      4. Phase 3: Implement leaf components with autonomous approach
+         - E2E testing focus for leaf components
+         - Rapid implementation acceptable
+         - User validation for end-user features
+      5. Final integration testing across all component types
+      6. System-wide E2E validation
+    </workflow>
+    <component_strategy>
+      - Core components: Use core_node_full_agent workflow
+      - Business components: Use traditional TDD workflow
+      - Leaf components: Use leaf_node_execution workflow
+    </component_strategy>
+  </mixed_approach_execution>
 </execution_modes>
 
 <mode_selection_execution>
@@ -468,6 +570,8 @@ encoding: UTF-8
     EXECUTE core_node_planning_mode workflow
   ELIF node_type == "core" AND implementation_mode == "user_led":
     EXECUTE core_node_user_led workflow
+  ELIF node_type == "mixed":
+    EXECUTE mixed_approach_execution workflow
   ELSE:
     EXECUTE traditional TDD workflow (fallback)
 </mode_selection_execution>
