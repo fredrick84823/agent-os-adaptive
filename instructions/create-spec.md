@@ -168,8 +168,8 @@ encoding: UTF-8
   <purpose>Analyze whether spec involves leaf nodes or core architecture using dependency mapping</purpose>
   <enables>vibe_coding_approach</enables>
   <creates>
-    - dependency_map.mermaid
-    - node_classification.md
+    - .agent-os/architecture-analysis/dependency_map.mermaid
+    - .agent-os/architecture-analysis/node_classification.md
   </creates>
 </step_metadata>
 
@@ -192,7 +192,7 @@ encoding: UTF-8
       2. MAP dependencies between components  
       3. IDENTIFY bidirectional and circular dependencies
       4. GENERATE Mermaid diagram showing dependency relationships
-      5. SAVE as sub-specs/dependency_map.mermaid
+      5. SAVE as .agent-os/architecture-analysis/dependency_map.mermaid
     </action>
     
     <mermaid_template>
@@ -210,7 +210,7 @@ encoding: UTF-8
           F[ReportGenerator] --> B
           G[EmailNotifier] --> H[EmailService]
           
-          %% UI Components (potential leaf nodes)
+          %% UI Components (potential leaf nodes, it could be other Nodes depends on project)
           I[UserDashboard] --> D
           J[OrderHistory] --> E
           
@@ -275,7 +275,7 @@ encoding: UTF-8
 
   <substep number="3.5.5" name="classification_documentation">
     <purpose>Document classification results for all affected components</purpose>
-    <creates>sub-specs/node_classification.md</creates>
+    <creates>.agent-os/architecture-analysis/node_classification.md</creates>
     
     <documentation_template>
       # Node Classification Analysis
@@ -286,7 +286,7 @@ encoding: UTF-8
       
       ## Dependency Map
       
-      See: @sub-specs/dependency_map.mermaid
+      See: @.agent-os/architecture-analysis/dependency_map.mermaid
       
       ## Component Classifications
       
@@ -375,8 +375,8 @@ encoding: UTF-8
   ## Dependency-Based Code Impact Assessment
 
   I've analyzed the codebase dependencies and generated:
-  - **Dependency Map:** @sub-specs/dependency_map.mermaid
-  - **Classification Analysis:** @sub-specs/node_classification.md
+  - **Dependency Map:** @.agent-os/architecture-analysis/dependency_map.mermaid
+  - **Classification Analysis:** @.agent-os/architecture-analysis/node_classification.md
 
   Based on dependency analysis, this spec appears to involve **[CLASSIFICATION]**.
 
@@ -408,7 +408,7 @@ encoding: UTF-8
   GENERATE: Mermaid dependency diagram and classification documentation
   ANALYZE: Component dependencies and impact propagation
   CLASSIFY: Spec based on dependency analysis rather than just indicators
-  DOCUMENT: All analysis results in sub-specs/ folder
+  DOCUMENT: All analysis results in .agent-os/architecture-analysis/ folder
   CONFIRM: Get user agreement on data-driven classification
 </instructions>
 

@@ -117,18 +117,21 @@ The system now performs comprehensive dependency analysis to make precise classi
 - **Impact Calculation**: Measures "blast radius" of proposed changes
 - **Component Classification**: Generates detailed classification tables with metrics
 
-### 2. Comprehensive Documentation
-- **`dependency_map.mermaid`**: Visual dependency graph with color-coded node types
-- **`node_classification.md`**: Detailed analysis table with in-degree/out-degree metrics
+### 2. Comprehensive Architecture Analysis
+- **`.agent-os/architecture-analysis/dependency_map.mermaid`**: Visual dependency graph with color-coded node types
+- **`.agent-os/architecture-analysis/node_classification.md`**: Detailed analysis table with in-degree/out-degree metrics
 - **Risk Assessment**: Quantified impact levels for each component
+- **Project-Level Persistence**: Analysis stored at project level for reuse across all specs
 
-### 3. User Confirmation with Data
-Presents dependency analysis results and classification with supporting evidence
+### 3. Intelligent Agent Delegation
+- **Main Agent Analysis**: Reads architecture analysis and classifies task components
+- **Smart Delegation**: Routes to specialized subagents based on node types
+- **Unified Decision Making**: Centralized classification logic with transparent reasoning
 
-### 4. Adaptive Planning by Node Type
-- **Leaf Nodes**: E2E test setup → Autonomous implementation → User validation
-- **Core Nodes**: Choose implementation mode → Comprehensive testing → Review cycles  
-- **Mixed Approach**: Phase-based implementation (core → business → leaf)
+### 4. Specialized Agent Execution
+- **Core Node Agent** (`@subagents/core-node-agent.md`): Careful oversight with comprehensive testing
+- **Leaf Node Agent** (`@subagents/leaf-node-agent.md`): Autonomous rapid implementation
+- **Mixed Approach**: Phase-based delegation to appropriate agents per component
 
 ### 5. Mode Selection (Core Nodes Only)
 - **Full Agent**: AI handles everything with review points
@@ -136,7 +139,7 @@ Presents dependency analysis results and classification with supporting evidence
 - **User-Led**: User implements, AI validates
 
 ### 6. Component-Selective Execution
-For mixed approach specs, applies different development strategies to different components based on their individual classifications
+Main agent delegates different components to appropriate specialized agents based on dependency analysis
 
 ## 📁 Project Structure
 
@@ -156,49 +159,80 @@ agent-os-adaptive/
     ├── core-node-agent.md # Oversight-heavy approach
     └── ...                # Additional utility agents
 
-# Generated during spec creation:
-.agent-os/specs/YYYY-MM-DD-spec-name/
-├── spec.md                # Spec requirements
-├── tasks.md               # Implementation tasks
-└── sub-specs/
-    ├── dependency_map.mermaid      # Visual dependency graph
-    ├── node_classification.md      # Component analysis table
-    ├── technical-spec.md           # Technical requirements
-    └── tests.md                    # Testing specifications
+# Generated during project initialization:
+.agent-os/
+├── product/                       # Product-level documentation
+│   ├── mission.md                # Product vision and goals
+│   ├── roadmap.md                # Development phases
+│   ├── tech-stack.md             # Technology choices
+│   └── decisions.md              # Decision history
+├── architecture-analysis/         # Project-wide analysis (NEW)
+│   ├── dependency_map.mermaid    # Visual dependency graph
+│   └── node_classification.md    # Component analysis table
+└── specs/YYYY-MM-DD-spec-name/   # Individual feature specs
+    ├── spec.md                   # Spec requirements
+    ├── tasks.md                  # Implementation tasks
+    └── sub-specs/                # Spec-specific technical docs
+        ├── technical-spec.md     # Technical requirements
+        ├── api-spec.md           # API specifications (if needed)
+        ├── database-schema.md    # Database changes (if needed)
+        └── tests.md              # Testing specifications
 ```
 
 ## 🎯 Enhanced Benefits
 
-### Data-Driven Intelligence
+### 🧠 Data-Driven Intelligence
 - **Dependency Analysis**: Makes decisions based on actual code relationships, not just heuristics
 - **Visual Documentation**: Mermaid graphs provide clear dependency visualization
 - **Quantified Risk**: Uses metrics (in-degree/out-degree) for objective classification
 - **Impact Prediction**: Calculates "blast radius" before making changes
 
-### Precision Classification
+### 🎯 Precision Classification & Delegation
 - **Component-Level Granularity**: Classifies individual functions/classes, not just features
-- **Mixed Approach Support**: Handles specs that span multiple node types
+- **Centralized Decision Making**: Main agent handles all classification and delegation logic
+- **Specialized Agent Routing**: Automatically delegates to core-node or leaf-node agents
 - **Evidence-Based Decisions**: Shows dependency data to support recommendations
 - **Fallback Mechanisms**: Uses legacy indicators when dependency analysis unavailable
 
-### Adaptive Development Strategies
+### 🚀 Adaptive Development Strategies
+- **Intelligent Agent Selection**: Right specialist for each component type
 - **Phase-Based Implementation**: Core → Business → Leaf progression for mixed specs
 - **Selective Testing**: E2E for leaves, comprehensive for core, standard for business logic
 - **Risk-Proportional Quality**: Code quality requirements match component criticality
 - **Autonomous vs Oversight**: Right level of AI involvement per component type
 
-### Developer Experience
-- **Transparent Reasoning**: Shows why each classification was made
-- **Visual Dependencies**: Understand system architecture at a glance
+### 👥 Developer Experience
+- **Transparent Reasoning**: Shows why each classification was made and which agent was selected
+- **Visual Dependencies**: Understand system architecture at a glance  
+- **Project-Level Persistence**: Architecture analysis reused across all features
 - **Flexible Control**: Choose involvement level per component, not just per feature
 - **Documentation Artifacts**: Generates reusable dependency maps and classification tables
 
 ## 🔧 Configuration
 
 The framework adapts to your project by reading:
-- Product documentation in `.agent-os/product/`
-- Global standards from `~/.agent-os/standards/`
-- Project-specific preferences in local files
+- **Product documentation** in `.agent-os/product/`
+- **Architecture analysis** in `.agent-os/architecture-analysis/` (auto-generated)
+- **Global standards** from `~/.agent-os/standards/`
+- **Specialized agents** from `~/.agent-os/subagents/`
+- **Project-specific preferences** in local files
+
+## 🆕 Key Architectural Improvements
+
+### Centralized Classification Logic
+- **Main Agent Decision Making**: All node classification logic centralized in `execute-tasks.md`
+- **Specialized Agent Delegation**: Main agent routes to appropriate subagents based on analysis
+- **Clean Separation of Concerns**: Subagents focus on execution, main agent handles strategy
+
+### Project-Level Architecture Analysis  
+- **Persistent Analysis**: Architecture analysis stored at `.agent-os/architecture-analysis/` (not per-spec)
+- **Reusable Across Features**: Single dependency analysis used for all feature development
+- **Better File Organization**: Clear separation between project-wide analysis and spec-specific docs
+
+### Enhanced Agent Orchestration
+- **Smart Routing**: Main agent automatically selects core-node-agent or leaf-node-agent
+- **Transparent Decision Making**: Users see exactly why each delegation decision was made
+- **Fallback Mechanisms**: Traditional TDD when specialized approaches not suitable
 
 ## 🤝 Contributing
 

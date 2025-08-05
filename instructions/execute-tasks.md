@@ -120,8 +120,8 @@ encoding: UTF-8
   </extract_metadata>
   <dependency_analysis_integration>
     <if_dependency_files_exist>
-      1. READ @sub-specs/dependency_map.mermaid for visual dependency understanding
-      2. READ @sub-specs/node_classification.md for detailed component analysis
+      1. READ @.agent-os/architecture-analysis/dependency_map.mermaid for visual dependency understanding
+      2. READ @.agent-os/architecture-analysis/node_classification.md for detailed component analysis
       3. EXTRACT component-specific development approaches
       4. IDENTIFY which components need careful oversight vs autonomous development
       5. PLAN implementation strategy based on component-level classifications
@@ -135,8 +135,9 @@ encoding: UTF-8
 <instructions>
   ACTION: Read all spec documentation thoroughly
   ANALYZE: Requirements and specifications for current task
-  EXTRACT: Node classification and implementation mode metadata
+  EXTRACT: Node classification and implementation mode metadata for later delegation decision
   UNDERSTAND: How task fits into overall spec goals and development approach
+  PREPARE: Information needed for Step 6 delegation to specialized agents
 </instructions>
 
 </step>
@@ -294,7 +295,7 @@ encoding: UTF-8
       **Classification:** Mixed Approach Required
       **Approach:** Selective development strategies based on dependency analysis
 
-      Based on the dependency analysis in @sub-specs/node_classification.md:
+      Based on the dependency analysis in @.agent-os/architecture-analysis/node_classification.md:
 
       ### Leaf Components (Autonomous Development)
       - **[LEAF_COMPONENT_1]** - Rapid implementation with E2E focus
@@ -351,6 +352,12 @@ encoding: UTF-8
 
 <approval_request>
   I've prepared the above implementation plan based on the [NODE_CLASSIFICATION] and [IMPLEMENTATION_MODE].
+  
+  **Next Step:** Upon approval, I will delegate implementation to the appropriate specialized agent:
+  - **Core Nodes:** @~/.agent-os/subagents/core-node-agent.md (careful, oversight-heavy approach)
+  - **Leaf Nodes:** @~/.agent-os/subagents/leaf-node-agent.md (autonomous, rapid approach)
+  - **Mixed/Other:** Traditional development approach
+  
   Please review and confirm before I proceed with execution.
 </approval_request>
 
@@ -454,6 +461,87 @@ encoding: UTF-8
   <adheres_to>all spec standards</adheres_to>
 </step_metadata>
 
+<node_classification_and_delegation>
+  <purpose>Determine node classification and delegate to appropriate specialized agent</purpose>
+  
+  <classification_process>
+    <step_1>
+      <action>Read architecture analysis documents</action>
+      <files>
+        - @.agent-os/architecture-analysis/node_classification.md
+        - @.agent-os/architecture-analysis/dependency_map.mermaid
+      </files>
+      <extract>
+        - Component classifications (Core/Business/Leaf)
+        - In-degree and out-degree metrics
+        - Risk level assessments
+        - Dependency chain impact
+      </extract>
+    </step_1>
+    
+    <step_2>
+      <action>Analyze current task components</action>
+      <determine>
+        - Which components will be modified
+        - Which new components will be created
+        - Overall node classification for the task
+      </determine>
+    </step_2>
+    
+    <step_3>
+      <action>Make delegation decision</action>
+      <decision_tree>
+        IF task_primarily_affects_core_nodes OR high_dependency_impact:
+          DELEGATE_TO @~/.agent-os/subagents/core-node-agent.md
+        ELIF task_primarily_affects_leaf_nodes AND minimal_dependency_impact:
+          DELEGATE_TO @~/.agent-os/subagents/leaf-node-agent.md
+        ELIF mixed_node_types:
+          USE mixed_approach_execution (below)
+        ELSE:
+          USE traditional_tdd_workflow (fallback)
+      </decision_tree>
+    </step_3>
+  </classification_process>
+  
+  <delegation_instructions>
+    <for_core_nodes>
+      **Core Node Implementation Required**
+      
+      Based on architecture analysis, this task involves core system components with high dependency impact. 
+      
+      Following specialized core node implementation approach from @~/.agent-os/subagents/core-node-agent.md:
+      - Architecture-first comprehensive testing
+      - User consultation on implementation mode
+      - Multiple review checkpoints
+      - High code quality standards
+      
+      **Components classified as Core Nodes:**
+      [LIST_CORE_COMPONENTS_FROM_ANALYSIS]
+      
+      **Dependency Impact:**
+      [SUMMARIZE_IMPACT_FROM_ANALYSIS]
+    </for_core_nodes>
+    
+    <for_leaf_nodes>
+      **Leaf Node Implementation Suitable**
+      
+      Based on architecture analysis, this task involves leaf node components with minimal dependency impact.
+      
+      Following specialized leaf node implementation approach from @~/.agent-os/subagents/leaf-node-agent.md:
+      - E2E-focused testing approach
+      - Autonomous rapid implementation
+      - User validation emphasis
+      - Acceptable technical debt
+      
+      **Components classified as Leaf Nodes:**
+      [LIST_LEAF_COMPONENTS_FROM_ANALYSIS]
+      
+      **Minimal Impact Confirmation:**
+      [CONFIRM_LOW_RISK_FROM_ANALYSIS]
+    </for_leaf_nodes>
+  </delegation_instructions>
+</node_classification_and_delegation>
+
 <execution_standards>
   <follow_exactly>
     - approved implementation plan
@@ -537,7 +625,7 @@ encoding: UTF-8
       - Risk-based development prioritization
     </characteristics>
     <workflow>
-      1. Analyze dependency classification from @sub-specs/node_classification.md
+      1. Analyze dependency classification from @.agent-os/architecture-analysis/node_classification.md
       2. Phase 1: Implement core components with comprehensive testing
          - Write unit tests for core components
          - Careful implementation with review checkpoints
@@ -584,11 +672,13 @@ encoding: UTF-8
 </traditional_tdd_workflow>
 
 <instructions>
-  ACTION: Execute development plan using mode-appropriate workflow
-  SELECT: Execution mode based on node classification and implementation mode
-  FOLLOW: All coding standards and specifications
-  ADAPT: Testing and implementation approach based on classification
-  MAINTAIN: Appropriate code quality level for node type
+  ACTION: Execute node classification and delegation process first
+  STEP_1: Read architecture analysis documents from .agent-os/architecture-analysis/
+  STEP_2: Analyze task components and classify node types
+  STEP_3: Make delegation decision based on analysis
+  DELEGATE: Use appropriate specialized agent (core-node-agent.md or leaf-node-agent.md)
+  FALLBACK: Use mixed approach or traditional TDD if delegation not suitable
+  FOLLOW: All coding standards and specifications regardless of approach
 </instructions>
 
 </step>
