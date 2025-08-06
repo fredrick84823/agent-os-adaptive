@@ -32,12 +32,12 @@ encoding: UTF-8
 <context>
   - This is a foundational step, typically run once during the initial setup of Agent OS on a project via `analyze-product.md`.
   - It can be re-run if the core architecture undergoes significant changes.
-  - The output is stored in `.agent-os/architecture-analysis/` and used by `create-spec.md` to assess the impact of new features.
+  - The output is stored in `agent-os-adaptive/architecture-analysis/` and used by `create-spec.md` to assess the impact of new features.
 </context>
 
 <prerequisites>
   - An existing codebase to analyze.
-  - Write access to the project root to create the `.agent-os/architecture-analysis/` directory and its contents.
+  - Write access to the project root to create the `agent-os-adaptive/architecture-analysis/` directory and its contents.
 </prerequisites>
 
 <process_flow>
@@ -60,7 +60,7 @@ encoding: UTF-8
       2. MAP dependencies between components  
       3. IDENTIFY bidirectional and circular dependencies
       4. GENERATE Mermaid diagram showing dependency relationships
-      5. SAVE as .agent-os/architecture-analysis/dependency_map.mermaid
+      5. SAVE as agent-os-adaptive/architecture-analysis/dependency_map.mermaid
     </action>
     
     <mermaid_template>
@@ -125,7 +125,7 @@ encoding: UTF-8
 
 <step number="4" name="classification_documentation">
     <purpose>Document classification results for all affected components</purpose>
-    <creates>.agent-os/architecture-analysis/node_classification.md</creates>
+    <creates>agent-os-adaptive/architecture-analysis/node_classification.md</creates>
     
     <documentation_template>
       # Node Classification Analysis
@@ -135,7 +135,7 @@ encoding: UTF-8
       
       ## Dependency Map
       
-      See: @.agent-os/architecture-analysis/dependency_map.mermaid
+      See: @agent-os-adaptive/architecture-analysis/dependency_map.mermaid
       
       ## Component Classifications
       
@@ -170,7 +170,7 @@ encoding: UTF-8
 </step_metadata>
 
 <verification_checklist>
-  - [ ] `.agent-os/architecture-analysis/` directory created
+  - [ ] `agent-os-adaptive/architecture-analysis/` directory created
   - [ ] `dependency_map.mermaid` generated
   - [ ] `node_classification.md` generated and populated
 </verification_checklist>
@@ -180,8 +180,8 @@ encoding: UTF-8
 
   I have successfully analyzed the entire codebase and generated the following architecture documents:
 
-  - **Dependency Map:** @.agent-os/architecture-analysis/dependency_map.mermaid
-  - **Node Classification:** @.agent-os/architecture-analysis/node_classification.md
+  - **Dependency Map:** @agent-os-adaptive/architecture-analysis/dependency_map.mermaid
+  - **Node Classification:** @agent-os-adaptive/architecture-analysis/node_classification.md
 
   These files provide a foundational understanding of the project's structure and will be used to guide future development.
 </summary_template>

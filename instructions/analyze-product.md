@@ -41,7 +41,7 @@ encoding: UTF-8
 <prerequisites>
   - Existing product codebase
   - Write access to project root
-  - Access to @~/.agent-os/instructions/plan-product.md
+  - Access to @~/agent-os-adaptive/instructions/plan-product.md
 </prerequisites>
 
 <process_flow>
@@ -102,9 +102,9 @@ encoding: UTF-8
 </step_metadata>
 
 <instructions>
-  ACTION: Execute instructions from `@/Users/fredrick/Desktop/01_Work/workspace/agent-os-adaptive/instructions/analyze-node-classes.md`
+  ACTION: Execute instructions from `@~/agent-os-adaptive/instructions/analyze-node-classes.md`
   PURPOSE: To conduct a full dependency analysis of the codebase and generate the architecture map and node classifications.
-  VERIFY: Ensure that `.agent-os/architecture-analysis/dependency_map.mermaid` and `.agent-os/architecture-analysis/node_classification.md` are created.
+  VERIFY: Ensure that `agent-os-adaptive/architecture-analysis/dependency_map.mermaid` and `agent-os-adaptive/architecture-analysis/node_classification.md` are created.
 </instructions>
 
 </step>
@@ -147,7 +147,7 @@ encoding: UTF-8
 ### Step 4: Execute Plan-Product with Context
 
 <step_metadata>
-  <uses>@~/.agent-os/instructions/plan-product.md</uses>
+  <uses>@~/agent-os-adaptive/instructions/plan-product.md</uses>
   <modifies>standard flow for existing products</modifies>
 </step_metadata>
 
@@ -159,7 +159,7 @@ encoding: UTF-8
 </execution_parameters>
 
 <execution_prompt>
-  @~/.agent-os/instructions/plan-product.md
+  @~/agent-os-adaptive/instructions/plan-product.md
 
   I'm installing Agent OS into an existing product. Here's what I've gathered:
 
@@ -177,7 +177,7 @@ encoding: UTF-8
 <instructions>
   ACTION: Execute plan-product.md with gathered information
   PROVIDE: All context as structured input
-  ALLOW: plan-product.md to create .agent-os/product/ structure
+  ALLOW: plan-product.md to create agent-os-adaptive/product/ structure
 </instructions>
 
 </step>
@@ -244,7 +244,7 @@ encoding: UTF-8
 </step_metadata>
 
 <verification_checklist>
-  - [ ] .agent-os/product/ directory created
+  - [ ] agent-os-adaptive/product/ directory created
   - [ ] All product documentation reflects actual codebase
   - [ ] Roadmap shows completed and planned features accurately
   - [ ] Tech stack matches installed dependencies
@@ -265,19 +265,19 @@ encoding: UTF-8
 
   ### What Was Created
 
-  - ✓ Product documentation in `.agent-os/product/`
+  - ✓ Product documentation in `agent-os-adaptive/product/`
   - ✓ Roadmap with completed work in Phase 0
   - ✓ Tech stack reflecting actual dependencies
-  - ✓ Architecture analysis in `.agent-os/architecture-analysis/`
+  - ✓ Architecture analysis in `agent-os-adaptive/architecture-analysis/`
 
   ### Next Steps
 
-  1. Review the generated documentation in `.agent-os/product/`
+  1. Review the generated documentation in `agent-os-adaptive/product/`
   2. Make any necessary adjustments to reflect your vision
   3. See the Agent OS README for usage instructions: https://github.com/buildermethods/agent-os
   4. Start using Agent OS for your next feature:
      ```
-     @~/.agent-os/instructions/create-spec.md
+     @~/agent-os-adaptive/instructions/create-spec.md
      ```
 
   Your codebase is now Agent OS-enabled! 🚀

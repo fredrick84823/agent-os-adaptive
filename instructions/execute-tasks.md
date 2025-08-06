@@ -38,7 +38,7 @@ encoding: UTF-8
 </context>
 
 <prerequisites>
-  - Spec documentation exists in @.agent-os/specs/
+  - Spec documentation exists in @agent-os-adaptive/specs/
   - Tasks defined in spec's tasks.md
   - Development environment configured
   - Git repository initialized
@@ -80,7 +80,7 @@ encoding: UTF-8
     - spec SRD file
 - spec tasks.md
 - all files in spec sub-specs/ folder
-    - @.agent-os/product/mission.md
+    - @agent-os-adaptive/product/mission.md
   </reads>
   <purpose>complete understanding of requirements</purpose>
 </step_metadata>
@@ -120,8 +120,8 @@ encoding: UTF-8
   </extract_metadata>
   <dependency_analysis_integration>
     <if_dependency_files_exist>
-      1. READ @.agent-os/architecture-analysis/dependency_map.mermaid for visual dependency understanding
-      2. READ @.agent-os/architecture-analysis/node_classification.md for detailed component analysis
+      1. READ @agent-os-adaptive/architecture-analysis/dependency_map.mermaid for visual dependency understanding
+      2. READ @agent-os-adaptive/architecture-analysis/node_classification.md for detailed component analysis
       3. EXTRACT component-specific development approaches
       4. IDENTIFY which components need careful oversight vs autonomous development
       5. PLAN implementation strategy based on component-level classifications
@@ -295,7 +295,7 @@ encoding: UTF-8
       **Classification:** Mixed Approach Required
       **Approach:** Selective development strategies based on dependency analysis
 
-      Based on the dependency analysis in @.agent-os/architecture-analysis/node_classification.md:
+      Based on the dependency analysis in @agent-os-adaptive/architecture-analysis/node_classification.md:
 
       ### Leaf Components (Autonomous Development)
       - **[LEAF_COMPONENT_1]** - Rapid implementation with E2E focus
@@ -354,8 +354,8 @@ encoding: UTF-8
   I've prepared the above implementation plan based on the [NODE_CLASSIFICATION] and [IMPLEMENTATION_MODE].
   
   **Next Step:** Upon approval, I will delegate implementation to the appropriate specialized agent:
-  - **Core Nodes:** @~/.agent-os/subagents/core-node-agent.md (careful, oversight-heavy approach)
-  - **Leaf Nodes:** @~/.agent-os/subagents/leaf-node-agent.md (autonomous, rapid approach)
+  - **Core Nodes:** @~/agent-os-adaptive/subagents/core-node-agent.md (careful, oversight-heavy approach)
+  - **Leaf Nodes:** @~/agent-os-adaptive/subagents/leaf-node-agent.md (autonomous, rapid approach)
   - **Mixed/Other:** Traditional development approach
   
   Please review and confirm before I proceed with execution.
@@ -468,8 +468,8 @@ encoding: UTF-8
     <step_1>
       <action>Read architecture analysis documents</action>
       <files>
-        - @.agent-os/architecture-analysis/node_classification.md
-        - @.agent-os/architecture-analysis/dependency_map.mermaid
+        - @agent-os-adaptive/architecture-analysis/node_classification.md
+        - @agent-os-adaptive/architecture-analysis/dependency_map.mermaid
       </files>
       <extract>
         - Component classifications (Core/Business/Leaf)
@@ -492,9 +492,9 @@ encoding: UTF-8
       <action>Make delegation decision</action>
       <decision_tree>
         IF task_primarily_affects_core_nodes OR high_dependency_impact:
-          DELEGATE_TO @~/.agent-os/subagents/core-node-agent.md
+          DELEGATE_TO @~/agent-os-adaptive/subagents/core-node-agent.md
         ELIF task_primarily_affects_leaf_nodes AND minimal_dependency_impact:
-          DELEGATE_TO @~/.agent-os/subagents/leaf-node-agent.md
+          DELEGATE_TO @~/agent-os-adaptive/subagents/leaf-node-agent.md
         ELIF mixed_node_types:
           USE mixed_approach_execution (below)
         ELSE:
@@ -509,7 +509,7 @@ encoding: UTF-8
       
       Based on architecture analysis, this task involves core system components with high dependency impact. 
       
-      Following specialized core node implementation approach from @~/.agent-os/subagents/core-node-agent.md:
+      Following specialized core node implementation approach from @~/agent-os-adaptive/subagents/core-node-agent.md:
       - Architecture-first comprehensive testing
       - User consultation on implementation mode
       - Multiple review checkpoints
@@ -527,7 +527,7 @@ encoding: UTF-8
       
       Based on architecture analysis, this task involves leaf node components with minimal dependency impact.
       
-      Following specialized leaf node implementation approach from @~/.agent-os/subagents/leaf-node-agent.md:
+      Following specialized leaf node implementation approach from @~/agent-os-adaptive/subagents/leaf-node-agent.md:
       - E2E-focused testing approach
       - Autonomous rapid implementation
       - User validation emphasis
@@ -546,8 +546,8 @@ encoding: UTF-8
   <follow_exactly>
     - approved implementation plan
     - spec specifications
-    - @.agent-os/product/code-style.md
-    - @.agent-os/product/dev-best-practices.md
+    - @agent-os-adaptive/product/code-style.md
+    - @agent-os-adaptive/product/dev-best-practices.md
   </follow_exactly>
   <approach>adapted based on node classification and mode</approach>
 </execution_standards>
@@ -625,7 +625,7 @@ encoding: UTF-8
       - Risk-based development prioritization
     </characteristics>
     <workflow>
-      1. Analyze dependency classification from @.agent-os/architecture-analysis/node_classification.md
+      1. Analyze dependency classification from @agent-os-adaptive/architecture-analysis/node_classification.md
       2. Phase 1: Implement core components with comprehensive testing
          - Write unit tests for core components
          - Careful implementation with review checkpoints
@@ -673,7 +673,7 @@ encoding: UTF-8
 
 <instructions>
   ACTION: Execute node classification and delegation process first
-  STEP_1: Read architecture analysis documents from .agent-os/architecture-analysis/
+  STEP_1: Read architecture analysis documents from agent-os-adaptive/architecture-analysis/
   STEP_2: Analyze task components and classify node types
   STEP_3: Make delegation decision based on analysis
   DELEGATE: Use appropriate specialized agent (core-node-agent.md or leaf-node-agent.md)
@@ -804,7 +804,7 @@ encoding: UTF-8
 ### Step 10: Roadmap Progress Check
 
 <step_metadata>
-  <checks>@.agent-os/product/roadmap.md</checks>
+  <checks>@agent-os-adaptive/product/roadmap.md</checks>
   <updates>if spec completes roadmap item</updates>
 </step_metadata>
 
@@ -903,11 +903,11 @@ encoding: UTF-8
 
 <standards>
   <code_style>
-    <follow>@.agent-os/product/code-style.md</follow>
+    <follow>@agent-os-adaptive/product/code-style.md</follow>
     <enforce>strictly</enforce>
   </code_style>
   <best_practices>
-    <follow>@.agent-os/product/dev-best-practices.md</follow>
+    <follow>@agent-os-adaptive/product/dev-best-practices.md</follow>
     <apply>all directives</apply>
   </best_practices>
   <testing>

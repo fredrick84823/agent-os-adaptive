@@ -63,7 +63,7 @@ encoding: UTF-8
 <data_sources>
   <primary>user_direct_input</primary>
   <fallback_sequence>
-    1. @~/.agent-os/standards/tech-stack.md
+    1. @~/agent-os-adaptive/standards/tech-stack.md
     2. @~/.claude/CLAUDE.md
     3. Cursor User Rules
   </fallback_sequence>
@@ -93,13 +93,13 @@ encoding: UTF-8
 
 <step_metadata>
   <creates>
-    - directory: .agent-os/product/
+    - directory: agent-os-adaptive/product/
     - files: 4
   </creates>
 </step_metadata>
 
 <file_structure>
-  .agent-os/
+  agent-os-adaptive/
   └── product/
       ├── mission.md          # Product vision and purpose
       ├── tech-stack.md       # Technical architecture
@@ -127,7 +127,7 @@ encoding: UTF-8
 
 <step_metadata>
   <creates>
-    - file: .agent-os/product/mission.md
+    - file: agent-os-adaptive/product/mission.md
   </creates>
 </step_metadata>
 
@@ -252,7 +252,7 @@ encoding: UTF-8
 
 <step_metadata>
   <creates>
-    - file: .agent-os/product/tech-stack.md
+    - file: agent-os-adaptive/product/tech-stack.md
   </creates>
 </step_metadata>
 
@@ -285,7 +285,7 @@ encoding: UTF-8
   <for_each item="required_items">
     <if_not_in>user_input</if_not_in>
     <then_check>
-      1. @~/.agent-os/standards/tech-stack.md
+      1. @~/agent-os-adaptive/standards/tech-stack.md
       2. @~/.claude/CLAUDE.md
       3. Cursor User Rules
     </then_check>
@@ -314,7 +314,7 @@ encoding: UTF-8
 
 <step_metadata>
   <creates>
-    - file: .agent-os/product/roadmap.md
+    - file: agent-os-adaptive/product/roadmap.md
   </creates>
 </step_metadata>
 
@@ -382,7 +382,7 @@ encoding: UTF-8
 
 <step_metadata>
   <creates>
-    - file: .agent-os/product/decisions.md
+    - file: agent-os-adaptive/product/decisions.md
   </creates>
   <override_priority>highest</override_priority>
 </step_metadata>
@@ -473,34 +473,34 @@ encoding: UTF-8
 ## Agent OS Documentation
 
 ### Product Context
-- **Mission & Vision:** @.agent-os/product/mission.md
-- **Technical Architecture:** @.agent-os/product/tech-stack.md
-- **Development Roadmap:** @.agent-os/product/roadmap.md
-- **Decision History:** @.agent-os/product/decisions.md
+- **Mission & Vision:** @agent-os-adaptive/product/mission.md
+- **Technical Architecture:** @agent-os-adaptive/product/tech-stack.md
+- **Development Roadmap:** @agent-os-adaptive/product/roadmap.md
+- **Decision History:** @agent-os-adaptive/product/decisions.md
 
 ### Development Standards
-- **Code Style:** @~/.agent-os/standards/code-style.md
-- **Best Practices:** @~/.agent-os/standards/best-practices.md
+- **Code Style:** @~/agent-os-adaptive/standards/code-style.md
+- **Best Practices:** @~/agent-os-adaptive/standards/best-practices.md
 
 ### Project Management
-- **Active Specs:** @.agent-os/specs/
-- **Spec Planning:** Use `@~/.agent-os/instructions/create-spec.md`
-- **Tasks Execution:** Use `@~/.agent-os/instructions/execute-tasks.md`
+- **Active Specs:** @agent-os-adaptive/specs/
+- **Spec Planning:** Use `@~/agent-os-adaptive/instructions/create-spec.md`
+- **Tasks Execution:** Use `@~/agent-os-adaptive/instructions/execute-tasks.md`
 
 ## Workflow Instructions
 
 When asked to work on this codebase:
 
-1. **First**, check @.agent-os/product/roadmap.md for current priorities
+1. **First**, check @agent-os-adaptive/product/roadmap.md for current priorities
 2. **Then**, follow the appropriate instruction file:
-   - For new features: @.agent-os/instructions/create-spec.md
-   - For tasks execution: @.agent-os/instructions/execute-tasks.md
+   - For new features: @~/agent-os-adaptive/instructions/create-spec.md
+   - For tasks execution: @~/agent-os-adaptive/instructions/execute-tasks.md
 3. **Always**, adhere to the standards in the files listed above
 
 ## Important Notes
 
-- Product-specific files in `.agent-os/product/` override any global standards
-- User's specific instructions override (or amend) instructions found in `.agent-os/specs/...`
+- Product-specific files in `agent-os-adaptive/product/` override any global standards
+- User's specific instructions override (or amend) instructions found in `agent-os-adaptive/specs/...`
 - Always adhere to established patterns, code style, and best practices documented above.
 </content_template>
 
@@ -539,7 +539,7 @@ When asked to work on this codebase:
 
 <final_checklist>
   <verify>
-    - [ ] All 4 files created in .agent-os/product/
+    - [ ] All 4 files created in agent-os-adaptive/product/
     - [ ] User inputs incorporated throughout
     - [ ] Missing tech stack items requested
     - [ ] Initial decisions documented
