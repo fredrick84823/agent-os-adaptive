@@ -44,9 +44,10 @@ Inspired by Erik Schultz's talk on [Vibe Coding](https://youtu.be/fHWFF_pnqDk?si
 
 ### Instructions
 - **`plan-product.md`** - Initialize new product with mission, roadmap, and tech stack
-- **`analyze-product.md`** - Add Agent OS to existing codebases 
-- **`create-spec.md`** - Plan features with intelligent node classification
-- **`execute-tasks.md`** - Execute tasks with adaptive workflows
+- **`analyze-product.md`** - Add Agent OS to existing codebases, triggering a one-time, full-project architecture analysis.
+- **`analyze-node-classes.md`** - A reusable instruction that performs a deep, dependency-based analysis of the entire codebase to generate baseline architecture documents.
+- **`create-spec.md`** - Plan features by leveraging the existing architecture analysis to determine impact and classify the feature.
+- **`execute-tasks.md`** - Execute tasks with adaptive workflows based on the feature's classification.
 
 ### Standards  
 - **`tech-stack.md`** - Technology preferences and patterns
@@ -147,9 +148,10 @@ Main agent delegates different components to appropriate specialized agents base
 agent-os-adaptive/
 ├── instructions/           # Core workflow instructions
 │   ├── plan-product.md    # Product initialization
-│   ├── create-spec.md     # Feature specification (enhanced with dependency analysis)
-│   ├── execute-tasks.md   # Task execution (supports mixed approach)
-│   └── analyze-product.md # Existing codebase analysis
+│   ├── analyze-product.md # Existing codebase analysis
+│   ├── analyze-node-classes.md # (NEW) Standalone, reusable node classification
+│   ├── create-spec.md     # Feature specification (uses analysis)
+│   └── execute-tasks.md   # Task execution (adaptive)
 ├── standards/             # Development standards
 │   ├── tech-stack.md      # Technology preferences
 │   ├── code-style.md      # Coding conventions
@@ -218,6 +220,11 @@ The framework adapts to your project by reading:
 - **Project-specific preferences** in local files
 
 ## 🆕 Key Architectural Improvements
+
+### Modular & Reusable Node Analysis
+- **Standalone Instruction**: The core logic for dependency analysis has been extracted into its own reusable file: `analyze-node-classes.md`.
+- **One-Time Analysis**: This analysis is now run once during the `analyze-product.md` phase to create a persistent, project-wide architecture baseline.
+- **Efficient Feature Planning**: `create-spec.md` no longer performs a full analysis. Instead, it efficiently leverages the existing baseline to quickly assess the impact of a new feature.
 
 ### Centralized Classification Logic
 - **Main Agent Decision Making**: All node classification logic centralized in `execute-tasks.md`

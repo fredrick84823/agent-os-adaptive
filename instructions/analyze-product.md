@@ -92,9 +92,26 @@ encoding: UTF-8
 
 </step>
 
-<step number="2" name="gather_product_context">
+<step number="2" name="generate_architecture_analysis">
 
-### Step 2: Gather Product Context
+### Step 2: Generate Architecture Analysis
+
+<step_metadata>
+  <action>invoke node classification process</action>
+  <purpose>create a baseline understanding of the codebase architecture</purpose>
+</step_metadata>
+
+<instructions>
+  ACTION: Execute instructions from `@/Users/fredrick/Desktop/01_Work/workspace/agent-os-adaptive/instructions/analyze-node-classes.md`
+  PURPOSE: To conduct a full dependency analysis of the codebase and generate the architecture map and node classifications.
+  VERIFY: Ensure that `.agent-os/architecture-analysis/dependency_map.mermaid` and `.agent-os/architecture-analysis/node_classification.md` are created.
+</instructions>
+
+</step>
+
+<step number="3" name="gather_product_context">
+
+### Step 3: Gather Product Context
 
 <step_metadata>
   <supplements>codebase analysis</supplements>
@@ -125,9 +142,9 @@ encoding: UTF-8
 
 </step>
 
-<step number="3" name="execute_plan_product">
+<step number="4" name="execute_plan_product">
 
-### Step 3: Execute Plan-Product with Context
+### Step 4: Execute Plan-Product with Context
 
 <step_metadata>
   <uses>@~/.agent-os/instructions/plan-product.md</uses>
@@ -165,9 +182,9 @@ encoding: UTF-8
 
 </step>
 
-<step number="4" name="customize_generated_files">
+<step number="5" name="customize_generated_files">
 
-### Step 4: Customize Generated Documentation
+### Step 5: Customize Generated Documentation
 
 <step_metadata>
   <refines>generated documentation</refines>
@@ -217,9 +234,9 @@ encoding: UTF-8
 
 </step>
 
-<step number="5" name="final_verification">
+<step number="6" name="final_verification">
 
-### Step 5: Final Verification and Summary
+### Step 6: Final Verification and Summary
 
 <step_metadata>
   <verifies>installation completeness</verifies>
@@ -251,6 +268,7 @@ encoding: UTF-8
   - ✓ Product documentation in `.agent-os/product/`
   - ✓ Roadmap with completed work in Phase 0
   - ✓ Tech stack reflecting actual dependencies
+  - ✓ Architecture analysis in `.agent-os/architecture-analysis/`
 
   ### Next Steps
 

@@ -162,254 +162,98 @@ encoding: UTF-8
 
 <step number="3.5" name="code_impact_analysis">
 
-### Step 3.5: Code Impact Analysis (Dependency-Based Node Classification)
+### Step 3.5: Code Impact Analysis & Classification
 
 <step_metadata>
-  <purpose>Analyze whether spec involves leaf nodes or core architecture using dependency mapping</purpose>
-  <enables>vibe_coding_approach</enables>
-  <creates>
-    - .agent-os/architecture-analysis/dependency_map.mermaid
-    - .agent-os/architecture-analysis/node_classification.md
-  </creates>
+  <purpose>Assess the new feature's impact on the existing architecture and classify it.</purpose>
+  <uses>the baseline architecture analysis</uses>
+  <creates>spec-specific impact documentation</creates>
 </step_metadata>
 
 <analysis_workflow>
-  <substep number="3.5.1" name="codebase_scanning">
-    <purpose>Scan existing codebase to identify all functions, classes, and modules</purpose>
+  <substep number="3.5.1" name="verify_baseline_analysis">
+    <purpose>Ensure that the global architecture analysis exists.</purpose>
     <action>
-      1. SCAN project directories (excluding node_modules, .git, etc.)
-      2. IDENTIFY all functions, classes, methods, and modules
-      3. EXTRACT import/require statements and function calls
-      4. BUILD initial inventory of code components
+      1. CHECK for the existence of `.agent-os/architecture-analysis/dependency_map.mermaid`.
+      2. CHECK for the existence of `.agent-os/architecture-analysis/node_classification.md`.
     </action>
-    <output>component_inventory.json (temporary working file)</output>
+    <decision_tree>
+      IF analysis_files_do_not_exist:
+        PROMPT user to run the global analysis first.
+        HALT process until files are generated.
+      ELSE:
+        PROCEED to the next substep.
+    </decision_tree>
+    <user_prompt_template>
+      ## Baseline Architecture Analysis Not Found
+
+      Before I can create a spec, a baseline analysis of the codebase is required. These files appear to be missing:
+      - `.agent-os/architecture-analysis/dependency_map.mermaid`
+      - `.agent-os/architecture-analysis/node_classification.md`
+
+      Please run the following command to generate them:
+      `@/Users/fredrick/Desktop/01_Work/workspace/agent-os-adaptive/instructions/analyze-node-classes.md`
+
+      Once the analysis is complete, you can run this spec creation command again.
+    </user_prompt_template>
   </substep>
 
-  <substep number="3.5.2" name="dependency_mapping">
-    <purpose>Generate comprehensive dependency graph using Mermaid</purpose>
+  <substep number="3.5.2" name="spec_impact_mapping">
+    <purpose>Map the new spec's requirements to the existing, classified components.</purpose>
     <action>
-      1. ANALYZE import statements and function calls
-      2. MAP dependencies between components  
-      3. IDENTIFY bidirectional and circular dependencies
-      4. GENERATE Mermaid diagram showing dependency relationships
-      5. SAVE as .agent-os/architecture-analysis/dependency_map.mermaid
+      1. READ the global `@.agent-os/architecture-analysis/node_classification.md`.
+      2. IDENTIFY which existing components the new spec will modify or interact with.
+      3. DETERMINE which new components the spec will create.
+      4. CLASSIFY the new components (Core, Business, or Leaf) based on their intended interactions.
+      5. ANALYZE the "blast radius" of the proposed changes by tracing dependencies in the global dependency map.
     </action>
-    
-    <mermaid_template>
-      ```mermaid
-      graph TD
-          %% Core Infrastructure Nodes
-          A[Authentication] --> B[UserService]
-          A --> C[Database]
-          
-          %% Business Logic Nodes
-          B --> D[ProfileController]
-          B --> E[OrderController]
-          
-          %% Leaf Nodes (minimal dependencies)
-          F[ReportGenerator] --> B
-          G[EmailNotifier] --> H[EmailService]
-          
-          %% UI Components (potential leaf nodes, it could be other Nodes depends on project)
-          I[UserDashboard] --> D
-          J[OrderHistory] --> E
-          
-          %% Styling and classification
-          classDef coreNode fill:#ff6b6b,stroke:#000,stroke-width:3px
-          classDef businessNode fill:#ffd93d,stroke:#000,stroke-width:2px
-          classDef leafNode fill:#6bcf7f,stroke:#000,stroke-width:1px
-          
-          class A,C coreNode
-          class B,D,E businessNode  
-          class F,G,I,J leafNode
-      ```
-    </mermaid_template>
   </substep>
 
-  <substep number="3.5.3" name="dependency_analysis">
-    <purpose>Analyze dependency patterns to classify components</purpose>
-    <analysis_criteria>
-      <core_node_patterns>
-        - High in-degree (many components depend on it)
-        - Low out-degree (depends on few other components)
-        - Critical path components (if removed, breaks multiple features)
-        - Infrastructure and shared services
-        - Components with bidirectional dependencies
-      </core_node_patterns>
-      
-      <leaf_node_patterns>
-        - Low in-degree (few or no components depend on it)
-        - Higher out-degree (depends on other components but not depended upon)
-        - UI components with one-way data flow
-        - Feature-specific components
-        - Report generators and exporters
-        - Components that can be removed without breaking other features
-      </leaf_node_patterns>
-      
-      <business_logic_patterns>
-        - Medium in-degree and out-degree
-        - Orchestrates between core and leaf nodes
-        - Contains domain-specific logic
-        - Controllers and service layers
-      </business_logic_patterns>
-    </analysis_criteria>
+  <substep number="3.5.3" name="spec_classification">
+    <purpose>Classify the overall spec based on its impact.</purpose>
+    <classification_logic>
+      IF spec_primarily_modifies_or_creates_leaf_nodes AND dependency_impact_is_minimal:
+        CLASSIFY spec as "Leaf Node Candidate"
+      ELIF spec_modifies_or_interacts_with_core_nodes OR has_high_dependency_impact:
+        CLASSIFY spec as "Core Node Requires Oversight"
+      ELSE:
+        CLASSIFY spec as "Mixed Approach Required"
+    </classification_logic>
   </substep>
 
-  <substep number="3.5.4" name="spec_impact_mapping">
-    <purpose>Map spec requirements to affected components</purpose>
-    <action>
-      1. IDENTIFY which existing components the spec will modify
-      2. DETERMINE which new components the spec will create
-      3. MAP spec components to dependency graph
-      4. ANALYZE impact propagation through dependency chains
-      5. CALCULATE "blast radius" of changes
-    </action>
-    
-    <impact_analysis>
-      <direct_impact>components directly modified by spec</direct_impact>
-      <indirect_impact>components affected through dependencies</indirect_impact>
-      <integration_points>interfaces between new and existing components</integration_points>
-      <risk_assessment>likelihood of breaking existing functionality</risk_assessment>
-    </impact_analysis>
-  </substep>
+  <substep number="3.5.4" name="user_confirmation">
+    <purpose>Get user agreement on the classification and recommended approach.</purpose>
+    <user_confirmation_template>
+      ## Spec Impact Assessment
 
-  <substep number="3.5.5" name="classification_documentation">
-    <purpose>Document classification results for all affected components</purpose>
-    <creates>.agent-os/architecture-analysis/node_classification.md</creates>
-    
-    <documentation_template>
-      # Node Classification Analysis
-      
-      > Created: [CURRENT_DATE]
-      > Spec: [SPEC_NAME]
-      > Analysis Method: Dependency-based classification
-      
-      ## Dependency Map
-      
-      See: @.agent-os/architecture-analysis/dependency_map.mermaid
-      
-      ## Component Classifications
-      
-      ### Core Nodes (Require Careful Oversight)
-      
-      | Component | Type | In-Degree | Out-Degree | Risk Level | Justification |
-      |-----------|------|-----------|------------|------------|---------------|
-      | [COMPONENT] | [CLASS/FUNCTION] | [NUMBER] | [NUMBER] | [HIGH/MEDIUM/LOW] | [REASONING] |
-      
-      ### Business Logic Nodes (Standard Development)
-      
-      | Component | Type | In-Degree | Out-Degree | Risk Level | Justification |
-      |-----------|------|-----------|------------|------------|---------------|
-      | [COMPONENT] | [CLASS/FUNCTION] | [NUMBER] | [NUMBER] | [HIGH/MEDIUM/LOW] | [REASONING] |
-      
-      ### Leaf Nodes (Autonomous Development Candidates)
-      
-      | Component | Type | In-Degree | Out-Degree | Risk Level | Justification |
-      |-----------|------|-----------|------------|------------|---------------|
-      | [COMPONENT] | [CLASS/FUNCTION] | [NUMBER] | [NUMBER] | [HIGH/MEDIUM/LOW] | [REASONING] |
-      
-      ## Spec Impact Analysis
-      
-      ### Components to be Modified
-      - **[COMPONENT]** ([CLASSIFICATION]) - [MODIFICATION_DESCRIPTION]
-      
-      ### New Components to be Created  
-      - **[COMPONENT]** ([PREDICTED_CLASSIFICATION]) - [CREATION_DESCRIPTION]
-      
-      ### Dependency Chain Impact
-      ```
-      [SPEC_COMPONENT] → [AFFECTED_COMPONENT_1] → [AFFECTED_COMPONENT_2]
-      ```
-      
-      ## Overall Spec Classification
-      
-      **Primary Classification:** [LEAF_NODE_CANDIDATE / CORE_NODE_REQUIRES_OVERSIGHT / MIXED_APPROACH]
-      
-      **Justification:** [DETAILED_REASONING_BASED_ON_DEPENDENCY_ANALYSIS]
-      
-      **Recommended Development Approach:** [APPROACH_RECOMMENDATION]
-    </documentation_template>
+      I have analyzed this feature's requirements against the existing codebase architecture.
+
+      **Affected Core Components:**
+      - [LIST_AFFECTED_CORE_COMPONENTS]
+
+      **Affected Leaf Components:**
+      - [LIST_AFFECTED_LEAF_COMPONENTS]
+
+      **New Components to be Created:**
+      - [NEW_COMPONENT_1] (Predicted Classification: [Leaf/Core])
+
+      **Overall Spec Classification:** [LEAF_NODE_CANDIDATE / CORE_NODE_REQUIRES_OVERSIGHT / MIXED_APPROACH]
+
+      **Justification:** [DETAILED_REASONING]
+
+      Based on this, I will tailor the development and testing strategy. For **Core** changes, I will be more cautious and thorough. For **Leaf** changes, I can proceed more autonomously.
+
+      Do you agree with this assessment?
+    </user_confirmation_template>
   </substep>
 </analysis_workflow>
 
-<legacy_indicators>
-  <leaf_node_indicators>
-    - New standalone features with minimal dependencies
-    - UI components that don't affect core workflows
-    - Utility functions used in limited contexts
-    - End-user facing features without system integrations
-    - Features with clear boundaries and limited extension points
-    - Report generation or data export features
-    - User interface enhancements that don't change data flow
-  </leaf_node_indicators>
-  
-  <core_node_indicators>
-    - Database schema changes affecting multiple features
-    - Authentication/authorization modifications
-    - Core API changes that other systems depend on
-    - Framework or architecture modifications
-    - Changes to shared utilities used across the system
-    - Performance-critical components
-    - Security-related infrastructure changes
-    - Payment or financial transaction handling
-  </core_node_indicators>
-</legacy_indicators>
-
-<classification_logic>
-  <dependency_based_classification>
-    IF spec_primarily_affects_leaf_nodes AND dependency_impact_minimal:
-      CLASSIFY as "leaf_node_candidate"
-      ENABLE vibe_coding_approach
-    ELIF spec_affects_core_nodes OR high_dependency_impact:
-      CLASSIFY as "core_node_requires_oversight"
-      MAINTAIN traditional_development_approach
-    ELIF spec_affects_mixed_nodes:
-      CLASSIFY as "mixed_approach_required"
-      APPLY selective_development_strategies
-    ELSE:
-      FALL_BACK to legacy_indicator_analysis
-  </dependency_based_classification>
-</classification_logic>
-
-<user_confirmation_template>
-  ## Dependency-Based Code Impact Assessment
-
-  I've analyzed the codebase dependencies and generated:
-  - **Dependency Map:** @.agent-os/architecture-analysis/dependency_map.mermaid
-  - **Classification Analysis:** @.agent-os/architecture-analysis/node_classification.md
-
-  Based on dependency analysis, this spec appears to involve **[CLASSIFICATION]**.
-
-  ### Dependency Analysis Results
-
-  **Components to be Modified:**
-  - [COMPONENT_1] ([CLASSIFICATION]) - [IMPACT_DESCRIPTION]
-  - [COMPONENT_2] ([CLASSIFICATION]) - [IMPACT_DESCRIPTION]
-
-  **New Components to be Created:**
-  - [NEW_COMPONENT_1] ([PREDICTED_CLASSIFICATION]) - [DESCRIPTION]
-
-  **Dependency Chain Impact:**
-  - Direct impact: [NUMBER] components
-  - Indirect impact: [NUMBER] components  
-  - Risk level: [HIGH/MEDIUM/LOW]
-
-  ### Recommendation: [LEAF_NODE_CANDIDATE / CORE_NODE_REQUIRES_OVERSIGHT / MIXED_APPROACH]
-
-  **Justification:** [DETAILED_REASONING_FROM_DEPENDENCY_ANALYSIS]
-
-  If classified as **leaf node candidate**, I can use autonomous development. If **core node**, I'll use traditional careful development. If **mixed approach**, I'll apply different strategies to different components.
-
-  Would you like me to proceed with this classification, or would you like to review the dependency analysis first?
-</user_confirmation_template>
-
 <instructions>
-  ACTION: Execute dependency-based analysis workflow (substeps 3.5.1 through 3.5.5)
-  GENERATE: Mermaid dependency diagram and classification documentation
-  ANALYZE: Component dependencies and impact propagation
-  CLASSIFY: Spec based on dependency analysis rather than just indicators
-  DOCUMENT: All analysis results in .agent-os/architecture-analysis/ folder
-  CONFIRM: Get user agreement on data-driven classification
+  ACTION: Execute the impact analysis workflow.
+  VERIFY: First, ensure baseline analysis files exist. Halt and instruct the user if they don't.
+  ANALYZE: Map the spec's impact on the pre-existing architecture.
+  CLASSIFY: Determine the spec's overall classification (Leaf, Core, Mixed).
+  CONFIRM: Get user agreement on the final classification before proceeding.
 </instructions>
 
 </step>

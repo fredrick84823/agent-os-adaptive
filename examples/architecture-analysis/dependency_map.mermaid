@@ -1,0 +1,90 @@
+```mermaid
+graph TD
+    %% Core Infrastructure Nodes
+    A[root_agent] --> B[call_db_agent]
+    A --> C[call_ds_agent]
+    A --> D[list_available_projects_and_datasets]
+    A --> E[export_query_results_to_csv]
+    A --> F[setup_before_agent_call]
+    A --> G[load_artifacts]
+    
+    %% Sub-Agent Architecture
+    B --> H[db_agent]
+    C --> I[ds_agent]
+    A --> J[bqml_agent]
+    
+    %% BigQuery Core Infrastructure
+    H --> K[bigquery/tools]
+    K --> L[get_bq_client]
+    K --> M[execute_sql_query]
+    K --> N[get_database_settings]
+    K --> O[get_multi_project_config]
+    K --> P[get_all_projects_and_datasets]
+    
+    %% CHASE SQL System (Core NL2SQL)
+    K --> Q[chase_sql/chase_db_tools]
+    Q --> R[chase_sql/llm_utils]
+    Q --> S[chase_sql/qp_prompt_template]
+    Q --> T[chase_sql/dc_prompt_template]
+    Q --> U[chase_sql/chase_constants]
+    
+    %% SQL Post-processing (Core)
+    Q --> V[sql_postprocessor/sql_translator]
+    V --> W[sql_postprocessor/correction_prompt_template]
+    
+    %% Data Science Analytics Agent
+    I --> X[analytics/agent]
+    X --> Y[VertexAiCodeExecutor]
+    X --> Z[analytics/prompts]
+    
+    %% BQML Agent
+    J --> AA[bqml/agent]
+    AA --> BB[bqml/tools]
+    BB --> AB[check_bq_models]
+    BB --> AC[execute_bqml_code]
+    
+    %% Utility Functions
+    K --> AD[utils/utils]
+    AD --> AE[is_cloud_run_environment]
+    AD --> AF[get_credentials_path]
+    AD --> AG[get_env_var]
+    
+    %% Data Management Utils
+    K --> AH[utils/create_bq_table]
+    AH --> AI[load_csv_to_bigquery]
+    AH --> AJ[create_dataset_if_not_exists]
+    
+    %% RAG System
+    AK[utils/reference_guide_RAG] --> AL[list_all_extensions]
+    
+    %% Leaf Node Features
+    E --> AM[CSV Export Logic]
+    AM --> AN[pandas DataFrame conversion]
+    AM --> AO[Artifact creation]
+    
+    %% Prompts System
+    A --> AP[prompts]
+    Z --> AP
+    AP --> AQ[return_instructions_root]
+    AP --> AR[return_instructions_ds]
+    
+    %% External Dependencies (Core Infrastructure)
+    L --> AS[google.cloud.bigquery]
+    Y --> AT[google.adk.code_executors]
+    G --> AU[google.adk.tools]
+    E --> AV[google.genai.types]
+    
+    %% Styling and classification
+    classDef coreNode fill:#ff6b6b,stroke:#000,stroke-width:3px
+    classDef businessNode fill:#ffd93d,stroke:#000,stroke-width:2px
+    classDef leafNode fill:#6bcf7f,stroke:#000,stroke-width:1px
+    
+    %% Core Infrastructure (High dependency, critical components)
+    class A,K,L,Q,H,I,J,AD coreNode
+    
+    %% Business Logic (Medium dependency, orchestration)
+    class B,C,D,F,M,N,O,P,R,S,T,U,V,W,X,AA,BB,AH,AP businessNode
+    
+    %% Leaf Nodes (Low dependency, feature-specific)
+    class E,AM,AN,AO,Y,Z,AB,AC,AE,AF,AG,AI,AJ,AK,AL,AQ,AR leafNode
+```
