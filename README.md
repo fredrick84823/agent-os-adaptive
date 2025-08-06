@@ -1,6 +1,8 @@
 # Agent OS Adaptive
 
-An intelligent development framework that automatically adapts its approach based on code impact analysis. Fork of [Agent OS](https://github.com/buildermethods/agent-os) with added leaf/core node classification for optimal development workflows.
+agent-os-adaptive is my optimized version of agent-os, designed to help AI agents be more "responsible" when collaborating with engineers.
+
+It's an AI development framework that automatically adapts its approach based on code impact analysis. This is a fork of Agent OS with added leaf/core node classification to create optimal development workflows.
 
 ## 🧠 Core Innovation
 
@@ -19,14 +21,13 @@ An intelligent development framework that automatically adapts its approach base
 
 Inspired by Erik Schultz's talk on [Vibe Coding](https://youtu.be/fHWFF_pnqDk?si=lzHZFO4TNMKGP7As), enhanced with data-driven dependency analysis.
 
-## 🚀 Quick Start
+
+## 🚀 Quick Start (same setup as agent-os)
 
 ### Prerequisites
 
 - **Claude Code CLI** or **Cursor IDE** with Claude integration
 - **Git** (recommended)
-- **Node.js** 18+ (for web applications)
-- Write access to your project directory
 
 ### Step 1: Clone Agent OS Adaptive
 
@@ -38,7 +39,7 @@ git clone https://github.com/fredrick84823/agent-os-adaptive.git
 ### Step 2: Tool-Specific Setup
 **Claude Code CLI**
 ```bash
-curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup-claude-code.sh | bash
 ```
 
 - Copies the commands from the GitHub Repo to use as custom slash commands in your ~/.claude/commands/ folder.
@@ -54,7 +55,7 @@ curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup-c
 
 
 
-### Step 3: Choose Your Path
+### Step 3: Projects Setup
 
 #### 🆕 For New Projects (0 → 1)
 
@@ -90,15 +91,21 @@ curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup-c
 
    **Claude Code:**
    ```bash
+   # agent will analyze product -> plan product -> scan codebase to generate docs
    /analyze-product
    Please analyze my codebase and set up Agent OS documentation
    ```
 
    **Cursor:**
    ```bash
+   # agent will analyze product -> plan product -> scan codebase to generate docs
    @analyze-product
    Please analyze my codebase and set up Agent OS documentation
    ```
+
+   **Example**:
+
+   ![Analyze Product](images/step3-analysis-product.png)
 
 ### Step 4: Interactive Setup
 
@@ -107,6 +114,10 @@ The AI will guide you through:
 - 🛠️ **Tech Stack**: Detect or configure your technology choices  
 - 📋 **Roadmap**: Create development phases and feature priorities
 - 🏗️ **Architecture Analysis**: Map dependencies (existing projects only)
+
+   **Example**:
+
+   ![Interactive Setup](images/step4-interactive.png)
 
 ### Step 5: Start Building Features
 
@@ -159,22 +170,7 @@ your-project/
 See a complete example of Agent OS in action or just see examples folder in this repo:
 **[ADK Data Science Agent](https://github.com/fredrick84823/adk-data-science-agent/tree/main/python/agents/data-science)** - A real project built using Agent OS Adaptive showing the complete structure and documentation.
 
-### 💬 Sample Conversations
-
-**Initial Setup:**
-> **You:** "Help me set up Agent OS for my e-commerce project"
->
-> **AI:** "I'll set up Agent OS for your e-commerce project. Let me create comprehensive product documentation. What's your main product idea and target market?"
-
-**Feature Development:**
-> **You:** "I need to add a recommendation engine"
->
-> **AI:** "I'll analyze your codebase first to classify this as a leaf or core node, then create a spec with the appropriate development approach. Let me start by examining your architecture..."
-
-**Smart Development:**
-> **AI:** "Based on dependency analysis, the recommendation engine is a leaf node component. I'll use autonomous development with E2E testing focus for rapid implementation."
-
-## 🎯 Advanced Dependency-Based Classification
+## 🎯 Detail Feature Explanation
 
 ### 🔍 Intelligent Analysis Process
 
@@ -233,11 +229,48 @@ The system now performs comprehensive dependency analysis to make precise classi
 - **Impact Calculation**: Measures "blast radius" of proposed changes
 - **Component Classification**: Generates detailed classification tables with metrics
 
-### 2. Comprehensive Architecture Analysis
-- **`agent-os-adaptive/architecture-analysis/dependency_map.mermaid`**: Visual dependency graph with color-coded node types
-- **`agent-os-adaptive/architecture-analysis/node_classification.md`**: Detailed analysis table with in-degree/out-degree metrics
-- **Risk Assessment**: Quantified impact levels for each component
-- **Project-Level Persistence**: Analysis stored at project level for reuse across all specs
+### 2. Comprehensive Architecture Analysis & Node Classification
+The agent generates a detailed `node_classification.md` file that provides a complete breakdown of your codebase's architecture. This file is crucial for making informed decisions about development strategies.
+
+**Example `node_classification.md`:**
+
+```markdown
+# Node Classification Analysis
+
+> Created: 2025-08-05
+> Project: ADK Data Science Multi-Agent System
+
+## Component Classifications
+
+### Core Nodes (Require Careful Oversight)
+
+| Component | Type | In-Degree | Out-Degree | Risk Level | Justification |
+|-----------|------|-----------|------------|------------|---------------|
+| root_agent | CLASS | 8+ | 3 | HIGH | Central orchestrator - all tools and sub-agents depend on it |
+| bigquery/tools | MODULE | 6+ | 4 | HIGH | Core BigQuery operations - used by all data access functions |
+
+### Leaf Nodes (Autonomous Development Candidates)
+
+| Component | Type | In-Degree | Out-Degree | Risk Level | Justification |
+|-----------|------|-----------|------------|------------|---------------|
+| export_query_results_to_csv | FUNCTION | 1 | 3 | LOW | Feature-specific export functionality - minimal dependencies |
+| list_available_projects_and_datasets | FUNCTION | 1 | 2 | LOW | Information display feature - no other components depend on it |
+
+## Development Recommendations
+
+### For Core Node Changes
+- **Approach:** Traditional careful development with comprehensive testing
+- **Testing:** Full integration test suite, performance testing
+
+### For Leaf Node Changes
+- **Approach:** Autonomous development with E2E focus
+- **Testing:** End-to-end user scenarios, acceptance testing
+```
+
+This analysis also includes:
+- **Visual Dependency Map**: A link to the `dependency_map.mermaid` graph.
+- **Risk Assessment**: Quantified impact levels for each component.
+- **Project-Level Persistence**: The analysis is stored at the project level for reuse across all feature specifications.
 
 ### 3. Intelligent Agent Delegation
 - **Main Agent Analysis**: Reads architecture analysis and classifies task components
