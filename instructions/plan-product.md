@@ -477,6 +477,8 @@ encoding: UTF-8
 - **Technical Architecture:** @agent-os-adaptive/product/tech-stack.md
 - **Development Roadmap:** @agent-os-adaptive/product/roadmap.md
 - **Decision History:** @agent-os-adaptive/product/decisions.md
+- **Architecture Analysis:** @agent-os-adaptive/architecture-analysis/dependency_map.mermaid
+- **Component Classification:** @agent-os-adaptive/architecture-analysis/node_classification.md
 
 ### Development Standards
 - **Code Style:** @~/agent-os-adaptive/standards/code-style.md
@@ -493,8 +495,8 @@ When asked to work on this codebase:
 
 1. **First**, check @agent-os-adaptive/product/roadmap.md for current priorities
 2. **Then**, follow the appropriate instruction file:
-   - For new features: @~/agent-os-adaptive/instructions/create-spec.md
-   - For tasks execution: @~/agent-os-adaptive/instructions/execute-tasks.md
+   - For new features: @agent-os-adaptive/instructions/create-spec.md
+   - For tasks execution: @agent-os-adaptive/instructions/execute-tasks.md
 3. **Always**, adhere to the standards in the files listed above
 
 ## Important Notes

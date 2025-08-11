@@ -1,4 +1,4 @@
----
+f---
 description: Analyzes the entire codebase to classify nodes based on dependency mapping.
 globs:
 alwaysApply: false
