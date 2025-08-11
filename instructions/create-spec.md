@@ -38,11 +38,11 @@ encoding: UTF-8
 </context>
 
 <prerequisites>
-  - Product documentation exists in agent-os-adaptive/product/
+  - Product documentation exists in .agent-os/product/
   - Access to:
-    - @agent-os-adaptive/product/mission.md,
-    - @agent-os-adaptive/product/roadmap.md,
-    - @agent-os-adaptive/product/tech-stack.md
+    - @.agent-os/product/mission.md,
+    - @.agent-os/product/roadmap.md,
+    - @.agent-os/product/tech-stack.md
   - User has spec idea or roadmap reference
 </prerequisites>
 
@@ -65,7 +65,7 @@ encoding: UTF-8
     - "what should we work on next?"
   </trigger_phrases>
   <actions>
-    1. CHECK @agent-os-adaptive/product/roadmap.md
+    1. CHECK @.agent-os/product/roadmap.md
     2. FIND next uncompleted item
     3. SUGGEST item to user
     4. WAIT for approval
@@ -92,9 +92,9 @@ encoding: UTF-8
 
 <step_metadata>
   <reads>
-    - @agent-os-adaptive/product/mission.md
-    - @agent-os-adaptive/product/roadmap.md
-    - @agent-os-adaptive/product/tech-stack.md
+    - @.agent-os/product/mission.md
+    - @.agent-os/product/roadmap.md
+    - @.agent-os/product/tech-stack.md
   </reads>
   <purpose>understand spec alignment</purpose>
 </step_metadata>
@@ -174,8 +174,8 @@ encoding: UTF-8
   <substep number="3.5.1" name="verify_baseline_analysis">
     <purpose>Ensure that the global architecture analysis exists.</purpose>
     <action>
-      1. CHECK for the existence of `agent-os-adaptive/architecture-analysis/dependency_map.mermaid`.
-      2. CHECK for the existence of `agent-os-adaptive/architecture-analysis/node_classification.md`.
+      1. CHECK for the existence of `.agent-os/architecture-analysis/dependency_map.mermaid`.
+      2. CHECK for the existence of `.agent-os/architecture-analysis/node_classification.md`.
     </action>
     <decision_tree>
       IF analysis_files_do_not_exist:
@@ -188,8 +188,8 @@ encoding: UTF-8
       ## Baseline Architecture Analysis Not Found
 
       Before I can create a spec, a baseline analysis of the codebase is required. These files appear to be missing:
-      - `agent-os-adaptive/architecture-analysis/dependency_map.mermaid`
-      - `agent-os-adaptive/architecture-analysis/node_classification.md`
+      - `.agent-os/architecture-analysis/dependency_map.mermaid`
+      - `.agent-os/architecture-analysis/node_classification.md`
 
       Please run the following command to generate them:
       `@/Users/fredrick/Desktop/01_Work/workspace/agent-os-adaptive/instructions/analyze-node-classes.md`
@@ -201,7 +201,7 @@ encoding: UTF-8
   <substep number="3.5.2" name="spec_impact_mapping">
     <purpose>Map the new spec's requirements to the existing, classified components.</purpose>
     <action>
-      1. READ the global `@agent-os-adaptive/architecture-analysis/node_classification.md`.
+      1. READ the global `@.agent-os/architecture-analysis/node_classification.md`.
       2. IDENTIFY which existing components the new spec will modify or interact with.
       3. DETERMINE which new components the spec will create.
       4. CLASSIFY the new components (Core, Business, or Leaf) based on their intended interactions.
@@ -272,8 +272,8 @@ encoding: UTF-8
   <primary_method>
     <name>File System Timestamp</name>
     <process>
-      1. CREATE directory if not exists: agent-os-adaptive/specs/
-      2. CREATE temporary file: agent-os-adaptive/specs/.date-check
+      1. CREATE directory if not exists: .agent-os/specs/
+      2. CREATE temporary file: .agent-os/specs/.date-check
       3. READ file creation timestamp from filesystem
       4. EXTRACT date in YYYY-MM-DD format
       5. DELETE temporary file
@@ -325,7 +325,7 @@ encoding: UTF-8
 
 <step_metadata>
   <creates>
-    - directory: agent-os-adaptive/specs/YYYY-MM-DD-spec-name/
+    - directory: .agent-os/specs/YYYY-MM-DD-spec-name/
   </creates>
   <uses>date from step 4</uses>
 </step_metadata>
@@ -361,7 +361,7 @@ encoding: UTF-8
 
 <step_metadata>
   <creates>
-    - file: agent-os-adaptive/specs/YYYY-MM-DD-spec-name/spec.md
+    - file: .agent-os/specs/YYYY-MM-DD-spec-name/spec.md
   </creates>
 </step_metadata>
 
@@ -474,7 +474,7 @@ encoding: UTF-8
   <header>
     # Technical Specification
 
-    This is the technical specification for the spec detailed in @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/spec.md
+    This is the technical specification for the spec detailed in @.agent-os/specs/YYYY-MM-DD-spec-name/spec.md
 
     > Created: [CURRENT_DATE]
     > Version: 1.0.0
@@ -554,7 +554,7 @@ encoding: UTF-8
   <header>
     # Database Schema
 
-    This is the database schema implementation for the spec detailed in @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/spec.md
+    This is the database schema implementation for the spec detailed in @.agent-os/specs/YYYY-MM-DD-spec-name/spec.md
 
     > Created: [CURRENT_DATE]
     > Version: 1.0.0
@@ -610,7 +610,7 @@ encoding: UTF-8
   <header>
     # API Specification
 
-    This is the API specification for the spec detailed in @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/spec.md
+    This is the API specification for the spec detailed in @.agent-os/specs/YYYY-MM-DD-spec-name/spec.md
 
     > Created: [CURRENT_DATE]
     > Version: 1.0.0
@@ -668,7 +668,7 @@ encoding: UTF-8
   <header>
     # Tests Specification
 
-    This is the tests coverage details for the spec detailed in @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/spec.md
+    This is the tests coverage details for the spec detailed in @.agent-os/specs/YYYY-MM-DD-spec-name/spec.md
 
     > Created: [CURRENT_DATE]
     > Version: 1.0.0
@@ -740,8 +740,8 @@ encoding: UTF-8
 <review_request>
   I've created the spec documentation:
 
-  - Spec Requirements: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/spec.md
-  - Technical Spec: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/sub-specs/technical-spec.md
+  - Spec Requirements: @.agent-os/specs/YYYY-MM-DD-spec-name/spec.md
+  - Technical Spec: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/technical-spec.md
   [LIST_OTHER_CREATED_SPECS]
 
   Please review and let me know if any changes are needed before I create the task breakdown.
@@ -770,7 +770,7 @@ encoding: UTF-8
   <header>
     # Spec Tasks
 
-    These are the tasks to be completed for the spec detailed in @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/spec.md
+    These are the tasks to be completed for the spec detailed in @.agent-os/specs/YYYY-MM-DD-spec-name/spec.md
 
     > Created: [CURRENT_DATE]
     > Status: Ready for Implementation
@@ -939,11 +939,11 @@ encoding: UTF-8
 <reference_template>
   ## Spec Documentation
 
-  - Tasks: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/tasks.md
-  - Technical Specification: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/sub-specs/technical-spec.md
-  - API Specification: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/sub-specs/api-spec.md
-  - Database Schema: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/sub-specs/database-schema.md
-  - Tests Specification: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/sub-specs/tests.md
+  - Tasks: @.agent-os/specs/YYYY-MM-DD-spec-name/tasks.md
+  - Technical Specification: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/technical-spec.md
+  - API Specification: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/api-spec.md
+  - Database Schema: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/database-schema.md
+  - Tests Specification: @.agent-os/specs/YYYY-MM-DD-spec-name/sub-specs/tests.md
 </reference_template>
 
 <reference_format>
@@ -971,8 +971,8 @@ encoding: UTF-8
 
 <decision_analysis>
   <review_against>
-    - @agent-os-adaptive/product/mission.md
-    - @agent-os-adaptive/product/decisions.md
+    - @.agent-os/product/mission.md
+    - @.agent-os/product/decisions.md
   </review_against>
   <criteria>
     - changes product direction
@@ -999,7 +999,7 @@ encoding: UTF-8
   **ID:** DEC-[NEXT_NUMBER]
   **Status:** Accepted
   **Category:** [technical/product/business/process]
-  **Related Spec:** @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/
+  **Related Spec:** @.agent-os/specs/YYYY-MM-DD-spec-name/
 
   ### Decision
 
@@ -1027,9 +1027,99 @@ encoding: UTF-8
 
 </step>
 
-<step number="15" name="execution_readiness">
+<step number="15" name="roadmap_sync_update">
 
-### Step 15: Execution Readiness Check
+### Step 15: Roadmap Sync Update
+
+<step_metadata>
+  <updates>@agent-os-adaptive/product/roadmap.md</updates>
+  <creates>spec-roadmap connection</creates>
+</step_metadata>
+
+<sync_process>
+  <step_1>
+    <action>READ roadmap.md</action>
+    <search>Find matching feature by name/description</search>
+  </step_1>
+  
+  <step_2>
+    <decision_tree>
+      IF feature_found:
+        ADD spec link to existing feature
+      ELSE:
+        ASK user which phase to add to
+        IF no_suitable_phase:
+          CREATE new phase
+        ADD feature to selected/new phase
+    </decision_tree>
+  </step_2>
+  
+  <step_3>
+    <action>UPDATE spec.md</action>
+    <add_section>
+      ## Roadmap Connection
+      
+      - **Phase:** [PHASE_NUMBER] - [PHASE_NAME]
+      - **Feature:** [FEATURE_NAME]
+      - **Roadmap:** @agent-os-adaptive/product/roadmap.md
+    </add_section>
+  </step_3>
+</sync_process>
+
+<roadmap_updates>
+  <existing_feature>
+    <format>
+      - [ ] Feature Name - Description `effort`
+        - Spec: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/
+    </format>
+  </existing_feature>
+  
+  <new_feature>
+    <format>
+      ### Should-Have Features
+      
+      - [ ] [SPEC_NAME] - [SPEC_DESCRIPTION] `[AUTO_ESTIMATED_EFFORT]`
+        - Spec: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/
+    </format>
+  </new_feature>
+  
+  <new_phase>
+    <format>
+      ## Phase [NEXT_NUMBER]: [SPEC_BASED_NAME]
+      
+      ### Must-Have Features
+      
+      - [ ] [SPEC_NAME] - [SPEC_DESCRIPTION] `[EFFORT]`
+        - Spec: @agent-os-adaptive/specs/YYYY-MM-DD-spec-name/
+    </format>
+  </new_phase>
+</roadmap_updates>
+
+<user_prompts>
+  <phase_selection>
+    No matching feature found. Which phase should this belong to?
+    
+    **Available Phases:**
+    [LIST_CURRENT_PHASES]
+    
+    **Options:**
+    1. Phase [N] - Add to existing phase
+    2. New Phase - Create new phase for this feature
+  </phase_selection>
+</user_prompts>
+
+<instructions>
+  ACTION: Read roadmap and find feature match
+  IF_MATCH: Add spec link to existing feature
+  IF_NO_MATCH: Ask user for phase selection
+  UPDATE: Both roadmap.md and spec.md with connections
+</instructions>
+
+</step>
+
+<step number="16" name="execution_readiness">
+
+### Step 16: Execution Readiness Check
 
 <step_metadata>
   <evaluates>readiness to begin implementation</evaluates>
@@ -1051,14 +1141,14 @@ encoding: UTF-8
   **Task 1:** [FIRST_TASK_TITLE]
   [BRIEF_DESCRIPTION_OF_TASK_1_AND_SUBTASKS]
 
-  Would you like me to proceed with implementing Task 1? I will follow the execution guidelines in @~/agent-os-adaptive/instructions/execute-tasks.md and focus only on this first task and its subtasks unless you specify otherwise.
+  Would you like me to proceed with implementing Task 1? I will follow the execution guidelines in @~/.agent-os/instructions/execute-tasks.md and focus only on this first task and its subtasks unless you specify otherwise.
 
   Type 'yes' to proceed with Task 1, or let me know if you'd like to review or modify the plan first."
 </execution_prompt>
 
 <execution_flow>
   IF user_confirms_yes:
-    REFERENCE: @~/agent-os-adaptive/instructions/execute-tasks.md
+    REFERENCE: @~/.agent-os/instructions/execute-tasks.md
     FOCUS: Only Task 1 and its subtasks
     CONSTRAINT: Do not proceed to additional tasks without explicit user request
   ELSE:
@@ -1079,9 +1169,9 @@ encoding: UTF-8
 
 <standards>
   <follow>
-    - @agent-os-adaptive/product/code-style.md
-    - @agent-os-adaptive/product/dev-best-practices.md
-    - @agent-os-adaptive/product/tech-stack.md
+    - @.agent-os/product/code-style.md
+    - @.agent-os/product/dev-best-practices.md
+    - @.agent-os/product/tech-stack.md
   </follow>
   <maintain>
     - Consistency with product mission
@@ -1105,5 +1195,7 @@ encoding: UTF-8
     - [ ] tasks.md created with TDD approach
     - [ ] Cross-references added to spec.md
     - [ ] Strategic decisions evaluated
+    - [ ] Roadmap synchronized with spec link
+    - [ ] Bidirectional roadmap-spec connection created
   </verify>
 </final_checklist>
