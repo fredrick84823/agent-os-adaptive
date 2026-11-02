@@ -22,7 +22,7 @@ It's an AI development framework that automatically adapts its approach based on
 Inspired by Erik Schultz's talk on [Vibe Coding](https://youtu.be/fHWFF_pnqDk?si=lzHZFO4TNMKGP7As), enhanced with data-driven dependency analysis.
 
 
-## 🚀 Quick Start (same setup as agent-os)
+## 🚀 Quick Start
 
 ### Prerequisites
 
@@ -37,23 +37,28 @@ git clone https://github.com/fredrick84823/agent-os-adaptive.git
 ```
 
 ### Step 2: Tool-Specific Setup
+
+> The instructions reference files via `@~/agent-os-adaptive/...`, so keep the clone at `~/agent-os-adaptive` (Step 1). There is no hosted setup script; copy the files directly.
+
 **Claude Code CLI**
 ```bash
-curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup-claude-code.sh | bash
+# Instructions as custom slash commands (/plan-product, /analyze-product, /analyze-node-classes, /create-spec, /execute-tasks)
+mkdir -p ~/.claude/commands ~/.claude/agents
+cp ~/agent-os-adaptive/instructions/*.md ~/.claude/commands/
+
+# Subagents (core-node-agent, leaf-node-agent, and utility agents)
+cp ~/agent-os-adaptive/subagents/*.md ~/.claude/agents/
 ```
 
-- Copies the commands from the GitHub Repo to use as custom slash commands in your ~/.claude/commands/ folder.
-- Optionally installs specialized subagent files from the GitHub Repo to your ~/.claude/agents/ folder for enhanced performance.
-
-**Cursor IDE**
+**Cursor IDE** (run inside your project)
 ```bash
-curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup-cursor.sh | bash
+mkdir -p .cursor/rules
+for f in ~/agent-os-adaptive/instructions/*.md; do
+  cp "$f" ".cursor/rules/$(basename "${f%.md}").mdc"
+done
 ```
 
-- Creates the .cursor/rules/ directory in your project.
-- Copies the commands from the GitHub repo to your .cursor/rules/ folder with .mdc extensions.
-
-
+- Each instruction becomes a `.mdc` rule (e.g. `@plan-product`, `@execute-tasks`); their frontmatter already uses Cursor's `description` / `globs` / `alwaysApply` fields.
 
 ### Step 3: Projects Setup
 
@@ -128,7 +133,7 @@ The AI will guide you through:
 I want to add user authentication with OAuth and email verification
 
 # Execute development tasks  
-/execute-task
+/execute-tasks
 Let's implement the user registration feature
 ```
 
@@ -139,7 +144,7 @@ Let's implement the user registration feature
 I want to add user authentication with OAuth and email verification
 
 # Execute development tasks
-@execute-task
+@execute-tasks
 Let's implement the user registration feature
 ```
 
@@ -337,6 +342,8 @@ This framework is designed to evolve with your development patterns. Contributio
 - New specialized subagents
 - Improved workflow automation
 - New idea of workflow
+
+Before opening a PR, run `python3 scripts/lint-instructions.py` (checks frontmatter, absolute paths, and `@~/agent-os-adaptive/` references).
 
 ## 📚 Related
 
