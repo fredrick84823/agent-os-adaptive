@@ -546,8 +546,8 @@ encoding: UTF-8
   <follow_exactly>
     - approved implementation plan
     - spec specifications
-    - @agent-os-adaptive/product/code-style.md
-    - @agent-os-adaptive/product/dev-best-practices.md
+    - @~/agent-os-adaptive/standards/code-style.md
+    - @~/agent-os-adaptive/standards/best-practices.md
   </follow_exactly>
   <approach>adapted based on node classification and mode</approach>
 </execution_standards>
@@ -903,11 +903,11 @@ encoding: UTF-8
 
 <standards>
   <code_style>
-    <follow>@agent-os-adaptive/product/code-style.md</follow>
+    <follow>@~/agent-os-adaptive/standards/code-style.md</follow>
     <enforce>strictly</enforce>
   </code_style>
   <best_practices>
-    <follow>@agent-os-adaptive/product/dev-best-practices.md</follow>
+    <follow>@~/agent-os-adaptive/standards/best-practices.md</follow>
     <apply>all directives</apply>
   </best_practices>
   <testing>
