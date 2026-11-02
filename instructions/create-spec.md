@@ -192,7 +192,7 @@ encoding: UTF-8
       - `agent-os-adaptive/architecture-analysis/node_classification.md`
 
       Please run the following command to generate them:
-      `@/Users/fredrick/Desktop/01_Work/workspace/agent-os-adaptive/instructions/analyze-node-classes.md`
+      `@~/agent-os-adaptive/instructions/analyze-node-classes.md`
 
       Once the analysis is complete, you can run this spec creation command again.
     </user_prompt_template>
@@ -1169,8 +1169,8 @@ encoding: UTF-8
 
 <standards>
   <follow>
-    - @agent-os-adaptive/product/code-style.md
-    - @agent-os-adaptive/product/dev-best-practices.md
+    - @~/agent-os-adaptive/standards/code-style.md
+    - @~/agent-os-adaptive/standards/best-practices.md
     - @agent-os-adaptive/product/tech-stack.md
   </follow>
   <maintain>
