@@ -1,0 +1,11 @@
+{
+  // JSONC：註解與尾逗號都要能讀
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@lib": ["src/lib/index.ts"],
+      "@ghost/*": ["src/does-not-exist/*"], /* 對不到任何檔案 */
+    },
+  },
+}
