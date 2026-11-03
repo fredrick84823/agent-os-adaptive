@@ -146,7 +146,9 @@ uv run --project ~/agent-os-adaptive aoa-classify . # 從別的專案根目錄�
      1. 硬規則，命中任一 → core
         config_core_path   .aoa.toml 的 core_paths（CODEOWNERS 式 glob；也適用測試檔）
         sensitive:<id>     路徑 token／glob／import 的套件／套件入口（not_sensitive 可豁免）
-        runtime_cycle      位於 runtime 循環（SCC > 1，不含只有 type 的邊）→ 另標 high_risk
+        runtime_cycle      位於 runtime 循環（SCC > 1，不含只有 type 的邊）的 hub → 另標 high_risk
+                           循環 ≤ 3 個檔案：每個成員都是 hub；更大的循環：循環內被 ≥ max(2, ⌈10% × 循環大小⌉) 個成員
+                           runtime import 才是 hub，其餘成員照風險分數分類（reasons 會寫「not a hub」）
      2. 風險分數 → midrank 百分位 p（只在 ranked 檔案之間比）
         p ≥ 90                         → core［score_top］
         85 ≤ p < 90                    → core［score_boundary］（邊界往嚴格靠）
@@ -159,6 +161,19 @@ uv run --project ~/agent-os-adaptive aoa-classify . # 從別的專案根目錄�
 ```
 
 數字（90、85、35、40、2）都來自 `default_rules.toml` 的 `[thresholds]`，可在 `.aoa.toml` 改。
+
+### 圖結構規則 `[structure]`（rules 2026.11-2）
+
+| 欄位 | 預設 | 意思 |
+|---|---|---|
+| `runtime_cycle_core` | `"hubs"` | `"all"`＝每個 runtime 循環成員都是 core（2026.11-1 的行為）；`"hubs"`＝只有 hub |
+| `cycle_hub_all_max_size` | 3 | 循環不超過這個大小時，全部成員都算 hub |
+| `cycle_hub_min_share` | 0.1 | 大循環的 hub 門檻：循環內 runtime fan-in ≥ max(2, ⌈share × 大小⌉) |
+| `barrel_passthrough` | `"catalog"` | `"off"`＝不處理；`"catalog"`＝catalog barrel 不把 dependents 往下傳；`"all"`＝所有 barrel 都不往下傳（實驗，會漏掉真的依賴） |
+| `barrel_min_entries` | 3 | TS/JS 檔案所有 runtime 內部 import 都是 re-export，且至少這麼多個，才算 barrel |
+| `barrel_catalog_max_internal_share` | 0.1 | 被 re-export 的檔案彼此之間的 runtime import ≤ share × 條目數 才算 catalog（容許少數別名檔） |
+
+為什麼：django @ `308b6d6a` 有一個 181 個檔案的 runtime 循環（`conf`、`db`、`apps`…互相 import），2026.11-1 把 181 個成員全判 core、244 個 high_risk；改成 hub 後 core 374 → 277、high_risk 244 → 56。zod 的 `v4/locales/index.ts` re-export 63 個 locale，每個 locale 因此繼承整個 `v4/core` 的 134 個 dependents；catalog 規則把這些 locale 的 `prod_blast_radius` 降到 0–2。前後的準確度比較見 [`eval/results/report.md`](../../eval/results/report.md)。
 
 ### 風險分數
 
@@ -225,7 +240,7 @@ description = "對外資料匯出"
 paths = ["src/export/**"]
 ```
 
-清單欄位（`core_paths`、`not_sensitive`、`disable`、`example_paths`、`test_paths`）與 `coverage` 整個取代預設值；`thresholds`、`weights` 逐欄覆蓋。設定檔是人寫、進版控、會被 review 的，所以 `not_sensitive` 這種放寬可以寫在這裡；模型的放寬只能走 overrides 並等人工核准。
+清單欄位（`core_paths`、`not_sensitive`、`disable`、`example_paths`、`test_paths`）與 `coverage` 整個取代預設值；`thresholds`、`weights`、`structure` 逐欄覆蓋。設定檔是人寫、進版控、會被 review 的，所以 `not_sensitive` 這種放寬可以寫在這裡；模型的放寬只能走 overrides 並等人工核准。
 
 ## 覆寫 `overrides.jsonl`
 
@@ -246,8 +261,8 @@ paths = ["src/export/**"]
 
 ```json
 {
-  "rules_version": {"default": "2026.11-1", "repo": null},
-  "summary": {"core": 12, "business": 8, "leaf": 63, "ranked": 24, "tests": 48, "examples": 11, "high_risk": 11, "...": "..."},
+  "rules_version": {"default": "2026.11-2", "repo": null},
+  "summary": {"core": 10, "business": 12, "leaf": 61, "ranked": 24, "tests": 48, "examples": 11, "high_risk": 7, "...": "..."},
   "overrides": {"applied": [], "pending": [], "ignored": []},
   "inputs": {"config": null, "coverage": null, "overrides": null, "unresolved_json": true},
   "nodes": {
@@ -257,7 +272,7 @@ paths = ["src/export/**"]
       "reasons": ["sensitive:auth: path token 'sessions' matches keyword 'session' (認證、授權、session、權限)", "..."],
       "risk_score": 1.805456, "percentile": 39.58, "population": "ranked",
       "factors": {"impact": 5.6545, "cost_of_failure": 1.0, "detectability": 3.1319, "prod_blast_radius": 21, "prod_fan_in": 4,
-                  "test_fan_in": 2, "test_reach": 40, "churn": 1, "bugfix_count": 0, "coverage": null},
+                  "runtime_cycle_fan_in": null, "test_fan_in": 2, "test_reach": 40, "churn": 1, "bugfix_count": 0, "coverage": null},
       "overrides": []
     }
   }
@@ -275,7 +290,8 @@ paths = ["src/export/**"]
 
 - 敏感類別只看路徑、import 的套件與套件入口，**不讀程式內容**：在 `utils.py` 裡處理密碼、或用 `fetch` 直接打金流 API 都抓不到 → 用 `core_paths` 或 overrides 補。
 - `irreversible`（永久刪除）幾乎只能靠檔名，命中率最低。
-- barrel 檔（`index.ts` 一次 re-export 全部）會讓被它 re-export 的檔案 blast radius 偏大，例如 zod 的 `locales/*.ts`。
+- barrel 檔（`index.ts` 一次 re-export 全部）會讓被它 re-export 的檔案 blast radius 偏大。`[structure]` 只處理 TS/JS 的 catalog barrel（條目彼此獨立）；條目互相依賴的 barrel（zod 的 `v4/core/index.ts`）照常傳遞，Python 的 `__init__.py` re-export 也還沒處理。
+- 大量檔案一起改的 commit（翻譯、格式化）會把 churn／bugfix 平均灌給每個檔案：zod 的 locale 檔 blast radius 降到 0 後仍落在 p68–p83（business），因為多數 ranked 檔案沒有歷史。
 - 百分位是 repo 內相對值：小 repo 的 ranked 檔案很少時，一兩個檔案就佔掉 10%。
 - 耦合緊的套件（大循環、所有東西都被入口檔 import）幾乎沒有 ranked leaf：leaf 要求 `prod_blast_radius ≤ 2`，httpx @ `b5addb64` 的 23 個 ranked 檔案沒有一個是 leaf。這是刻意偏嚴；真的要放寬就調 `leaf_max_prod_blast_radius` 或寫需要核准的 override。
-- 權重與門檻未經校準（Phase 3）。
+- 權重與門檻仍未校準：`aoa-eval`（[`eval/README.md`](../../eval/README.md)）提供量測，但標註還沒經人工複核，不足以拿來調參。

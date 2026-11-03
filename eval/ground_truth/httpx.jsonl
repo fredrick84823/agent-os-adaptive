@@ -1,0 +1,33 @@
+# httpx @ b5addb64f0161ff6bfe94c124ef76f6a1fba5254 — initial labels by agent (Grok Bot), NEED HUMAN REVIEW.
+# Labelled blind (without looking at aoa-classify output), from each file's role in the library. Definitions: eval/README.md.
+{"path": "httpx/__init__.py", "label": "core", "rationale": "Public import surface (`httpx.Client`, `httpx.get`, exceptions); every user imports from here."}
+{"path": "httpx/__version__.py", "label": "leaf", "rationale": "Version string only."}
+{"path": "httpx/_api.py", "label": "business", "rationale": "Top-level convenience functions (httpx.get/post/stream) that build a one-off Client; thin delegation."}
+{"path": "httpx/_auth.py", "label": "core", "rationale": "Auth flows (Basic, Digest, NetRC, FunctionAuth) handling credentials; security sensitive."}
+{"path": "httpx/_client.py", "label": "core", "rationale": "Client/AsyncClient: request building, redirects (including stripping auth on cross-origin redirects), cookies, hooks; every request."}
+{"path": "httpx/_config.py", "label": "core", "rationale": "SSL context creation (verify, client certs), timeouts, limits, proxy config; TLS verification is a security boundary."}
+{"path": "httpx/_content.py", "label": "business", "rationale": "Encodes request bodies (json/form/bytes/streams); contained feature."}
+{"path": "httpx/_decoders.py", "label": "business", "rationale": "Response content decoders (gzip/deflate/brotli/zstd) and line/text decoders; a subsystem of response handling."}
+{"path": "httpx/_exceptions.py", "label": "core", "rationale": "Public exception hierarchy users catch (HTTPError, TimeoutException…); changing it silently breaks callers' error handling, and nearly every module raises from it."}
+{"path": "httpx/_main.py", "label": "leaf", "rationale": "Optional `httpx` command-line client (needs the cli extra); nothing in the library imports it."}
+{"path": "httpx/_models.py", "label": "core", "rationale": "Request, Response, Headers, Cookies: the core data model used by every request/response."}
+{"path": "httpx/_multipart.py", "label": "business", "rationale": "Multipart/form-data encoding for file uploads; one feature."}
+{"path": "httpx/_status_codes.py", "label": "business", "rationale": "`httpx.codes` enum: public data table, also used by redirect and raise_for_status logic; rarely changes."}
+{"path": "httpx/_transports/__init__.py", "label": "leaf", "rationale": "Internal re-export of the transport classes; no logic."}
+{"path": "httpx/_transports/asgi.py", "label": "business", "rationale": "ASGITransport for calling ASGI apps in-process (mostly testing)."}
+{"path": "httpx/_transports/base.py", "label": "business", "rationale": "BaseTransport/AsyncBaseTransport interface for custom transports; tiny contract."}
+{"path": "httpx/_transports/default.py", "label": "core", "rationale": "HTTPTransport over httpcore: SSL, proxies, connection pooling, exception mapping; every real network request."}
+{"path": "httpx/_transports/mock.py", "label": "leaf", "rationale": "MockTransport test helper; a few lines."}
+{"path": "httpx/_transports/wsgi.py", "label": "business", "rationale": "WSGITransport for in-process WSGI apps; one feature."}
+{"path": "httpx/_types.py", "label": "leaf", "rationale": "Type aliases only; no runtime behaviour."}
+{"path": "httpx/_urlparse.py", "label": "core", "rationale": "RFC 3986 URL parsing/normalisation (host, IDNA, percent-encoding); parsing bugs are security relevant (SSRF, host confusion)."}
+{"path": "httpx/_urls.py", "label": "core", "rationale": "Public URL and QueryParams classes used by every request."}
+{"path": "httpx/_utils.py", "label": "business", "rationale": "Misc helpers: environment proxy discovery, URLPattern matching for mounts/no_proxy, header utilities."}
+{"path": "tests/client/test_auth.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/client/test_cookies.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/client/test_event_hooks.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/client/test_proxies.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/models/test_whatwg.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/test_api.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/test_multipart.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/test_timeouts.py", "label": "leaf", "rationale": "Test file."}

@@ -16,9 +16,12 @@ DEFAULT_RULES_PATH = Path(__file__).with_name("default_rules.toml")
 REPO_CONFIG_NAME = ".aoa.toml"
 
 LIST_KEYS = ("test_paths", "example_paths", "core_paths", "not_sensitive", "disable")
-TOP_KEYS = {"version", "coverage", "thresholds", "weights", "sensitive", *LIST_KEYS}
+TOP_KEYS = {"version", "coverage", "thresholds", "weights", "structure", "sensitive", *LIST_KEYS}
 THRESHOLD_KEYS = {"core_top_percent", "leaf_bottom_percent", "boundary_margin_percent", "leaf_max_prod_blast_radius"}
 WEIGHT_KEYS = {"churn", "bugfix", "direct_tests", "transitive_tests", "coverage"}
+# [structure]：圖結構規則（runtime 循環的 hub、barrel 檔）。值的型別各自不同，見 _validate_structure。
+STRUCTURE_ENUMS = {"runtime_cycle_core": ("hubs", "all"), "barrel_passthrough": ("catalog", "all", "off")}
+STRUCTURE_NUMBERS = {"cycle_hub_all_max_size", "cycle_hub_min_share", "barrel_min_entries", "barrel_catalog_max_internal_share"}
 SENSITIVE_KEYS = {"id", "description", "keywords", "paths", "packages", "entrypoints", "replace"}
 
 
@@ -53,6 +56,7 @@ def _validate(cfg: dict, where: str) -> None:
         for k, v in t.items():
             if isinstance(v, bool) or not isinstance(v, (int, float)) or v < 0:
                 raise ConfigError(f"{where}.{table}.{k} 必須是 ≥ 0 的數字")
+    _validate_structure(cfg.get("structure", {}), f"{where}.structure")
     for i, s in enumerate(cfg.get("sensitive", [])):
         if not isinstance(s, dict) or not isinstance(s.get("id"), str) or not s["id"]:
             raise ConfigError(f"{where}.sensitive[{i}] 需要字串 id")
@@ -62,6 +66,20 @@ def _validate(cfg: dict, where: str) -> None:
         for k in ("keywords", "paths", "packages"):
             if k in s:
                 _check_list(f"{where}.sensitive[{s['id']}].{k}", s[k])
+
+
+def _validate_structure(t, where: str) -> None:
+    if not isinstance(t, dict):
+        raise ConfigError(f"{where} 必須是 table")
+    bad = set(t) - set(STRUCTURE_ENUMS) - STRUCTURE_NUMBERS
+    if bad:
+        raise ConfigError(f"{where}: 不認得的欄位 {sorted(bad)}")
+    for k, v in t.items():
+        if k in STRUCTURE_ENUMS:
+            if v not in STRUCTURE_ENUMS[k]:
+                raise ConfigError(f"{where}.{k} 必須是 {' | '.join(STRUCTURE_ENUMS[k])}")
+        elif isinstance(v, bool) or not isinstance(v, (int, float)) or v < 0:
+            raise ConfigError(f"{where}.{k} 必須是 ≥ 0 的數字")
 
 
 def load_default() -> dict:
@@ -87,7 +105,7 @@ def merge(default: dict, repo: dict) -> dict:
     """repo 設定覆蓋預設：
 
     - 清單欄位（core_paths、example_paths…）與 coverage：整個取代
-    - thresholds／weights：逐欄覆蓋
+    - thresholds／weights／structure：逐欄覆蓋
     - sensitive：同 id 時把 keywords／paths／packages 併入預設（replace = true 則整筆取代），新 id 附加在後
     - disable：移除指定 id 的敏感類別
     """
@@ -98,7 +116,7 @@ def merge(default: dict, repo: dict) -> dict:
     for k in (*LIST_KEYS, "coverage"):
         if k in repo:
             out[k] = list(repo[k]) if k != "coverage" else repo[k]
-    for table in ("thresholds", "weights"):
+    for table in ("thresholds", "weights", "structure"):
         out[table] = {**out.get(table, {}), **repo.get(table, {})}
     by_id = {s["id"]: s for s in out.get("sensitive", [])}
     order = [s["id"] for s in out.get("sensitive", [])]

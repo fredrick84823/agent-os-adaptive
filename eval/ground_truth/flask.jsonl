@@ -1,0 +1,36 @@
+# flask @ 49943b5a94413a530761350f04e896f76e8d620e — initial labels by agent (Grok Bot), NEED HUMAN REVIEW.
+# Labelled blind (without looking at aoa-classify output), from each file's role in the library. Definitions: eval/README.md.
+{"path": "src/flask/__init__.py", "label": "core", "rationale": "Public import surface: every Flask app does `from flask import Flask, request, ...`; a broken re-export breaks all users."}
+{"path": "src/flask/__main__.py", "label": "leaf", "rationale": "Three-line `python -m flask` shim that calls cli.main; nothing imports it."}
+{"path": "src/flask/app.py", "label": "core", "rationale": "Flask application class: WSGI entry, request dispatch, error handling, context push. Every request goes through it."}
+{"path": "src/flask/blueprints.py", "label": "business", "rationale": "Runtime Blueprint (static files, CLI group) on top of sansio/blueprints; only apps using blueprints are affected, and the logic is thin."}
+{"path": "src/flask/cli.py", "label": "business", "rationale": "`flask` command (run/shell/routes, app discovery, .env loading). Dev-time tooling, not on the production request path; bugs break the dev workflow, not served requests."}
+{"path": "src/flask/config.py", "label": "core", "rationale": "Config object that every app uses (from_object/from_envvar/from_prefixed_env, SECRET_KEY lives here); a bug silently mis-configures apps."}
+{"path": "src/flask/ctx.py", "label": "core", "rationale": "App/request context push/pop and `g`; every request and every `current_app` access depends on it; subtle lifecycle bugs leak state between requests."}
+{"path": "src/flask/debughelpers.py", "label": "leaf", "rationale": "Debug-mode-only diagnostics (nicer KeyError for files, template loading explanations); no effect in production."}
+{"path": "src/flask/globals.py", "label": "core", "rationale": "Defines the `current_app`, `request`, `session`, `g` context-local proxies used by virtually all app and extension code."}
+{"path": "src/flask/helpers.py", "label": "core", "rationale": "url_for, flash, send_file/send_from_directory (path-traversal sensitive), stream_with_context: public helpers used by most apps."}
+{"path": "src/flask/json/__init__.py", "label": "business", "rationale": "jsonify/dumps/loads thin wrappers that delegate to the app's JSON provider."}
+{"path": "src/flask/json/provider.py", "label": "business", "rationale": "DefaultJSONProvider serialization rules; affects JSON responses but is replaceable per app and well tested."}
+{"path": "src/flask/json/tag.py", "label": "business", "rationale": "Tagged JSON serializer used inside the signed session cookie; contained feature, the signing itself is in sessions.py/itsdangerous."}
+{"path": "src/flask/logging.py", "label": "leaf", "rationale": "Creates the default app logger/handler; small, configuration-only, failure is immediately visible."}
+{"path": "src/flask/sansio/app.py", "label": "core", "rationale": "Sans-IO App base class: config defaults, URL map, error handler registry shared by Flask; foundational."}
+{"path": "src/flask/sansio/blueprints.py", "label": "business", "rationale": "Blueprint registration/deferred setup logic; affects apps using blueprints only."}
+{"path": "src/flask/sansio/scaffold.py", "label": "core", "rationale": "Scaffold base of both App and Blueprint: route decorator, before/after request hooks, error handlers; every routing call goes through it."}
+{"path": "src/flask/sessions.py", "label": "core", "rationale": "Signed cookie session interface (itsdangerous, SECRET_KEY); security boundary for session integrity."}
+{"path": "src/flask/signals.py", "label": "leaf", "rationale": "Declares blinker signal objects only; no logic."}
+{"path": "src/flask/templating.py", "label": "business", "rationale": "Jinja environment and render_template; a large feature, but isolated to template rendering."}
+{"path": "src/flask/testing.py", "label": "business", "rationale": "FlaskClient / CLI runner used by users' test suites; bugs break tests, not production traffic."}
+{"path": "src/flask/typing.py", "label": "leaf", "rationale": "Type aliases only; no runtime behaviour."}
+{"path": "src/flask/views.py", "label": "business", "rationale": "Class-based View/MethodView; used by a subset of apps, small and self-contained."}
+{"path": "src/flask/wrappers.py", "label": "core", "rationale": "Request/Response classes used on every request (JSON parsing, max content length, blueprint lookup)."}
+{"path": "examples/javascript/js_example/__init__.py", "label": "leaf", "rationale": "Example application shipped only as documentation."}
+{"path": "tests/test_apps/blueprintapp/apps/__init__.py", "label": "leaf", "rationale": "Test fixture app."}
+{"path": "tests/test_apps/cliapp/__init__.py", "label": "leaf", "rationale": "Test fixture package."}
+{"path": "tests/test_apps/cliapp/factory.py", "label": "leaf", "rationale": "Test fixture for CLI app discovery."}
+{"path": "tests/test_apps/cliapp/importerrorapp.py", "label": "leaf", "rationale": "Test fixture that deliberately fails to import."}
+{"path": "tests/test_apps/cliapp/inner1/__init__.py", "label": "leaf", "rationale": "Test fixture package."}
+{"path": "tests/test_apps/subdomaintestmodule/__init__.py", "label": "leaf", "rationale": "Test fixture module."}
+{"path": "tests/test_helpers.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/test_instance_config.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/test_session_interface.py", "label": "leaf", "rationale": "Test file."}

@@ -16,6 +16,7 @@ dependencies = [
 [project.scripts]
 aoa-graph = "aoa_graph.cli:main"
 aoa-classify = "aoa_graph.classify:main"
+aoa-eval = "aoa_eval.cli:main"
 
 [dependency-groups]
 dev = [
@@ -27,4 +28,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["tools/aoa_graph"]
+packages = ["tools/aoa_graph", "eval/aoa_eval"]

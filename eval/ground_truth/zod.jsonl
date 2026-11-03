@@ -1,0 +1,66 @@
+# zod @ 2554b70c3d4a80273381e61d527d820720626440 — initial labels by agent (Grok Bot), NEED HUMAN REVIEW.
+# Sample: 51 files from `aoa-eval sample zod --per-class 15 --non-ranked 6` (stratified by predicted class, sha256 order, seed aoa-eval-1)
+# + 12 purposively added key modules (marked 'purposive'). Labelled blind from each file's role. Definitions: eval/README.md.
+{"path": "mm.mjs", "label": "leaf", "rationale": "Ad-hoc 8-line bundle-size measurement script at the repo root; not shipped."}
+{"path": "packages/bench/libs.ts", "label": "leaf", "rationale": "Benchmark code; not shipped."}
+{"path": "packages/bench/validate-vs-safeparse.ts", "label": "leaf", "rationale": "Benchmark code; not shipped."}
+{"path": "packages/integration/fixtures/internal-types/cjs-test.cts", "label": "leaf", "rationale": "Integration-test fixture."}
+{"path": "packages/mini/src/index.ts", "label": "business", "rationale": "One-line entry of the published `@zod/mini` alias package (re-exports zod/mini); public, but contains no logic and breakage is immediate."}
+{"path": "packages/resolution/src/index.ts", "label": "leaf", "rationale": "Module-resolution smoke-test script; not shipped."}
+{"path": "packages/resolution/src/index.cts", "label": "leaf", "rationale": "CJS variant of the module-resolution smoke-test script."}
+{"path": "packages/resolution/vitest.config.ts", "label": "leaf", "rationale": "Test runner config for the resolution check package."}
+{"path": "packages/treeshake/example-mini.ts", "label": "leaf", "rationale": "Tree-shaking/bundle-size input file; not shipped."}
+{"path": "packages/treeshake/valibot-simple-object.ts", "label": "leaf", "rationale": "Bundle-size comparison input; not shipped."}
+{"path": "packages/treeshake/zod-mini-object.ts", "label": "leaf", "rationale": "Bundle-size input; not shipped."}
+{"path": "packages/treeshake/zod-mini-simple-object.ts", "label": "leaf", "rationale": "Bundle-size input; not shipped."}
+{"path": "packages/treeshake/zod-string.ts", "label": "leaf", "rationale": "Bundle-size input; not shipped."}
+{"path": "packages/treeshake/zod3-full.ts", "label": "leaf", "rationale": "Bundle-size input; not shipped."}
+{"path": "packages/treeshake/zod3-string.ts", "label": "leaf", "rationale": "Bundle-size input; not shipped."}
+{"path": "packages/tsc/generate.ts", "label": "leaf", "rationale": "Generator for TypeScript compiler performance benchmarks; not shipped."}
+{"path": "packages/zod/src/locales/index.ts", "label": "business", "rationale": "Published `zod/locales` subpath entry; a one-line re-export of the v4 locale catalogue."}
+{"path": "packages/zod/src/v3/tests/nativeEnum.test.ts", "label": "leaf", "rationale": "Test file."}
+{"path": "packages/zod/src/v4-mini/index.ts", "label": "business", "rationale": "Published `zod/v4-mini` alias subpath entry; three-line re-export, no logic."}
+{"path": "packages/zod/src/v4/classic/tests/array.test.ts", "label": "leaf", "rationale": "Test file."}
+{"path": "packages/zod/src/v4/core/api.ts", "label": "core", "rationale": "Factory functions (_string, _email, _min…) that both classic and mini use to build every schema; public zod/v4/core API."}
+{"path": "packages/zod/src/v4/core/core.ts", "label": "core", "rationale": "$constructor, global config and brand machinery underlying every schema class."}
+{"path": "packages/zod/src/v4/core/json-schema.ts", "label": "business", "rationale": "Public TypeScript types describing JSON Schema output; no runtime code, but part of the published type surface of a TS-first library."}
+{"path": "packages/zod/src/v4/core/memoizer.ts", "label": "business", "rationale": "Memoisation for parsing recursive/cyclic inputs; a contained parse feature."}
+{"path": "packages/zod/src/v4/core/parse.ts", "label": "core", "rationale": "parse/safeParse/parseAsync/encode/decode implementations used by every validation call."}
+{"path": "packages/zod/src/v4/core/schemas.ts", "label": "core", "rationale": "Implementation of every core schema type; the heart of validation correctness."}
+{"path": "packages/zod/src/v4/core/standard-schema.ts", "label": "business", "rationale": "Standard Schema interop interface types used by other libraries (tRPC, form libs); type-only contract."}
+{"path": "packages/zod/src/v4/core/tests/locales/he.test.ts", "label": "leaf", "rationale": "Test file."}
+{"path": "packages/zod/src/v4/core/tests/url-no-canparse.test.ts", "label": "leaf", "rationale": "Test file."}
+{"path": "packages/zod/src/v4/core/to-json-schema.ts", "label": "business", "rationale": "JSON Schema generation; a large but self-contained feature."}
+{"path": "packages/zod/src/v4/locales/ca.ts", "label": "leaf", "rationale": "Catalan error-message table; only affects users who opt in via z.config(z.locales.ca())."}
+{"path": "packages/zod/src/v4/locales/ckb.ts", "label": "leaf", "rationale": "Kurdish error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/da.ts", "label": "leaf", "rationale": "Danish error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/en.ts", "label": "business", "rationale": "Default English error messages loaded for every classic user; wrong text affects everyone's messages but never validation results."}
+{"path": "packages/zod/src/v4/locales/eo.ts", "label": "leaf", "rationale": "Esperanto error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/fr.ts", "label": "leaf", "rationale": "French error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/index.ts", "label": "business", "rationale": "Public `z.locales` catalogue: re-exports every locale; no logic."}
+{"path": "packages/zod/src/v4/locales/it.ts", "label": "leaf", "rationale": "Italian error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/ja.ts", "label": "leaf", "rationale": "Japanese error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/km.ts", "label": "leaf", "rationale": "Khmer error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/lt.ts", "label": "leaf", "rationale": "Lithuanian error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/nn.ts", "label": "leaf", "rationale": "Norwegian Nynorsk error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/no.ts", "label": "leaf", "rationale": "Norwegian error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/locales/ro.ts", "label": "leaf", "rationale": "Romanian error-message table; opt-in locale."}
+{"path": "packages/zod/src/v4/mini/coerce.ts", "label": "business", "rationale": "z.coerce for zod/mini; small feature."}
+{"path": "packages/zod/src/v4/mini/deep-partial.ts", "label": "leaf", "rationale": "Niche DeepPartial helper for mini; removable without affecting other features."}
+{"path": "packages/zod/src/v4/mini/schemas.ts", "label": "core", "rationale": "All zod/mini schema classes and factories: the mini public API."}
+{"path": "scripts/check-comments.ts", "label": "leaf", "rationale": "Repo maintenance lint script; not shipped."}
+{"path": "scripts/check-semver.ts", "label": "leaf", "rationale": "Release tooling script; not shipped."}
+{"path": "scripts/compile-fuzz.ts", "label": "leaf", "rationale": "Fuzzing script for the compiler; not shipped."}
+{"path": "scripts/write-stub-package-jsons.ts", "label": "leaf", "rationale": "Build helper script; not shipped."}
+{"path": "packages/zod/src/index.ts", "label": "core", "rationale": "purposive: main `zod` package entry; every user imports from here."}
+{"path": "packages/zod/src/v4/classic/schemas.ts", "label": "core", "rationale": "purposive: classic ZodType classes and methods (.optional, .refine…) used by most users."}
+{"path": "packages/zod/src/v4/classic/external.ts", "label": "core", "rationale": "purposive: assembles the classic public namespace (`z.*`) and sets the default locale."}
+{"path": "packages/zod/src/v4/core/checks.ts", "label": "core", "rationale": "purposive: every check/refinement (min, max, regex, length…); validation correctness."}
+{"path": "packages/zod/src/v4/core/util.ts", "label": "core", "rationale": "purposive: shared utilities used across core (object handling, cloning, issue helpers)."}
+{"path": "packages/zod/src/v4/core/errors.ts", "label": "core", "rationale": "purposive: $ZodError and issue formatting (flatten, treeifyError); public error contract."}
+{"path": "packages/zod/src/v4/core/regexes.ts", "label": "core", "rationale": "purposive: email/uuid/url/datetime regexes; correctness and ReDoS-sensitive."}
+{"path": "packages/zod/src/v3/types.ts", "label": "core", "rationale": "purposive: the whole zod v3 schema implementation, still shipped as zod/v3 for existing users."}
+{"path": "packages/zod/src/v4/core/registries.ts", "label": "business", "rationale": "purposive: metadata registries (globalRegistry, .meta()); contained feature."}
+{"path": "packages/zod/src/v4/core/versions.ts", "label": "leaf", "rationale": "purposive: version constant only."}
+{"path": "packages/zod/src/v4/classic/coerce.ts", "label": "business", "rationale": "purposive: z.coerce.* factories; small feature."}
+{"path": "packages/zod/src/v4/core/doc.ts", "label": "business", "rationale": "purposive: code-writer used by the JIT compiler for fast object parsing; internal to the compile feature."}

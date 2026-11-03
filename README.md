@@ -88,7 +88,7 @@ Then classify (also done by the instruction):
 
 ```bash
 uv run --project ~/agent-os-adaptive aoa-classify .
-# aoa-classify: 83 nodes (24 ranked, 48 tests, 11 examples) → core 12, business 10, leaf 61; high_risk 11; overrides applied 0, pending 0 → ./agent-os-adaptive/architecture-analysis/nodes.json
+# aoa-classify: 83 nodes (24 ranked, 48 tests, 11 examples) → core 10, business 12, leaf 61; high_risk 7; overrides applied 0, pending 0 → ./agent-os-adaptive/architecture-analysis/nodes.json
 ```
 
 | Output / input | Contents |
@@ -98,6 +98,8 @@ uv run --project ~/agent-os-adaptive aoa-classify .
 | `.aoa.toml` (optional, your project root) | Repo-level rules: `core_paths` (CODEOWNERS-style globs), extra sensitive keywords / paths / packages, `not_sensitive` exemptions, thresholds, weights, coverage file |
 
 Optional coverage input: `--coverage coverage.json` (coverage.py `coverage json`) or `lcov.info`. Rules, defaults and the score formula: [`tools/aoa_graph/README.md#aoa-classify`](tools/aoa_graph/README.md#aoa-classify).
+
+How good are the classes? `aoa-eval` scores the default rules against hand-labelled files in pinned open-source repos (flask, httpx, zod, django): Cohen's kappa, per-class precision / recall, an asymmetric cost (calling a core file leaf is the worst error and fails the run), determinism and churn across adjacent commits. Latest numbers: [`eval/results/report.md`](eval/results/report.md); method and caveats (the labels are an agent's first pass and still need human review): [`eval/README.md`](eval/README.md).
 
 Useful options: `--since-days 180` (history window, anchored at the HEAD commit time), `--bugfix-pattern REGEX`, `--exclude 'docs/**'`, `--py-root DIR`, `--lang ts|py`, `--out DIR`, `--no-git`. Full output format and resolution rules: [`tools/aoa_graph/README.md`](tools/aoa_graph/README.md).
 
@@ -291,8 +293,8 @@ The agent generates a detailed `node_classification.md` file that provides a com
 ```markdown
 # Node Classification Analysis
 
-> Analysis Method: Computed metrics (aoa-graph 0.1.0) + rule-based classes (aoa-classify, rules 2026.11-1 / repo none) + model explanation
-> Classes: core 12, business 10, leaf 61 (ranked 24, tests 48, examples 11); high_risk 11; overrides applied 0, pending 0
+> Analysis Method: Computed metrics (aoa-graph 0.1.0) + rule-based classes (aoa-classify, rules 2026.11-2 / repo none) + model explanation
+> Classes: core 10, business 12, leaf 61 (ranked 24, tests 48, examples 11); high_risk 7; overrides applied 0, pending 0
 
 ## Component Classifications
 
@@ -300,7 +302,7 @@ The agent generates a detailed `node_classification.md` file that provides a com
 
 | File | Rules | Score (pct) | Fan-in | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
 |------|-------|-------------|--------|--------------|-------|-------|---------|------------|---------------|
-| src/flask/app.py | runtime_cycle | 7.111222 (p97.92) | 6 | 69 | scc-2 | 6 | 4 | HIGH | The Flask application object; in the runtime cycle scc-2 and the highest risk score (4 bug-fix commits in the window) |
+| src/flask/app.py | score_top | 7.111222 (p97.92) | 6 | 69 | scc-2 | 6 | 4 | HIGH | The Flask application object; the highest risk score (4 bug-fix commits in the window). It sits in runtime cycle scc-2 but is not one of its hubs |
 | src/flask/sessions.py | sensitive:auth, sensitive:crypto | 1.805456 (p39.58) | 6 | 69 | - | 1 | 0 | MEDIUM | Signs session cookies with itsdangerous; core by hard rule even though its score is mid-range |
 
 ### Leaf Nodes (Autonomous Development Candidates)
