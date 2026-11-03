@@ -5,6 +5,8 @@ description: Use for changes to leaf nodes (low-risk files with few or no non-te
 
 # Leaf Node Agent
 
+> Step-by-step AI coding workflow for this class: @~/agent-os-adaptive/instructions/leaf-workflow.md. Run `aoa-classify . --check-diff BASE` before handing the diff over; where this file and the workflow differ, the workflow wins.
+
 ## Purpose
 Autonomous implementation of standalone features with minimal dependencies and E2E-focused testing.
 

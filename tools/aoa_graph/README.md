@@ -136,29 +136,54 @@ uv run --project ~/agent-os-adaptive aoa-classify . # 從別的專案根目錄�
 | `--coverage FILE`／`--no-coverage` | 設定檔的 `coverage`，否則依序找 `coverage.json`、`coverage/lcov.info`、`lcov.info` |
 | `--overrides FILE` | `<in>/overrides.jsonl` |
 
+## 升級檢查 `--check-diff`
+
+```bash
+uv run aoa-classify <repo> --check-diff origin/main          # 文字輸出；碰到 core 或新增依賴 → exit 3
+uv run aoa-classify <repo> --check-diff main --json          # JSON（strictest、workflow、escalations、files…）
+uv run aoa-classify <repo> --check-diff main --fail-on business   # business 也 exit 3（CI 用）
+```
+
+不重新分類，只讀 `nodes.json`：
+
+1. 改動 = `git diff --no-renames merge-base(BASE, HEAD)` 到工作目錄（含已 commit、未 commit、未追蹤的檔案；rename 拆成刪除 + 新增，刪掉 core 檔也算碰到 core）。`agent-os-adaptive/architecture-analysis/` 本身不算。
+2. 每個檔案對到 `nodes.json` 的 `class`。不在 `nodes.json` 的新原始碼檔只能用路徑判（看不到 import）：`core_paths`、敏感類別的 keyword／path glob → core；測試／範例路徑 → leaf；其餘 → business（`default`）。輸出標 `*`。非原始碼檔（README、CSS…）列為 unclassified，不影響結果。
+3. 依賴清單（`package.json` 的 dependencies／devDependencies／peer／optional、`pyproject.toml` 的 project／optional／dependency-groups／poetry、`requirements*.txt`／`.in`）和 merge-base 比，數**新增的套件名**（改版本號不算）。
+4. 最嚴格類別 → 要走的 workflow（`instructions/{leaf,business,core}-workflow.md`）。碰到 core、或新增套件數 > `--max-new-deps`（預設 0）→ `ESCALATE`、workflow 升到 core、exit 3。
+5. `nodes.json` 的 `source.commit` 不是 HEAD 的祖先 → 警告要重跑 aoa-graph／aoa-classify。
+
+| exit | 意思 |
+|---|---|
+| 0 | 沒碰到 core、沒有新增依賴（`--fail-on business` 時也沒碰到 business） |
+| 2 | 找不到 nodes.json、BASE 不存在、不是 git repo |
+| 3 | 需要升級（或 `--fail-on` 指定的類別被碰到）；`--fail-on never` 永遠不回 3 |
+
 ## 分類流程
+
+**business 是預設類別**：一個檔案命中任何 core 規則就是 core；符合 leaf 條件就是 leaf；兩者都不是就是 business（規則 id `default`，理由寫 `default: not core, not leaf — not leaf because …`）。
 
 ```
 所有檔案
+ ├─ config_core_path（.aoa.toml 的 core_paths，CODEOWNERS 式 glob；也適用測試檔）→ core
  ├─ 測試檔（graph is_test 或 test_paths）→ leaf［test_file］，不參與排名
  ├─ 範例／文件站／benchmark（example_paths）→ leaf［example_code］，不參與排名
  └─ 其餘（ranked）
-     1. 硬規則，命中任一 → core
-        config_core_path   .aoa.toml 的 core_paths（CODEOWNERS 式 glob；也適用測試檔）
-        sensitive:<id>     路徑 token／glob／import 的套件／套件入口（not_sensitive 可豁免）
+     1. core 規則，命中任一 → core
+        sensitive:<id>     硬規則：路徑 token／glob／import 的套件／套件入口（not_sensitive 可豁免）
         runtime_cycle      位於 runtime 循環（SCC > 1，不含只有 type 的邊）的 hub → 另標 high_risk
                            循環 ≤ 3 個檔案：每個成員都是 hub；更大的循環：循環內被 ≥ max(2, ⌈10% × 循環大小⌉) 個成員
                            runtime import 才是 hub，其餘成員照風險分數分類（reasons 會寫「not a hub」）
-     2. 風險分數 → midrank 百分位 p（只在 ranked 檔案之間比）
-        p ≥ 90                         → core［score_top］
-        85 ≤ p < 90                    → core［score_boundary］（邊界往嚴格靠）
-        p < 35 且 prod_blast_radius ≤ 2 → leaf［score_low］
-        p < 35 但 prod_blast_radius > 2 → business［leaf_blast_guard］
-        35 ≤ p < 40                    → business［leaf_boundary］（邊界往嚴格靠）
-        其餘                           → business［score_mid］
-     3. 判成 leaf 但 tree-sitter 有 parse error → business［parse_error_uncertain］
+        score_top          風險百分位 p ≥ 90
+        score_boundary     85 ≤ p < 90（邊界往嚴格靠）
+     2. leaf 條件，全部成立 → leaf［score_low］
+        p < 35（leaf_bottom_percent 40 − boundary margin 5，邊界往嚴格靠）
+        prod_blast_radius ≤ 2（直接或遞移依賴它的非測試檔）
+        tree-sitter 沒有 parse error（邊可能不完整時不判 leaf）
+     3. 其餘 → business［default］；reasons 列出沒過的 leaf 條件
  最後套用 overrides.jsonl
 ```
+
+2026.11-3 只改了規則的表達方式（business 由 `leaf_blast_guard`／`leaf_boundary`／`score_mid`／`parse_error_uncertain` 四個規則 id 合成一個 `default`），每個檔案的類別與 2026.11-2 相同。
 
 數字（90、85、35、40、2）都來自 `default_rules.toml` 的 `[thresholds]`，可在 `.aoa.toml` 改。
 
@@ -261,7 +286,7 @@ paths = ["src/export/**"]
 
 ```json
 {
-  "rules_version": {"default": "2026.11-2", "repo": null},
+  "rules_version": {"default": "2026.11-3", "repo": null},
   "summary": {"core": 10, "business": 12, "leaf": 61, "ranked": 24, "tests": 48, "examples": 11, "high_risk": 7, "...": "..."},
   "overrides": {"applied": [], "pending": [], "ignored": []},
   "inputs": {"config": null, "coverage": null, "overrides": null, "unresolved_json": true},

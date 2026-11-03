@@ -13,11 +13,11 @@ It's an AI development framework that automatically adapts its approach based on
 - **🎯 File-Level Precision** → Classifies individual files/modules (computed by `tools/aoa_graph`), not just features
 - **🔄 Mixed Approach Support** → Handles specs spanning multiple node types with phase-based implementation
 
-### Classification Results:
-- **Leaf Node** → Autonomous AI development with E2E testing focus
-- **Core Node** → Careful oversight with comprehensive testing layers  
-- **Business Logic** → Standard TDD with integration testing
-- **Mixed Approach** → Selective strategies per component type
+### Classification Results (and the AI coding workflow each class gets):
+- **Leaf Node** → AI edits directly, runs the existing tests; human review of the result is optional ([`instructions/leaf-workflow.md`](instructions/leaf-workflow.md))
+- **Business Logic** (the default class) → AI restates intent / rules / edge cases for a quick human confirmation, writes tests first as the spec, iterates on its own until tests / lint / typecheck pass; the human reviews tests + intent + scope ([`instructions/business-workflow.md`](instructions/business-workflow.md))
+- **Core Node** → Plan first, human approval per step, small diffs, full test suite ([`instructions/core-workflow.md`](instructions/core-workflow.md))
+- **Escalation check** → `aoa-classify . --check-diff BASE` reads `nodes.json` + `git diff` and reports the strictest class touched; touching a core node or adding dependencies exits 3 and moves the work to the core workflow
 
 Inspired by Erik Schultz's talk on [Vibe Coding](https://youtu.be/fHWFF_pnqDk?si=lzHZFO4TNMKGP7As), enhanced with data-driven dependency analysis.
 
@@ -99,7 +99,19 @@ uv run --project ~/agent-os-adaptive aoa-classify .
 
 Optional coverage input: `--coverage coverage.json` (coverage.py `coverage json`) or `lcov.info`. Rules, defaults and the score formula: [`tools/aoa_graph/README.md#aoa-classify`](tools/aoa_graph/README.md#aoa-classify).
 
-How good are the classes? `aoa-eval` scores the default rules against hand-labelled files in pinned open-source repos (flask, httpx, zod, django): Cohen's kappa, per-class precision / recall, an asymmetric cost (calling a core file leaf is the worst error and fails the run), determinism and churn across adjacent commits. Latest numbers: [`eval/results/report.md`](eval/results/report.md); method and caveats (the labels are an agent's first pass and still need human review): [`eval/README.md`](eval/README.md).
+Before handing an AI-written diff to a human, check which classes it touched (this is how the three workflows escalate):
+
+```bash
+uv run --project ~/agent-os-adaptive aoa-classify . --check-diff origin/main
+#   core      M src/app/models.py [sensitive:db_schema]
+#   business  M src/app/core.py [default]
+#   ESCALATE: diff touches core nodes: src/app/models.py
+#   strictest class: core → workflow: core (instructions/core-workflow.md)
+```
+
+It compares `merge-base(BASE, HEAD)` with the working tree (committed, uncommitted and untracked files), maps each file to its `class` in `nodes.json` (new source files are classified from their path: core_paths / sensitive paths → core, tests / examples → leaf, otherwise business), and counts new packages in `package.json` / `pyproject.toml` / `requirements*.txt`. Exit `3` = core touched or more new dependencies than `--max-new-deps` (default 0) → follow the core workflow; `0` = OK; `2` = error. `--json` for machine-readable output, `--fail-on business` to also flag business diffs (e.g. in CI).
+
+How good are the classes? `aoa-eval` scores the default rules against hand-labelled files in pinned open-source repos (flask, httpx, zod, django). Primary metrics are two binary decisions: **core recall** (is every true core file caught?) and **leaf precision** (is everything predicted leaf really leaf?); Cohen's kappa, per-class precision / recall and an asymmetric cost (calling a core file leaf is the worst error and fails the run), determinism and churn across adjacent commits. Latest numbers: [`eval/results/report.md`](eval/results/report.md); method and caveats (the labels are an agent's first pass and still need human review): [`eval/README.md`](eval/README.md).
 
 Useful options: `--since-days 180` (history window, anchored at the HEAD commit time), `--bugfix-pattern REGEX`, `--exclude 'docs/**'`, `--py-root DIR`, `--lang ts|py`, `--out DIR`, `--no-git`. Full output format and resolution rules: [`tools/aoa_graph/README.md`](tools/aoa_graph/README.md).
 
@@ -233,11 +245,11 @@ The system now performs comprehensive dependency analysis to make precise classi
 
 ### 📊 Classification Categories
 
-Classes are decided by `aoa-classify` in this order (same inputs → same classes):
+Classes are decided by `aoa-classify` (same inputs → same classes). **Business is the default class**: a file is Core if it hits a core rule, Leaf if it meets the leaf conditions, and Business otherwise.
 
-1. **Tests and example / docs / benchmark code** → Leaf, not ranked.
-2. **Hard rules → Core**: `core_paths` from your `.aoa.toml`; sensitive areas (auth, crypto, secrets, payments / billing, PII / compliance, irreversible deletes, DB schema / migrations, public API and package entrypoints) matched by path, keyword, or imported package; membership in a **runtime cycle** (also flagged `high_risk`).
-3. **Risk score** `impact × cost_of_failure ÷ detectability`, ranked by percentile within the repo: top 10% → Core (the next 5 points also Core — when in doubt, stricter); low scores with ≤ 2 non-test dependents → Leaf; the rest → Business.
+1. **Core rules → Core**: `core_paths` from your `.aoa.toml`; hard sensitive rules (auth, crypto, secrets, payments / billing, PII / compliance, irreversible deletes, DB schema / migrations, public API and package entrypoints) matched by path, keyword, or imported package; hubs of a **runtime cycle** (also flagged `high_risk`); **top risk percentile** (risk score `impact × cost_of_failure ÷ detectability`, top 10% plus the next 5 points — when in doubt, stricter).
+2. **Leaf conditions → Leaf**: tests and example / docs / benchmark code (not ranked), or a low risk score (below p35) with ≤ 2 non-test dependents and no parse error.
+3. **Everything else → Business** (rule `default`, reason `default: not core, not leaf — not leaf because …`).
 4. **Overrides**: stricter ones apply automatically; looser ones need a human's approval.
 
 Out-degree is no longer a criterion, and the old "low out-degree" vs "bidirectional dependencies" contradiction is gone: cycles are now a hard rule of their own.
@@ -248,8 +260,8 @@ Out-degree is no longer a criterion, and the old "low out-degree" vs "bidirectio
 - Can be removed without breaking other features
 - Test files and example code
 
-**Rule**: percentile < 35 and ≤ 2 non-test files depend on it (directly or transitively), no hard rule hit
-**Approach**: E2E-focused testing, rapid implementation, acceptable technical debt
+**Rule**: test / example / docs code, or percentile < 35 and ≤ 2 non-test files depend on it (directly or transitively), no core rule hit
+**Approach**: AI edits directly and runs the existing tests; human review optional ([`instructions/leaf-workflow.md`](instructions/leaf-workflow.md))
 
 #### Core Nodes (Careful Oversight)
 ⚠️ **Sensitive, cyclic, or top-risk**
@@ -257,17 +269,17 @@ Out-degree is no longer a criterion, and the old "low out-degree" vs "bidirectio
 - Members of runtime dependency cycles (high risk)
 - Files whose failure reaches many others, change often, and have a bug-fix history, with few tests watching them
 
-**Rule**: any hard rule, or risk percentile ≥ 85
-**Approach**: Comprehensive layer testing, architecture-first, multiple implementation modes
+**Rule**: any core rule (core_paths, hard sensitive rules, runtime-cycle hub), or risk percentile ≥ 85
+**Approach**: Plan first, human approval per step, small diffs, full test suite ([`instructions/core-workflow.md`](instructions/core-workflow.md)); implementation modes in `subagents/core-node-agent.md`
 
 #### Business Logic Nodes (Standard Development)
-🔄 **Everything in between**
+🔄 **The default: everything that is neither core nor leaf**
 - Orchestrates between core and leaf nodes
 - Contains domain-specific logic
 - Controllers and service layers
 
-**Rule**: not core, not leaf
-**Approach**: Standard TDD with integration testing focus
+**Rule**: default — not core, not leaf
+**Approach**: AI restates intent / rules / edge cases for human confirmation → tests first as the spec → AI iterates until tests / lint / typecheck pass → human reviews tests + intent + scope. Auto-escalates to the core workflow when the diff touches core nodes or adds dependencies ([`instructions/business-workflow.md`](instructions/business-workflow.md))
 
 #### Mixed Approach (Component-Selective)
 🎯 **Multiple Node Types in Single Spec**
@@ -293,7 +305,7 @@ The agent generates a detailed `node_classification.md` file that provides a com
 ```markdown
 # Node Classification Analysis
 
-> Analysis Method: Computed metrics (aoa-graph 0.1.0) + rule-based classes (aoa-classify, rules 2026.11-2 / repo none) + model explanation
+> Analysis Method: Computed metrics (aoa-graph 0.1.0) + rule-based classes (aoa-classify, rules 2026.11-3 / repo none) + model explanation
 > Classes: core 10, business 12, leaf 61 (ranked 24, tests 48, examples 11); high_risk 7; overrides applied 0, pending 0
 
 ## Component Classifications
@@ -355,7 +367,10 @@ agent-os-adaptive/
 │   ├── analyze-product.md # Existing codebase analysis
 │   ├── analyze-node-classes.md # (NEW) Standalone, reusable node classification
 │   ├── create-spec.md     # Feature specification (uses analysis)
-│   └── execute-tasks.md   # Task execution (adaptive)
+│   ├── execute-tasks.md   # Task execution (adaptive)
+│   ├── leaf-workflow.md   # AI coding workflow: leaf (edit directly, existing tests)
+│   ├── business-workflow.md # AI coding workflow: business (intent → tests first → autonomous loop)
+│   └── core-workflow.md   # AI coding workflow: core (plan, per-step approval, full tests)
 ├── tools/aoa_graph/       # Dependency-graph CLI (tree-sitter; TS/JS + Python)
 ├── tests/                 # pytest suite + small TS / Python fixture repos
 ├── pyproject.toml         # aoa-graph deps (pinned) + dev group; uv.lock locks them
@@ -405,7 +420,7 @@ Before opening a PR, run:
 
 ```bash
 python3 scripts/lint-instructions.py  # frontmatter, absolute paths, @~/agent-os-adaptive/ references
-uv run pytest                         # aoa-graph resolution, cycles, blast radius, git metrics; aoa-classify rules, scores, overrides; determinism
+uv run pytest                         # aoa-graph resolution, cycles, blast radius, git metrics; aoa-classify rules, scores, overrides, --check-diff; aoa-eval; determinism
 ```
 
 ## 📚 Related

@@ -5,6 +5,8 @@ description: Use for changes to core nodes (sensitive areas, runtime-cycle membe
 
 # Core Node Agent
 
+> Step-by-step AI coding workflow for this class: @~/agent-os-adaptive/instructions/core-workflow.md. Run `aoa-classify . --check-diff BASE` before handing the diff over; where this file and the workflow differ, the workflow wins.
+
 ## Purpose
 Careful, oversight-heavy implementation of critical system components that other features depend on.
 

@@ -2,7 +2,7 @@
 description: Runs aoa-graph (dependency graph + metrics) and aoa-classify (deterministic core/business/leaf rules), then explains the result and records any overrides.
 globs:
 alwaysApply: false
-version: 1.2
+version: 1.3
 encoding: UTF-8
 ---
 
@@ -125,20 +125,22 @@ encoding: UTF-8
       - Detectability = `factors.test_fan_in` (direct test importers), `factors.test_reach` (direct or transitive), `factors.coverage`.
     </metric_mapping>
     <classification_criteria>
-      Applied by `aoa-classify` in this order (details: tools/aoa_graph/README.md). Out-degree is NOT a criterion: depending on many files does not make a file safer or riskier to change for its dependents.
-      1. Test files and example / docs / benchmark code → leaf (`test_file`, `example_code`); they are not ranked.
-      2. Hard rules → core:
-         - `config_core_path`: matches `core_paths` in the project's `.aoa.toml`
-         - `sensitive:<id>`: auth, crypto, secrets, payments, pii, irreversible deletes, db_schema / migrations, public_api (incl. package entrypoints) — matched by path tokens, path globs, or imported packages
+      Applied by `aoa-classify` (details: tools/aoa_graph/README.md). **Business is the DEFAULT class**: a file is core if it hits any core rule, leaf if it meets the leaf conditions, and business otherwise. Out-degree is NOT a criterion: depending on many files does not make a file safer or riskier to change for its dependents.
+      1. Core rules (any one → core):
+         - `config_core_path`: matches `core_paths` in the project's `.aoa.toml` (also applies to tests)
+         - `sensitive:<id>` (hard rules): auth, crypto, secrets, payments, pii, irreversible deletes, db_schema / migrations, public_api (incl. package entrypoints) — matched by path tokens, path globs, or imported packages
          - `runtime_cycle`: hub of a runtime cycle (SCC size > 1, ignoring type-only edges; in cycles larger than 3 files only members imported by several other members count, the rest are scored normally and their `reasons` say "not a hub") → also `high_risk: true`. This replaces the old "bidirectional dependencies" criterion.
-      3. Risk score `risk = impact × cost_of_failure ÷ detectability`, ranked by percentile among non-test, non-example files:
+         - `score_top` / `score_boundary`: risk percentile ≥ 90, or within 5 points below it (leaning stricter)
+      2. Leaf conditions (→ leaf):
+         - test files and example / docs / benchmark code (`test_file`, `example_code`; not ranked), OR
+         - `score_low`: risk percentile below p35 AND ≤ 2 non-test files depend on it (directly or transitively) AND no tree-sitter parse error
+      3. Everything else → business (`default`; the reason reads `default: not core, not leaf — not leaf because …` and lists which leaf condition failed).
+      Risk score `risk = impact × cost_of_failure ÷ detectability`, ranked by percentile among non-test, non-example files:
          - impact: blast radius counting only non-test dependents, weighted up by churn
          - cost_of_failure: weighted up by bug-fix commits
          - detectability: tests that import the file directly or transitively, plus line coverage when a report is given (no report → conservative low detectability)
-         - top 10% → core (`score_top`); the next 5 points → core (`score_boundary`, leaning stricter)
-         - below p35 AND ≤ 2 non-test files depend on it (directly or transitively) → leaf (`score_low`); otherwise business (`leaf_blast_guard`, `leaf_boundary`, `score_mid`)
-      4. A leaf with a tree-sitter parse error → business (`parse_error_uncertain`).
-      5. Overrides from `overrides.jsonl`: stricter ones apply automatically; looser ones only with a human `approved_by`.
+      4. Overrides from `overrides.jsonl`: stricter ones apply automatically; looser ones only with a human `approved_by`.
+      Which AI coding workflow each class gets: @~/agent-os-adaptive/instructions/leaf-workflow.md, @~/agent-os-adaptive/instructions/business-workflow.md, @~/agent-os-adaptive/instructions/core-workflow.md; before handing a diff to a human, run `uv run --project ~/agent-os-adaptive aoa-classify . --check-diff BASE` to get the strictest class touched (exit 3 = core touched or new dependencies → core workflow).
     </classification_criteria>
     <interpretation_rules>
       - Copy `class`, `rules`, `risk_score`, `percentile`, `risk_level` from `nodes.json` exactly.
