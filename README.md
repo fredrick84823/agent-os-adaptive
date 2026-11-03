@@ -9,7 +9,7 @@ It's an AI development framework that automatically adapts its approach based on
 **Dependency-Based Intelligent Classification**: Automatically analyzes actual code dependencies to determine optimal development approach:
 
 - **🔍 Dependency Analysis** → Scans codebase and builds Mermaid dependency graphs  
-- **📊 Quantified Classification** → Uses in-degree/out-degree metrics for precise categorization
+- **📊 Rule-Based Classification** → `aoa-classify` decides core / business / leaf from versioned rules: sensitive areas (auth, payments, PII, migrations, public API…), runtime cycles, and a risk score (impact × cost of failure ÷ detectability)
 - **🎯 File-Level Precision** → Classifies individual files/modules (computed by `tools/aoa_graph`), not just features
 - **🔄 Mixed Approach Support** → Handles specs spanning multiple node types with phase-based implementation
 
@@ -60,7 +60,7 @@ done
 
 - Each instruction becomes a `.mdc` rule (e.g. `@plan-product`, `@execute-tasks`); their frontmatter already uses Cursor's `description` / `globs` / `alwaysApply` fields.
 
-### Step 2b: Install the Dependency-Graph Tool (`aoa-graph`)
+### Step 2b: Install the Dependency-Graph and Classification Tools (`aoa-graph`, `aoa-classify`)
 
 `/analyze-node-classes` no longer asks the model to estimate in/out-degrees. It runs `tools/aoa_graph`, a small Python CLI that parses **TypeScript / JavaScript and Python** with [tree-sitter](https://tree-sitter.github.io/) and writes deterministic numbers (same commit → byte-identical output).
 
@@ -83,6 +83,21 @@ uv run --project ~/agent-os-adaptive aoa-graph .
 | `graph.json` | File-level nodes (`id`, `language`, `is_test`, `loc`, Python `module`), internal edges with import `kinds`, external packages per file |
 | `metrics.json` | Per node: `fan_in`, `fan_out`, `test_fan_in`, `blast_radius` (transitive dependents), `in_cycle` / `scc_id` (Tarjan), `in_runtime_cycle` (ignoring type-only imports), `churn`, `churn_lines`, `bugfix_count`, `co_change` |
 | `unresolved.json` | Dynamic / unresolvable imports, files with parse errors — the part the model interprets |
+
+Then classify (also done by the instruction):
+
+```bash
+uv run --project ~/agent-os-adaptive aoa-classify .
+# aoa-classify: 83 nodes (24 ranked, 48 tests, 11 examples) → core 12, business 10, leaf 61; high_risk 11; overrides applied 0, pending 0 → ./agent-os-adaptive/architecture-analysis/nodes.json
+```
+
+| Output / input | Contents |
+|---|---|
+| `nodes.json` | Per file: `class` (core / business / leaf), `computed_class`, triggered `rules` and human-readable `reasons`, `risk_score`, `percentile`, `risk_level`, `high_risk` (runtime cycle), score `factors` |
+| `overrides.jsonl` (optional, you or the model write it) | Class overrides with reasons. Stricter ones apply automatically; looser ones need `"approved_by": "<human>"` |
+| `.aoa.toml` (optional, your project root) | Repo-level rules: `core_paths` (CODEOWNERS-style globs), extra sensitive keywords / paths / packages, `not_sensitive` exemptions, thresholds, weights, coverage file |
+
+Optional coverage input: `--coverage coverage.json` (coverage.py `coverage json`) or `lcov.info`. Rules, defaults and the score formula: [`tools/aoa_graph/README.md#aoa-classify`](tools/aoa_graph/README.md#aoa-classify).
 
 Useful options: `--since-days 180` (history window, anchored at the HEAD commit time), `--bugfix-pattern REGEX`, `--exclude 'docs/**'`, `--py-root DIR`, `--lang ts|py`, `--out DIR`, `--no-git`. Full output format and resolution rules: [`tools/aoa_graph/README.md`](tools/aoa_graph/README.md).
 
@@ -188,6 +203,7 @@ your-project/
 │   │   └── decisions.md           # Decision history
 │   ├── architecture-analysis/     # Dependency analysis (existing projects)
 │   │   ├── graph.json / metrics.json / unresolved.json  # Computed by aoa-graph
+│   │   ├── nodes.json / overrides.jsonl  # Classes from aoa-classify / override log
 │   │   ├── dependency_map.mermaid # Visual dependency graph
 │   │   └── node_classification.md# Component analysis
 │   └── specs/YYYY-MM-DD-feature/  # Feature specifications
@@ -211,38 +227,44 @@ The system now performs comprehensive dependency analysis to make precise classi
 1. **Codebase Scanning** - `tools/aoa_graph` parses TS/JS and Python files with tree-sitter (file/module granularity)
 2. **Dependency Mapping** - Writes `graph.json`; the Mermaid map is rendered from it
 3. **Impact Analysis** - `metrics.json` computes fan-in/out, "blast radius", cycles, git churn and bug-fix counts
-4. **Component Classification** - The model interprets those numbers (it does not estimate them)
+4. **Component Classification** - `aoa-classify` applies deterministic rules and writes `nodes.json`; the model explains the result and may only propose overrides
 
 ### 📊 Classification Categories
 
-#### Leaf Nodes (Autonomous Development)
-✅ **Low In-Degree, High Out-Degree**
-- Few or no components depend on them
-- Can be removed without breaking other features
-- UI components with one-way data flow
-- Report generators and exporters
-- Feature-specific components
+Classes are decided by `aoa-classify` in this order (same inputs → same classes):
 
-**Metrics**: In-degree ≤ 2, Out-degree ≥ 1
+1. **Tests and example / docs / benchmark code** → Leaf, not ranked.
+2. **Hard rules → Core**: `core_paths` from your `.aoa.toml`; sensitive areas (auth, crypto, secrets, payments / billing, PII / compliance, irreversible deletes, DB schema / migrations, public API and package entrypoints) matched by path, keyword, or imported package; membership in a **runtime cycle** (also flagged `high_risk`).
+3. **Risk score** `impact × cost_of_failure ÷ detectability`, ranked by percentile within the repo: top 10% → Core (the next 5 points also Core — when in doubt, stricter); low scores with ≤ 2 non-test dependents → Leaf; the rest → Business.
+4. **Overrides**: stricter ones apply automatically; looser ones need a human's approval.
+
+Out-degree is no longer a criterion, and the old "low out-degree" vs "bidirectional dependencies" contradiction is gone: cycles are now a hard rule of their own.
+
+#### Leaf Nodes (Autonomous Development)
+✅ **Low risk score, (almost) nothing depends on it**
+- Feature-specific components, UI with one-way data flow, report generators and exporters
+- Can be removed without breaking other features
+- Test files and example code
+
+**Rule**: percentile < 35 and ≤ 2 non-test files depend on it (directly or transitively), no hard rule hit
 **Approach**: E2E-focused testing, rapid implementation, acceptable technical debt
 
 #### Core Nodes (Careful Oversight)
-⚠️ **High In-Degree, Low Out-Degree**
-- Many components depend on them
-- Critical path components
-- Infrastructure and shared services
-- Components with bidirectional dependencies
+⚠️ **Sensitive, cyclic, or top-risk**
+- Auth, crypto, secrets, payments, PII, migrations, public API surfaces
+- Members of runtime dependency cycles (high risk)
+- Files whose failure reaches many others, change often, and have a bug-fix history, with few tests watching them
 
-**Metrics**: In-degree ≥ 3, Out-degree ≤ 2
+**Rule**: any hard rule, or risk percentile ≥ 85
 **Approach**: Comprehensive layer testing, architecture-first, multiple implementation modes
 
 #### Business Logic Nodes (Standard Development)
-🔄 **Medium In-Degree and Out-Degree**
+🔄 **Everything in between**
 - Orchestrates between core and leaf nodes
 - Contains domain-specific logic
 - Controllers and service layers
 
-**Metrics**: Balanced dependency relationships
+**Rule**: not core, not leaf
 **Approach**: Standard TDD with integration testing focus
 
 #### Mixed Approach (Component-Selective)
@@ -264,29 +286,28 @@ The system now performs comprehensive dependency analysis to make precise classi
 ### 2. Comprehensive Architecture Analysis & Node Classification
 The agent generates a detailed `node_classification.md` file that provides a complete breakdown of your codebase's architecture. This file is crucial for making informed decisions about development strategies.
 
-**Example `node_classification.md`:**
+**Example `node_classification.md`** (excerpt; numbers from running the tools on pallets/flask @ `49943b5a`):
 
 ```markdown
 # Node Classification Analysis
 
-> Created: 2025-08-05
-> Project: ADK Data Science Multi-Agent System
+> Analysis Method: Computed metrics (aoa-graph 0.1.0) + rule-based classes (aoa-classify, rules 2026.11-1 / repo none) + model explanation
+> Classes: core 12, business 10, leaf 61 (ranked 24, tests 48, examples 11); high_risk 11; overrides applied 0, pending 0
 
 ## Component Classifications
 
 ### Core Nodes (Require Careful Oversight)
 
-| Component | Type | In-Degree | Out-Degree | Risk Level | Justification |
-|-----------|------|-----------|------------|------------|---------------|
-| root_agent | CLASS | 8+ | 3 | HIGH | Central orchestrator - all tools and sub-agents depend on it |
-| bigquery/tools | MODULE | 6+ | 4 | HIGH | Core BigQuery operations - used by all data access functions |
+| File | Rules | Score (pct) | Fan-in | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
+|------|-------|-------------|--------|--------------|-------|-------|---------|------------|---------------|
+| src/flask/app.py | runtime_cycle | 7.111222 (p97.92) | 6 | 69 | scc-2 | 6 | 4 | HIGH | The Flask application object; in the runtime cycle scc-2 and the highest risk score (4 bug-fix commits in the window) |
+| src/flask/sessions.py | sensitive:auth, sensitive:crypto | 1.805456 (p39.58) | 6 | 69 | - | 1 | 0 | MEDIUM | Signs session cookies with itsdangerous; core by hard rule even though its score is mid-range |
 
 ### Leaf Nodes (Autonomous Development Candidates)
 
-| Component | Type | In-Degree | Out-Degree | Risk Level | Justification |
-|-----------|------|-----------|------------|------------|---------------|
-| export_query_results_to_csv | FUNCTION | 1 | 3 | LOW | Feature-specific export functionality - minimal dependencies |
-| list_available_projects_and_datasets | FUNCTION | 1 | 2 | LOW | Information display feature - no other components depend on it |
+| File | Rules | Score (pct) | Fan-in | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
+|------|-------|-------------|--------|--------------|-------|-------|---------|------------|---------------|
+| src/flask/views.py | score_low | 0.455964 (p2.08) | 4 | 4 | - | 1 | 0 | LOW | Class-based view helpers; no non-test file depends on it (all 4 dependents are tests) |
 
 ## Development Recommendations
 
@@ -356,6 +377,8 @@ agent-os-adaptive/
 │   ├── graph.json                # Computed dependency graph (aoa-graph)
 │   ├── metrics.json              # Computed per-file metrics (aoa-graph)
 │   ├── unresolved.json           # Imports the tool could not resolve
+│   ├── nodes.json                # Rule-based classes (aoa-classify)
+│   ├── overrides.jsonl           # Class overrides (stricter auto, looser need approval)
 │   ├── dependency_map.mermaid    # Visual dependency graph
 │   └── node_classification.md    # Component analysis table
 └── specs/YYYY-MM-DD-spec-name/   # Individual feature specs
@@ -380,7 +403,7 @@ Before opening a PR, run:
 
 ```bash
 python3 scripts/lint-instructions.py  # frontmatter, absolute paths, @~/agent-os-adaptive/ references
-uv run pytest                         # aoa-graph resolution, cycles, blast radius, git metrics, determinism
+uv run pytest                         # aoa-graph resolution, cycles, blast radius, git metrics; aoa-classify rules, scores, overrides; determinism
 ```
 
 ## 📚 Related

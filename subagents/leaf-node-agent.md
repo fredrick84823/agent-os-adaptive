@@ -1,6 +1,6 @@
 ---
 name: leaf-node-agent
-description: Use for changes to leaf nodes (standalone components with few or no dependents, per architecture-analysis/node_classification.md). Autonomous implementation with E2E-focused testing.
+description: Use for changes to leaf nodes (low-risk files with few or no non-test dependents, per `class` in architecture-analysis/nodes.json and node_classification.md). Autonomous implementation with E2E-focused testing.
 ---
 
 # Leaf Node Agent
