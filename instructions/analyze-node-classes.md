@@ -130,7 +130,7 @@ encoding: UTF-8
       2. Hard rules → core:
          - `config_core_path`: matches `core_paths` in the project's `.aoa.toml`
          - `sensitive:<id>`: auth, crypto, secrets, payments, pii, irreversible deletes, db_schema / migrations, public_api (incl. package entrypoints) — matched by path tokens, path globs, or imported packages
-         - `runtime_cycle`: member of a runtime cycle (SCC size > 1, ignoring type-only edges) → also `high_risk: true`. This replaces the old "bidirectional dependencies" criterion.
+         - `runtime_cycle`: hub of a runtime cycle (SCC size > 1, ignoring type-only edges; in cycles larger than 3 files only members imported by several other members count, the rest are scored normally and their `reasons` say "not a hub") → also `high_risk: true`. This replaces the old "bidirectional dependencies" criterion.
       3. Risk score `risk = impact × cost_of_failure ÷ detectability`, ranked by percentile among non-test, non-example files:
          - impact: blast radius counting only non-test dependents, weighted up by churn
          - cost_of_failure: weighted up by bug-fix commits

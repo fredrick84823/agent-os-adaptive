@@ -26,6 +26,10 @@ DEFAULT_DIR = "agent-os-adaptive/architecture-analysis"
 OVERRIDES_NAME = "overrides.jsonl"
 CLASSES = ("leaf", "business", "core")
 STRICTNESS = {c: i for i, c in enumerate(CLASSES)}
+# cfg 沒有 [structure] 時（例如舊的呼叫端自己組 cfg）用 2026.11-1 的行為。
+STRUCTURE_DEFAULTS = {"runtime_cycle_core": "all", "cycle_hub_all_max_size": 3, "cycle_hub_min_share": 0.1,
+                      "barrel_passthrough": "off", "barrel_min_entries": 3,
+                      "barrel_catalog_max_internal_share": 0.1}
 
 
 class InputError(ValueError):
@@ -73,6 +77,63 @@ def reverse_reach(node_ids: list[str], edges: list[tuple[str, str]], prod: set[s
             (r & test_mask).bit_count(),
             sum(1 for d in radj[n] if d in prod),
         )
+    return out
+
+
+def barrel_cuts(nodes: dict[str, dict], edges: list[dict], mode: str, min_entries: float,
+                max_internal_share: float = 0.1):
+    """找出 TS/JS barrel 檔，回傳 (不往下傳 blast radius 的 re-export 邊, {barrel: {"kind", "entries"}})。
+
+    barrel：所有 runtime 內部 import（kinds 不只 type）都是 re-export，且至少 min_entries 個。
+    catalog barrel：barrel 的 re-export 目標彼此幾乎沒有 runtime import（目標之間的邊 ≤ max_internal_share × 目標數；
+    並列的 locale、icon…，容許少數棄用別名，例如 zod 的 ua.ts → uk.ts）。
+    mode="catalog" 只切 catalog barrel；"all" 切所有 barrel；"off" 不切。
+    """
+    if mode == "off":
+        return set(), {}
+    out_rt: dict[str, list[tuple[str, list[str]]]] = {}
+    runtime_pairs = set()
+    for e in edges:
+        if e["kinds"] != ["type"]:
+            out_rt.setdefault(e["source"], []).append((e["target"], e["kinds"]))
+            runtime_pairs.add((e["source"], e["target"]))
+    cuts, barrels = set(), {}
+    for src in sorted(out_rt):
+        if nodes.get(src, {}).get("language") not in ("typescript", "javascript"):
+            continue
+        outs = out_rt[src]
+        if len(outs) < min_entries or not all("reexport" in k and set(k) <= {"reexport", "type"} for _, k in outs):
+            continue
+        targets = sorted(t for t, _ in outs)
+        tset = set(targets)
+        internal = sum(1 for a in targets for b in tset if a != b and (a, b) in runtime_pairs)
+        catalog = internal <= max_internal_share * len(targets)
+        kind = "catalog" if catalog else "barrel"
+        barrels[src] = {"kind": kind, "entries": len(targets)}
+        if mode == "all" or catalog:
+            cuts.update((src, t) for t in targets)
+    return cuts, barrels
+
+
+def cycle_hubs(node_ids: list[str], edges: list[dict], m: dict, st: dict) -> dict[str, dict]:
+    """runtime 循環成員 → {"hub", "fan_in"（循環內被幾個成員 runtime import）, "min_fan_in", "size"}。"""
+    members: dict[object, list[str]] = {}
+    for n in node_ids:
+        if m[n].get("in_runtime_cycle"):
+            members.setdefault(m[n].get("runtime_scc_id"), []).append(n)
+    comp = {n: c for c, ns in members.items() for n in ns}
+    fan_in = {n: set() for n in comp}
+    for e in edges:
+        s, t = e["source"], e["target"]
+        if e["kinds"] != ["type"] and s in comp and t in comp and comp[s] == comp[t] and s != t:
+            fan_in[t].add(s)
+    out = {}
+    for c, ns in members.items():
+        size = len(ns)
+        need = 0 if size <= st["cycle_hub_all_max_size"] else max(2, math.ceil(st["cycle_hub_min_share"] * size - 1e-9))
+        for n in ns:
+            k = len(fan_in[n])
+            out[n] = {"hub": k >= need, "fan_in": k, "min_fan_in": need, "size": size}
     return out
 
 
@@ -223,6 +284,7 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
         raise InputError("graph.json 與 metrics.json 的 source（commit／dirty）不一致，請重跑 aoa-graph")
     coverage = coverage or {}
     th, w = cfg["thresholds"], cfg["weights"]
+    st = {**STRUCTURE_DEFAULTS, **cfg.get("structure", {})}
     nodes = {n["id"]: n for n in graph["nodes"]}
     node_ids = sorted(nodes)
     m = metrics["nodes"]
@@ -238,7 +300,13 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
     tests = {n for n in node_ids if nodes[n].get("is_test") or rules.first_glob(cfg["test_paths"], n)}
     examples = {n for n in node_ids if n not in tests and rules.first_glob(cfg["example_paths"], n)}
     prod = [n for n in node_ids if n not in tests and n not in examples]
-    reach = reverse_reach(node_ids, edges, set(prod), tests)
+    cuts, barrels = barrel_cuts(nodes, graph["edges"], st["barrel_passthrough"], st["barrel_min_entries"],
+                                 st["barrel_catalog_max_internal_share"])
+    entry_of: dict[str, list[str]] = {}
+    for b, t in sorted(cuts):
+        entry_of.setdefault(t, []).append(b)
+    reach = reverse_reach(node_ids, [e for e in edges if e not in cuts], set(prod), tests)
+    hubs = cycle_hubs(node_ids, graph["edges"], m, st)
 
     factors, scores = {}, {}
     for n in node_ids:
@@ -261,6 +329,7 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
             "churn": churn,
             "bugfix_count": bugfix,
             "coverage": cov,
+            "runtime_cycle_fan_in": hubs[n]["fan_in"] if n in hubs else None,
         }
         if n in prod:
             scores[n] = round(impact * cost / detect, 6)
@@ -291,11 +360,22 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
                     rule_ids.append(rid)
                     reasons.append(why)
             if mm.get("in_runtime_cycle"):
-                high_risk = True
-                rule_ids.append("runtime_cycle")
-                reasons.append(f"runtime_cycle: member of runtime cycle {mm.get('runtime_scc_id')} (changes ripple both ways)")
+                h = hubs[n]
+                where = (f"runtime cycle {mm.get('runtime_scc_id')} ({h['size']} files; imported by {h['fan_in']} "
+                         f"other members at runtime")
+                if st["runtime_cycle_core"] == "all" or h["hub"]:
+                    high_risk = True
+                    rule_ids.append("runtime_cycle")
+                    hub_txt = "" if st["runtime_cycle_core"] == "all" else f", hub: ≥ {h['min_fan_in']} needed"
+                    reasons.append(f"runtime_cycle: member of {where}{hub_txt}) — changes ripple both ways")
+                else:
+                    reasons.append(f"note: member of {where}, below the hub cut of {h['min_fan_in']}) "
+                                   "— not a hub, ranked by score")
             elif mm.get("in_cycle"):
                 reasons.append(f"note: in type-only cycle {mm.get('scc_id')} (not a runtime cycle; no rule applied)")
+            for b in entry_of.get(n, []):
+                reasons.append(f"note: re-exported by {barrels[b]['kind']} barrel {b} ({barrels[b]['entries']} entries); "
+                               f"its dependents are not counted in this file's blast radius (barrel_passthrough = {st['barrel_passthrough']})")
             score_txt = (f"risk {scores[n]:.3f} at p{p:g} (impact {f['impact']} × cost {f['cost_of_failure']} "
                          f"÷ detectability {f['detectability']}; prod blast {f['prod_blast_radius']}, "
                          f"churn {f['churn']}, bug-fix {f['bugfix_count']}, tests direct {f['test_fan_in']} / reach {f['test_reach']})")
@@ -369,6 +449,7 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
         "params": {
             "thresholds": th,
             "weights": w,
+            "structure": st,
             "formula": "risk = log2(2 + prod_blast_radius) × (1 + w.churn·log2(1+churn)) × (1 + w.bugfix·log2(1+bugfix_count)) "
                        "÷ (1 + w.direct_tests·log2(1+test_fan_in) + w.transitive_tests·log2(1+test_reach) + w.coverage·coverage)",
             "percentile": "midrank over ranked (non-test, non-example) files",
@@ -388,6 +469,10 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
             "computed": {c: sum(1 for n in node_ids if computed[n] == c) for c in CLASSES},
             "ranked_by_class": {c: sum(1 for n in prod if final[n] == c) for c in CLASSES},
             "high_risk": sum(1 for n in node_ids if out_nodes[n]["high_risk"]),
+            "runtime_cycle_members": len(hubs),
+            "runtime_cycle_hubs": sum(1 for h in hubs.values() if h["hub"]) if st["runtime_cycle_core"] == "hubs" else len(hubs),
+            "barrels": {k: sum(1 for b in barrels.values() if b["kind"] == k) for k in ("barrel", "catalog")},
+            "barrel_edges_cut": len(cuts),
             "rules": dict(sorted(rule_counts.items())),
             "overrides_applied": len(applied),
             "overrides_pending": len(pending),

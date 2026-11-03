@@ -3,7 +3,7 @@
 # repo 層級的增改寫在專案根目錄的 .aoa.toml 的 [classify] 底下，欄位與本檔相同；
 # 合併規則見 tools/aoa_graph/README.md 的「設定檔」一節。
 
-version = "2026.11-1"
+version = "2026.11-2"
 
 # ---------------------------------------------------------------------------
 # 母體：哪些檔案不參與風險排名（直接判 leaf，理由寫在 rules 裡）
@@ -33,6 +33,22 @@ core_top_percent = 10        # 百分位 ≥ 100 − 10 → core
 leaf_bottom_percent = 40     # 百分位 < 40 − margin → leaf 候選
 boundary_margin_percent = 5  # 不確定區：core 門檻往下擴 5、leaf 門檻往下縮 5（都往嚴格靠）
 leaf_max_prod_blast_radius = 2  # leaf 還要求：直接或遞移依賴它的非測試檔 ≤ 2 個
+
+[structure]
+# runtime 循環（SCC > 1）怎麼進 core（2026.11-2 起；2026.11-1 等同 "all" + barrel_passthrough = "off"）：
+#   "hubs"：只有循環的 hub 是 core（規則 runtime_cycle）；其他成員照風險分數排名，理由裡註記是循環成員
+#   "all"： 每個成員都是 core
+runtime_cycle_core = "hubs"
+cycle_hub_all_max_size = 3   # 成員 ≤ 3 個的小循環：彼此緊耦合，全部算 hub
+cycle_hub_min_share = 0.1    # 較大的循環：被 ≥ max(2, ⌈0.1 × 循環大小⌉) 個其他成員 runtime import 的才是 hub
+# barrel 檔（TS/JS：所有 runtime 內部 import 都是 re-export，且 ≥ barrel_min_entries 個）怎麼算 blast radius：
+#   "catalog"：被 re-export 的檔案彼此幾乎沒有 runtime import（locales、icons 這類並列目錄）時，
+#              barrel 的依賴者不算進各個條目的 blast radius（條目只會被選用，不會被全部用到）
+#   "all"：    所有 barrel 的 re-export 都不往下傳（實驗用；會讓真正被用到的核心模組也掉出 blast radius）
+#   "off"：    不特別處理（2026.11-1 的行為）
+barrel_passthrough = "catalog"
+barrel_min_entries = 3
+barrel_catalog_max_internal_share = 0.1  # 條目之間的 runtime import 數 ≤ 0.1 × 條目數 才算 catalog（容許少數別名檔）
 
 [weights]
 churn = 0.25            # impact 的 churn 上調權重
