@@ -47,6 +47,20 @@ def test_asymmetric_cost_and_per_class():
     assert pc["business"]["precision"] == 0.5 and pc["leaf"]["support"] == 0
 
 
+def test_binary_core_recall_and_leaf_precision():
+    pairs = [("core", "core"), ("core", "core"), ("core", "business"),       # core：2/3 被抓到
+             ("business", "core"), ("business", "leaf"),                       # 1 個 business 被判成 leaf
+             ("leaf", "leaf"), ("leaf", "leaf"), ("leaf", "business")]
+    s = scoring.score(pairs)
+    c, lf = s["is_core"], s["is_leaf"]
+    assert (c["tp"], c["fn"], c["fp"], c["tn"]) == (2, 1, 1, 4)
+    assert c["recall"] == pytest.approx(2 / 3, abs=1e-4) and c["precision"] == pytest.approx(2 / 3, abs=1e-4)
+    assert (lf["tp"], lf["fp"], lf["fn"]) == (2, 1, 1)
+    assert lf["precision"] == pytest.approx(2 / 3, abs=1e-4) and lf["support"] == 3 and lf["predicted"] == 3
+    # 一個 leaf 都沒預測 → precision 未定義（不是 0）
+    assert scoring.score([("core", "core"), ("leaf", "business")])["is_leaf"]["precision"] is None
+
+
 def test_degenerate_kappa():
     assert scoring.score([("core", "core")] * 3)["kappa"] == 1.0   # 全部同類且全對
     assert scoring.score([("core", "leaf")] * 3)["kappa"] == 0.0   # 沒有任何一致
@@ -103,6 +117,12 @@ def test_gates():
     assert gates([ok], "current", 0.6) == ["r: kappa 0.500 < 0.6"]
     fails = gates([bad], "current", None)
     assert len(fails) == 2 and "a.py" in fails[0]
+    acc = {"all": {"core_to_leaf": 0, "kappa": 0.5, "is_core": {"recall": 0.8}, "is_leaf": {"precision": 0.9}},
+           "core_to_leaf_paths": [], "core_missed": ["c.py"], "false_leaf": ["l.py"]}
+    r = {"repo": "r", "determinism": {"ok": True}, "variants": {"current": {"accuracy": acc}}}
+    assert gates([r], "current", None, 0.8, 0.9) == []
+    fails = gates([r], "current", None, 0.9, 0.95)
+    assert fails == ["r: core recall 0.800 < 0.9（漏判：c.py）", "r: leaf precision 0.900 < 0.95（誤判為 leaf：l.py）"]
 
 
 # ---------------------------------------------------------------------------
@@ -156,6 +176,8 @@ def test_cli_end_to_end_pass_and_deterministic(eval_env):
     assert "replay" in cur
     md = (env["tmp"] / "o1" / "report.md").read_text()
     assert "PASS" in md and "尚未經人工複核" in md
+    assert "core recall" in md and "leaf precision" in md
+    assert cur["accuracy"]["all"]["is_core"]["recall"] == 1.0 and cur["accuracy"]["core_missed"] == []
     assert str(env["tmp"]) not in md and str(env["tmp"]) not in j1.decode()
 
 

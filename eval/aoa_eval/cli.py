@@ -1,6 +1,7 @@
 """aoa-eval CLI。
 
-  aoa-eval run      對 repos.toml 的 pinned repo 跑分類並和標註比對；core→leaf > 0 或輸出不確定 → exit 1
+  aoa-eval run      對 repos.toml 的 pinned repo 跑分類並和標註比對（主要指標：core recall、leaf precision）；
+                    core→leaf > 0 或輸出不確定 → exit 1
   aoa-eval sample   列出分層抽樣的檔案路徑（只印路徑，不印預測），給人標註用
 """
 from __future__ import annotations
@@ -59,7 +60,7 @@ def cmd_run(args) -> int:
             do_stability=not args.no_stability, do_replay=args.replay, determinism=not args.no_determinism,
             log=lambda m: print(f"aoa-eval: {m}", file=sys.stderr),
         ))
-    fails = gates(results, GATE_VARIANT, args.min_kappa)
+    fails = gates(results, GATE_VARIANT, args.min_kappa, args.min_core_recall, args.min_leaf_precision)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     doc = {"gate_variant": GATE_VARIANT, "gate_failures": fails, "results": results}
@@ -114,7 +115,9 @@ def parse_args(argv=None):
     r.add_argument("--stability-commits", type=int, help="覆寫 repos.toml 的 stability_commits")
     r.add_argument("--no-determinism", action="store_true", help="不重跑第二次比對輸出")
     r.add_argument("--replay", action="store_true", help="加跑歷史回放（之後的 bug-fix 是否偏向 core）")
-    r.add_argument("--min-kappa", type=float, help="kappa 低於此值也算失敗（預設不檢查）")
+    r.add_argument("--min-core-recall", type=float, help="core recall 低於此值也算失敗（預設不檢查）")
+    r.add_argument("--min-leaf-precision", type=float, help="leaf precision 低於此值也算失敗（預設不檢查）")
+    r.add_argument("--min-kappa", type=float, help="kappa（次要指標）低於此值也算失敗（預設不檢查）")
     r.set_defaults(func=cmd_run)
 
     s = sub.add_parser("sample", help="列出分層抽樣的路徑給人標註（不顯示預測）")

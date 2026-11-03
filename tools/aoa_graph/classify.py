@@ -1,10 +1,14 @@
 """aoa-classify：讀 aoa-graph 的輸出，用確定性規則把每個檔案分成 core／business／leaf。
 
-順序：
-  1. 母體：測試檔與範例程式碼直接判 leaf，不參與排名
-  2. 硬規則（命中即 core）：config core_paths、敏感類別（路徑 token／glob／import 的套件／套件入口）、runtime 循環（另標 high_risk）
-  3. 風險分數 risk = impact × cost_of_failure ÷ detectability，在母體內取 midrank 百分位切分
-  4. overrides.jsonl：比計算結果嚴格的自動生效；比較寬鬆的要有 approved_by（人工）才生效
+三個類別的判法（business 是預設類別）：
+  - core：命中任何 core 規則——config core_paths、敏感類別硬規則（路徑 token／glob／import 的套件／套件入口）、
+    runtime 循環的 hub（另標 high_risk）、風險分數在前段百分位（score_top／score_boundary）
+  - leaf：符合 leaf 條件——測試檔、範例／文件／benchmark 程式碼（不參與排名），
+    或風險分數低（< leaf 切點）且非測試依賴者 ≤ leaf_max_prod_blast_radius 且沒有 parse error（score_low）
+  - business：其餘全部（規則 id default，理由 "default: not core, not leaf — not leaf because …"）
+
+風險分數 risk = impact × cost_of_failure ÷ detectability，在母體（非測試、非範例）內取 midrank 百分位。
+最後套 overrides.jsonl：比計算結果嚴格的自動生效；比較寬鬆的要有 approved_by（人工）才生效。
 
 同樣的輸入（graph／metrics／unresolved／設定檔／覆蓋率檔／overrides）→ nodes.json 位元相同。
 """
@@ -379,37 +383,36 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
             score_txt = (f"risk {scores[n]:.3f} at p{p:g} (impact {f['impact']} × cost {f['cost_of_failure']} "
                          f"÷ detectability {f['detectability']}; prod blast {f['prod_blast_radius']}, "
                          f"churn {f['churn']}, bug-fix {f['bugfix_count']}, tests direct {f['test_fan_in']} / reach {f['test_reach']})")
+            # 1) core：命中任何 core 規則（硬規則已在上面加進 rule_ids；再看風險百分位）
+            if not rule_ids:
+                if p >= core_cut:
+                    rule_ids.append("score_top")
+                    reasons.append(f"score_top: top {th['core_top_percent']:g}% — {score_txt}")
+                elif p >= core_boundary:
+                    rule_ids.append("score_boundary")
+                    reasons.append(f"score_boundary: within {th['boundary_margin_percent']:g} points of the core cut (p{core_cut:g}), leaning stricter — {score_txt}")
+            else:
+                reasons.append(f"score: {score_txt}")
             if rule_ids:
                 cls = "core"
-                reasons.append(f"score: {score_txt}")
-            elif p >= core_cut:
-                cls = "core"
-                rule_ids.append("score_top")
-                reasons.append(f"score_top: top {th['core_top_percent']:g}% — {score_txt}")
-            elif p >= core_boundary:
-                cls = "core"
-                rule_ids.append("score_boundary")
-                reasons.append(f"score_boundary: within {th['boundary_margin_percent']:g} points of the core cut (p{core_cut:g}), leaning stricter — {score_txt}")
-            elif p < leaf_cut and f["prod_blast_radius"] <= th["leaf_max_prod_blast_radius"]:
-                cls = "leaf"
-                rule_ids.append("score_low")
-                reasons.append(f"score_low: below p{leaf_cut:g} and prod blast radius {f['prod_blast_radius']} ≤ {th['leaf_max_prod_blast_radius']:g} — {score_txt}")
-            elif p < leaf_cut:
-                cls = "business"
-                rule_ids.append("leaf_blast_guard")
-                reasons.append(f"leaf_blast_guard: low score but {f['prod_blast_radius']} non-test files depend on it (> {th['leaf_max_prod_blast_radius']:g}) — {score_txt}")
-            elif p < th["leaf_bottom_percent"]:
-                cls = "business"
-                rule_ids.append("leaf_boundary")
-                reasons.append(f"leaf_boundary: within {th['boundary_margin_percent']:g} points of the leaf cut (p{th['leaf_bottom_percent']:g}), leaning stricter — {score_txt}")
             else:
-                cls = "business"
-                rule_ids.append("score_mid")
-                reasons.append(f"score_mid: {score_txt}")
-            if cls == "leaf" and n in parse_errors:
-                cls = "business"
-                rule_ids.append("parse_error_uncertain")
-                reasons.append("parse_error_uncertain: tree-sitter reported a parse error, edges may be incomplete → not leaf")
+                # 2) leaf：低風險、非測試依賴者 ≤ N、沒有 parse error——三個條件都要成立
+                not_leaf = []
+                if p >= leaf_cut:
+                    not_leaf.append(f"risk p{p:g} ≥ leaf cut p{leaf_cut:g} (leaf_bottom_percent {th['leaf_bottom_percent']:g} − margin {th['boundary_margin_percent']:g})")
+                if f["prod_blast_radius"] > th["leaf_max_prod_blast_radius"]:
+                    not_leaf.append(f"{f['prod_blast_radius']} non-test files depend on it (> {th['leaf_max_prod_blast_radius']:g})")
+                if n in parse_errors:
+                    not_leaf.append("tree-sitter reported a parse error, edges may be incomplete")
+                if not not_leaf:
+                    cls = "leaf"
+                    rule_ids.append("score_low")
+                    reasons.append(f"score_low: below p{leaf_cut:g} and prod blast radius {f['prod_blast_radius']} ≤ {th['leaf_max_prod_blast_radius']:g} — {score_txt}")
+                else:
+                    # 3) business：預設類別——沒命中 core 規則、也不符合 leaf 條件
+                    cls = "business"
+                    rule_ids.append("default")
+                    reasons.append(f"default: not core, not leaf — not leaf because {'; '.join(not_leaf)} — {score_txt}")
         computed[n] = cls
         out_nodes[n] = {
             "computed_class": cls,
@@ -494,6 +497,17 @@ def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def load_config(args: argparse.Namespace, root: Path) -> tuple[dict, Path | None]:
+    cfg_path = None
+    if not args.no_config:
+        cfg_path = Path(args.config).resolve() if args.config else root / rules.REPO_CONFIG_NAME
+        if args.config and not cfg_path.is_file():
+            raise InputError(f"找不到設定檔 {cfg_path}")
+        if not cfg_path.is_file():
+            cfg_path = None
+    return rules.merge(rules.load_default(), rules.load_repo_config(cfg_path) if cfg_path else {}), cfg_path
+
+
 def run(args: argparse.Namespace) -> tuple[dict, Path]:
     root = Path(args.repo).resolve()
     in_dir = Path(args.in_dir).resolve() if args.in_dir else root / DEFAULT_DIR
@@ -507,15 +521,7 @@ def run(args: argparse.Namespace) -> tuple[dict, Path]:
             raise InputError(f"找不到 {p}；請先跑 `aoa-graph {args.repo}`")
         docs[name] = json.loads(p.read_text(encoding="utf-8"))
 
-    cfg_default = rules.load_default()
-    cfg_path = None
-    if not args.no_config:
-        cfg_path = Path(args.config).resolve() if args.config else root / rules.REPO_CONFIG_NAME
-        if args.config and not cfg_path.is_file():
-            raise InputError(f"找不到設定檔 {cfg_path}")
-        if not cfg_path.is_file():
-            cfg_path = None
-    cfg = rules.merge(cfg_default, rules.load_repo_config(cfg_path) if cfg_path else {})
+    cfg, cfg_path = load_config(args, root)
 
     node_ids = sorted(n["id"] for n in docs["graph"]["nodes"])
     cov_path = None
@@ -563,11 +569,30 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--coverage", help="覆蓋率檔（coverage.py JSON 或 lcov）；預設看設定檔，再找 " + "、".join(coverage_input.AUTO_CANDIDATES))
     p.add_argument("--no-coverage", action="store_true", help="不讀覆蓋率檔")
     p.add_argument("--overrides", help=f"覆寫紀錄（預設：<in>/{OVERRIDES_NAME}）")
+    g = p.add_argument_group("escalation check（--check-diff：不重新分類，只讀 nodes.json）")
+    g.add_argument("--check-diff", metavar="BASE",
+                   help="比較 merge-base(BASE, HEAD) 到工作目錄改到的檔案，回報最嚴格的類別與要走的 workflow；"
+                        "碰到 core 或需要升級 → exit 3")
+    g.add_argument("--json", action="store_true", help="--check-diff 以 JSON 輸出")
+    g.add_argument("--fail-on", choices=("core", "business", "never"), default="core",
+                   help="--check-diff 在什麼情況 exit 3（預設 core：碰到 core 或需要升級）")
+    g.add_argument("--max-new-deps", type=int, default=0,
+                   help="--check-diff：依賴清單新增的套件數超過這個值就升級到 core 流程（預設 0）")
     return p.parse_args(argv)
 
 
 def main(argv=None) -> int:
     args = parse_args(argv)
+    if args.check_diff:
+        from .check_diff import main_check
+        root = Path(args.repo).resolve()
+        try:
+            cfg, _ = load_config(args, root)
+        except (InputError, rules.ConfigError) as e:
+            print(f"aoa-classify: {e}", file=sys.stderr)
+            return 2
+        in_dir = Path(args.in_dir).resolve() if args.in_dir else root / DEFAULT_DIR
+        return main_check(args, cfg, in_dir / "nodes.json")
     try:
         doc, out = run(args)
     except (InputError, rules.ConfigError, ValueError) as e:

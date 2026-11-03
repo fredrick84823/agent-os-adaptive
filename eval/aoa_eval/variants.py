@@ -16,7 +16,7 @@ VARIANTS: dict[str, dict] = {
     "catalog-only": {"structure": {**BEFORE, "barrel_passthrough": "catalog"}},
     # 實驗：所有 barrel 都不往下傳（沒有採用，留著對照）
     "all-barrels": {"structure": {"runtime_cycle_core": "hubs", "barrel_passthrough": "all"}},
-    # 目前的預設規則（2026.11-2：hubs + catalog）
+    # 目前的預設規則（2026.11-3：hubs + catalog；business 為預設類別）
     "current": {},
 }
 GATE_VARIANT = "current"

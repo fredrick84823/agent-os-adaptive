@@ -196,12 +196,16 @@ def test_percentile_cuts_and_boundaries():
     rule = {i: out[i]["rules"][0] for i in ids}
     assert [rule[i] for i in ids[:3]] == ["score_top", "score_top", "score_boundary"]  # 97.5、92.5 → top；87.5 → 邊界
     assert all(out[i]["class"] == "core" for i in ids[:3])
-    assert rule["m12.py"] == "leaf_boundary"   # p37.5：在 leaf 門檻 40 的 5 點內 → business
+    # business 是預設類別：不是 core、也不符合 leaf 條件的都是 default
+    assert rule["m12.py"] == "default"   # p37.5：在 leaf 門檻 40 的 5 點內 → 不是 leaf → business
     assert out["m12.py"]["class"] == "business"
+    assert out["m12.py"]["reasons"][0].startswith("default: not core, not leaf — not leaf because risk p37.5 ≥ leaf cut p35")
     # p < 35 的 m13–m19：blast radius 6..0，只有 ≤ 2 的 m17–m19 能是 leaf
-    assert all(out[i]["class"] == "business" and rule[i] == "leaf_blast_guard" for i in ids[13:17])
+    for i in ids[13:17]:
+        assert out[i]["class"] == "business" and out[i]["rules"] == ["default"]
+        assert "non-test files depend on it (> 2)" in out[i]["reasons"][0] and "leaf cut" not in out[i]["reasons"][0]
     assert all(out[i]["class"] == "leaf" and rule[i] == "score_low" for i in ids[17:])
-    assert all(out[i]["class"] == "business" for i in ids[3:13])
+    assert all(out[i]["class"] == "business" and out[i]["rules"] == ["default"] for i in ids[3:13])
 
 
 def test_leaf_blast_guard():
@@ -212,7 +216,8 @@ def test_leaf_blast_guard():
     # 門檻放到「全部都是 leaf 候選」：hub 仍因為有 3 個非測試檔依賴它而不能是 leaf
     t = cfg(thresholds={"core_top_percent": 0, "boundary_margin_percent": 0, "leaf_bottom_percent": 100})
     out = run(graph, metrics, t)["nodes"]
-    assert out[hub]["rules"] == ["leaf_blast_guard"] and out[hub]["class"] == "business"
+    assert out[hub]["rules"] == ["default"] and out[hub]["class"] == "business"
+    assert "3 non-test files depend on it" in out[hub]["reasons"][0]
     assert out["z00.py"]["class"] == "leaf"
 
 
@@ -246,7 +251,8 @@ def test_churn_and_bugfix_raise_score():
 def test_parse_error_never_leaf():
     ids, (graph, metrics) = chain(20)
     out = run(graph, metrics, unresolved={"parse_errors": ["m19.py"]})["nodes"]
-    assert out["m19.py"]["class"] == "business" and "parse_error_uncertain" in out["m19.py"]["rules"]
+    assert out["m19.py"]["class"] == "business" and out["m19.py"]["rules"] == ["default"]
+    assert "parse error" in out["m19.py"]["reasons"][0]
 
 
 def test_source_mismatch_rejected():

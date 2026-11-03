@@ -1,7 +1,12 @@
-"""分類準確度指標：confusion matrix、Cohen's kappa、per-class precision／recall、非對稱成本。
+"""分類準確度指標。
 
-類別有序：leaf < business < core。成本矩陣刻意不對稱——把風險低估（往 leaf 判）比高估貴得多，
-core → leaf 是唯一的硬性失敗條件。
+主要指標是兩個二元決策（AI coding 流程真正要做的判斷）：
+  - is core？ 看 core recall——真的 core 有多少被判成 core（漏判 = 敏感檔案走了比較鬆的流程）
+  - is leaf？ 看 leaf precision——判成 leaf 的有多少真的是 leaf（誤判 = AI 在不該放手的檔案上直接改）
+另有硬性門檻 core → leaf 必須是 0。
+
+次要指標：confusion matrix、Cohen's kappa（未加權／線性加權）、per-class precision／recall、非對稱成本。
+類別有序：leaf < business < core。成本矩陣刻意不對稱——把風險低估（往 leaf 判）比高估貴得多。
 """
 from __future__ import annotations
 
@@ -64,6 +69,20 @@ def per_class(m: dict[str, dict[str, int]]) -> dict[str, dict]:
     return out
 
 
+def binary(pairs: list[tuple[str, str]], cls: str) -> dict:
+    """把三類問題收斂成「是不是 cls」的二元決策：tp／fp／fn／tn、precision、recall。"""
+    tp = sum(1 for t, p in pairs if t == cls and p == cls)
+    fp = sum(1 for t, p in pairs if t != cls and p == cls)
+    fn = sum(1 for t, p in pairs if t == cls and p != cls)
+    tn = len(pairs) - tp - fp - fn
+    return {
+        "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+        "support": tp + fn, "predicted": tp + fp,
+        "precision": _r(tp / (tp + fp)) if tp + fp else None,
+        "recall": _r(tp / (tp + fn)) if tp + fn else None,
+    }
+
+
 def _r(x: float | None) -> float | None:
     return None if x is None else round(x, 4)
 
@@ -77,6 +96,8 @@ def score(pairs: list[tuple[str, str]]) -> dict:
     over = sum(1 for t, p in pairs if _IDX[p] > _IDX[t])
     return {
         "n": n,
+        "is_core": binary(pairs, "core"),   # 主要：recall
+        "is_leaf": binary(pairs, "leaf"),   # 主要：precision
         "accuracy": _r(agree / n) if n else None,
         "kappa": _r(cohen_kappa(m)),
         "weighted_kappa": _r(linear_weighted_kappa(m)),

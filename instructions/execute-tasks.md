@@ -490,18 +490,33 @@ encoding: UTF-8
     </step_2>
     
     <step_3>
-      <action>Make delegation decision</action>
+      <action>Make delegation decision — the STRICTEST class touched wins</action>
       <decision_tree>
-        IF task_primarily_affects_core_nodes OR high_dependency_impact:
+        STRICTEST = the strictest `class` in nodes.json among the files the task will change or create
+                    (core > business > leaf; a new file takes the class aoa-classify --check-diff infers from its path)
+        IF STRICTEST == core OR task_adds_third_party_dependencies:
+          FOLLOW @~/agent-os-adaptive/instructions/core-workflow.md
           DELEGATE_TO @~/agent-os-adaptive/subagents/core-node-agent.md
-        ELIF task_primarily_affects_leaf_nodes AND minimal_dependency_impact:
+        ELIF STRICTEST == business:
+          FOLLOW @~/agent-os-adaptive/instructions/business-workflow.md
+        ELIF STRICTEST == leaf:
+          FOLLOW @~/agent-os-adaptive/instructions/leaf-workflow.md
           DELEGATE_TO @~/agent-os-adaptive/subagents/leaf-node-agent.md
-        ELIF mixed_node_types:
-          USE mixed_approach_execution (below)
-        ELSE:
-          USE traditional_tdd_workflow (fallback)
+        IF mixed_node_types AND the work splits cleanly into separate diffs per class:
+          MAY USE mixed_approach_execution (below), each diff under its own class's workflow
       </decision_tree>
     </step_3>
+
+    <step_4>
+      <action>Escalation check before handing the diff to the human (every class)</action>
+      <command>uv run --project ~/agent-os-adaptive aoa-classify . --check-diff BASE</command>
+      <rules>
+        - BASE is the branch the work will merge into (e.g. `main`, `origin/main`).
+        - It reads nodes.json and `git diff` (committed + uncommitted + untracked files since merge-base) and prints the strictest class touched and the workflow to follow.
+        - Exit 3 (`ESCALATE`: core node touched, or more new dependencies than `--max-new-deps`) → switch to core-workflow.md for the remaining work and do not merge without human approval.
+        - Exit 0 → the current workflow is strict enough. Exit 2 → missing nodes.json / bad BASE: fix and re-run.
+      </rules>
+    </step_4>
   </classification_process>
   
   <delegation_instructions>

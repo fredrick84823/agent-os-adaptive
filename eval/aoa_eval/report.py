@@ -12,7 +12,12 @@ def _f(x, nd=3):
     return str(x)
 
 
-def gates(results: list[dict], gate_variant: str, min_kappa: float | None) -> list[str]:
+def _frac(b: dict, num: str, den: str, metric: str) -> str:
+    return f"{_f(b[metric])} ({b[num]}/{b[den]})"
+
+
+def gates(results: list[dict], gate_variant: str, min_kappa: float | None,
+          min_core_recall: float | None = None, min_leaf_precision: float | None = None) -> list[str]:
     fails = []
     for r in results:
         v = r["variants"].get(gate_variant, {})
@@ -21,6 +26,14 @@ def gates(results: list[dict], gate_variant: str, min_kappa: float | None) -> li
             fails.append(f"{r['repo']}: core→leaf = {acc['all']['core_to_leaf']}（{', '.join(acc['core_to_leaf_paths'])}）")
         if r.get("determinism") and not r["determinism"]["ok"]:
             fails.append(f"{r['repo']}: 同一 commit 兩次輸出不同")
+        if min_core_recall is not None and acc:
+            rec = acc["all"]["is_core"]["recall"]
+            if rec is not None and rec < min_core_recall:
+                fails.append(f"{r['repo']}: core recall {_f(rec)} < {min_core_recall}（漏判：{', '.join(acc['core_missed'])}）")
+        if min_leaf_precision is not None and acc:
+            prec = acc["all"]["is_leaf"]["precision"]
+            if prec is not None and prec < min_leaf_precision:
+                fails.append(f"{r['repo']}: leaf precision {_f(prec)} < {min_leaf_precision}（誤判為 leaf：{', '.join(acc['false_leaf'])}）")
         if min_kappa is not None and acc and (acc["all"]["kappa"] is None or acc["all"]["kappa"] < min_kappa):
             fails.append(f"{r['repo']}: kappa {_f(acc['all']['kappa'])} < {min_kappa}")
     return fails
@@ -34,7 +47,39 @@ def markdown(results: list[dict], variants: list[str], gate_variant: str, fails:
     L.append("")
     L.append("> 標註是 agent 的初始標註，尚未經人工複核（見 eval/README.md）。")
     L.append("")
-    L.append("## Accuracy")
+    L.append("## Primary metrics: is core? / is leaf?")
+    L.append("")
+    L.append("兩個二元決策（全部標註檔案）：**core recall**＝真的 core 有多少被判成 core（優先，漏判代表敏感檔案走了較鬆的流程）；"
+             "**leaf precision**＝判成 leaf 的有多少真的是 leaf（優先，誤判代表 AI 在不該放手的檔案上直接改）。"
+             "core→leaf 必須是 0（gate）。kappa 是次要指標。")
+    L.append("")
+    L.append("| repo | variant | n | **core recall** | core precision | **leaf precision** | leaf recall | **core→leaf** | kappa |")
+    L.append("|---|---|---|---|---|---|---|---|---|")
+    for r in results:
+        for v in variants:
+            acc = r["variants"][v].get("accuracy")
+            if not acc:
+                continue
+            a = acc["all"]
+            c, lf = a["is_core"], a["is_leaf"]
+            name = f"**{v}**" if v == gate_variant else v
+            L.append(f"| {r['repo']} | {name} | {a['n']} | {_frac(c, 'tp', 'support', 'recall')} | "
+                     f"{_frac(c, 'tp', 'predicted', 'precision')} | {_frac(lf, 'tp', 'predicted', 'precision')} | "
+                     f"{_frac(lf, 'tp', 'support', 'recall')} | {a['core_to_leaf']} | {_f(a['kappa'])} |")
+    L.append("")
+    gate_rows = [(r, r["variants"][gate_variant].get("accuracy")) for r in results if gate_variant in r["variants"]]
+    if any(acc and (acc["core_missed"] or acc["false_leaf"]) for _, acc in gate_rows):
+        L.append(f"Misses on `{gate_variant}`:")
+        L.append("")
+        for r, acc in gate_rows:
+            if not acc:
+                continue
+            if acc["core_missed"]:
+                L.append(f"- {r['repo']} core missed (label core, predicted not core): " + ", ".join(f"`{p}`" for p in acc["core_missed"]))
+            if acc["false_leaf"]:
+                L.append(f"- {r['repo']} false leaf (predicted leaf, label not leaf): " + ", ".join(f"`{p}`" for p in acc["false_leaf"]))
+        L.append("")
+    L.append("## Secondary: agreement (kappa) and cost")
     L.append("")
     L.append("| repo | variant | n (ranked) | kappa | weighted κ | kappa ranked | core→leaf | under | over | mean cost |")
     L.append("|---|---|---|---|---|---|---|---|---|---|")
