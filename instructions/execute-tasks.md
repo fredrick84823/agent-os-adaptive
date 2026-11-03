@@ -469,11 +469,12 @@ encoding: UTF-8
       <action>Read architecture analysis documents</action>
       <files>
         - @agent-os-adaptive/architecture-analysis/node_classification.md
+        - @agent-os-adaptive/architecture-analysis/nodes.json
         - @agent-os-adaptive/architecture-analysis/dependency_map.mermaid
       </files>
       <extract>
-        - Component classifications (Core/Business/Leaf)
-        - In-degree and out-degree metrics
+        - Component classifications (Core/Business/Leaf): use `class` from nodes.json as the source of truth
+        - Triggered rules, risk score / percentile, `high_risk` flag, blast radius
         - Risk level assessments
         - Dependency chain impact
       </extract>

@@ -1,8 +1,8 @@
 ---
-description: Runs the aoa-graph tool to compute a file-level dependency graph and metrics, then interprets them to classify nodes.
+description: Runs aoa-graph (dependency graph + metrics) and aoa-classify (deterministic core/business/leaf rules), then explains the result and records any overrides.
 globs:
 alwaysApply: false
-version: 1.1
+version: 1.2
 encoding: UTF-8
 ---
 
@@ -25,8 +25,9 @@ encoding: UTF-8
 
 <purpose>
   - To classify the project's files into "Core Nodes," "Business Logic Nodes," and "Leaf Nodes" to inform development strategies.
-  - The numbers (in/out-degree, blast radius, cycles, churn, bug-fix history) are COMPUTED by `tools/aoa_graph`, not estimated by the model.
-  - The model's job is to interpret those numbers, resolve what the tool could not (dynamic imports, DI, plugin registration), and justify each classification.
+  - The numbers (fan-in/out, blast radius, cycles, churn, bug-fix history) are COMPUTED by `tools/aoa_graph`, not estimated by the model.
+  - The CLASS of every file (core / business / leaf) is DECIDED by `aoa-classify` from versioned rules (`tools/aoa_graph/default_rules.toml` + the project's optional `.aoa.toml`), not by the model.
+  - The model's job is to explain the result, resolve what the tools could not see (dynamic imports, DI, plugin registration), and propose overrides in `overrides.jsonl`. Stricter overrides apply automatically; looser ones need a human.
 </purpose>
 
 <context>
@@ -43,9 +44,10 @@ encoding: UTF-8
 </prerequisites>
 
 <tool_contract>
-  - The tool is the single source of truth for every number. NEVER edit `graph.json`, `metrics.json`, or `unresolved.json` by hand, and NEVER write a degree that is not in `metrics.json` (no "6+", "8+", or rounded values).
-  - If you believe the tool is wrong (e.g. a dynamic import it could not see), record it as a model-inferred dependency in Step 4 with evidence; do not change the computed numbers.
-  - Field reference: `~/agent-os-adaptive/tools/aoa_graph/README.md`.
+  - The tools are the single source of truth for every number AND every class. NEVER edit `graph.json`, `metrics.json`, `unresolved.json`, or `nodes.json` by hand, and NEVER write a degree, score, or class that is not in them (no "6+", "8+", or rounded values).
+  - If you believe a class is wrong, append an override to `overrides.jsonl` (Step 4) and re-run `aoa-classify`; do not change the class in the document yourself.
+  - NEVER set `approved_by` in an override. Only a human may approve a looser class.
+  - Field reference: `~/agent-os-adaptive/tools/aoa_graph/README.md` (aoa-graph and aoa-classify sections).
 </tool_contract>
 
 <process_flow>
@@ -72,11 +74,12 @@ encoding: UTF-8
 </step>
 
 <step number="2" name="dependency_mapping">
-    <purpose>Render a readable Mermaid map from graph.json</purpose>
+    <purpose>Render a readable Mermaid map from graph.json (colored after Step 3)</purpose>
     <action>
       1. READ `graph.json` edges. Do not add edges that are not in it (model-inferred edges go to Step 4, drawn dashed if shown).
       2. FOR large graphs (more than ~60 nodes): show the top nodes by `blast_radius` and `fan_in` from `metrics.json`, every member of each `cycles[]` entry, and group the rest by directory; state in a comment which subset is shown.
       3. MARK cycle members (`in_cycle: true`) and keep node labels as file paths.
+      3a. COLOR nodes by `class` from `nodes.json` (Step 3); if you draw the map before Step 3, come back and apply the classes.
       4. SAVE as agent-os-adaptive/architecture-analysis/dependency_map.mermaid
     </action>
 
@@ -102,44 +105,46 @@ encoding: UTF-8
     </mermaid_template>
 </step>
 
-<step number="3" name="dependency_analysis">
-    <purpose>Interpret the computed metrics to classify each file</purpose>
+<step number="3" name="rule_based_classification">
+    <purpose>Classify every file with the deterministic rules, then explain the result</purpose>
+    <action>
+      1. From the project root, RUN:
+         `uv run --project ~/agent-os-adaptive aoa-classify .`
+         (equivalent: `uv run --project ~/agent-os-adaptive aoa-graph classify .`)
+      2. ADD options only when needed: `--coverage FILE` (coverage.py JSON or lcov) if the project has a fresh coverage report; `--no-coverage` if the report on disk is stale.
+      3. CONFIRM the summary line (core / business / leaf counts, high_risk, overrides applied / pending).
+      4. IF it exits with a config or overrides error: show the message to the user and STOP; do not classify by hand.
+      5. IF the project has no `.aoa.toml` and the user named sensitive areas the default rules miss (e.g. a billing folder with a generic name), SUGGEST a `.aoa.toml` with `core_paths` and let the user decide; do not write it silently.
+    </action>
+    <output>agent-os-adaptive/architecture-analysis/nodes.json</output>
     <metric_mapping>
-      - In-degree = `fan_in`; Out-degree = `fan_out` (copy the exact integers).
-      - "Critical path / if removed, breaks multiple features" = read `blast_radius` (number of files that transitively depend on it).
-      - "Bidirectional / circular dependencies" = `in_cycle` / `scc_id`; check `in_runtime_cycle` to see whether the cycle exists at runtime or only through type-only imports.
-      - Change risk signals = `churn`, `churn_lines`, `bugfix_count`; hidden coupling = `co_change`.
-      - `test_fan_in` tells how many direct dependents are tests (some of `fan_in` / `blast_radius` is test code).
+      - Fan-in = `fan_in`, fan-out = `fan_out` (copy the exact integers; fan-out is shown for context only).
+      - "If it breaks, how much breaks" = `blast_radius` in metrics.json (includes tests) and `factors.prod_blast_radius` in nodes.json (non-test dependents only; this one drives the score).
+      - Circular dependencies = `in_cycle` / `scc_id`; only `in_runtime_cycle` triggers the `runtime_cycle` rule (type-only cycles are noted, not ruled).
+      - Change risk signals = `churn`, `churn_lines`, `bugfix_count`; hidden coupling = `co_change` (not scored; mention it in the Justification when relevant).
+      - Detectability = `factors.test_fan_in` (direct test importers), `factors.test_reach` (direct or transitive), `factors.coverage`.
     </metric_mapping>
-    <analysis_criteria>
-      <core_node_patterns>
-        - High in-degree (many components depend on it)
-        - Low out-degree (depends on few other components)
-        - Critical path components (if removed, breaks multiple features)
-        - Infrastructure and shared services
-        - Components with bidirectional dependencies
-      </core_node_patterns>
-
-      <leaf_node_patterns>
-        - Low in-degree (few or no components depend on it)
-        - Higher out-degree (depends on other components but not depended upon)
-        - UI components with one-way data flow
-        - Feature-specific components
-        - Report generators and exporters
-        - Components that can be removed without breaking other features
-      </leaf_node_patterns>
-
-      <business_logic_patterns>
-        - Medium in-degree and out-degree
-        - Orchestrates between core and leaf nodes
-        - Contains domain-specific logic
-        - Controllers and service layers
-      </business_logic_patterns>
-    </analysis_criteria>
+    <classification_criteria>
+      Applied by `aoa-classify` in this order (details: tools/aoa_graph/README.md). Out-degree is NOT a criterion: depending on many files does not make a file safer or riskier to change for its dependents.
+      1. Test files and example / docs / benchmark code → leaf (`test_file`, `example_code`); they are not ranked.
+      2. Hard rules → core:
+         - `config_core_path`: matches `core_paths` in the project's `.aoa.toml`
+         - `sensitive:<id>`: auth, crypto, secrets, payments, pii, irreversible deletes, db_schema / migrations, public_api (incl. package entrypoints) — matched by path tokens, path globs, or imported packages
+         - `runtime_cycle`: member of a runtime cycle (SCC size > 1, ignoring type-only edges) → also `high_risk: true`. This replaces the old "bidirectional dependencies" criterion.
+      3. Risk score `risk = impact × cost_of_failure ÷ detectability`, ranked by percentile among non-test, non-example files:
+         - impact: blast radius counting only non-test dependents, weighted up by churn
+         - cost_of_failure: weighted up by bug-fix commits
+         - detectability: tests that import the file directly or transitively, plus line coverage when a report is given (no report → conservative low detectability)
+         - top 10% → core (`score_top`); the next 5 points → core (`score_boundary`, leaning stricter)
+         - below p35 AND ≤ 2 non-test files depend on it (directly or transitively) → leaf (`score_low`); otherwise business (`leaf_blast_guard`, `leaf_boundary`, `score_mid`)
+      4. A leaf with a tree-sitter parse error → business (`parse_error_uncertain`).
+      5. Overrides from `overrides.jsonl`: stricter ones apply automatically; looser ones only with a human `approved_by`.
+    </classification_criteria>
     <interpretation_rules>
-      - Apply the criteria above to the computed numbers; the criteria themselves are unchanged in this version (rule redesign is tracked separately).
-      - Every Justification MUST cite at least one metric value from `metrics.json`.
-      - When the numbers and the code's role disagree (e.g. low fan_in but handles auth or payments), say so explicitly in the Justification. When unsure, prefer the stricter class (leaf → business → core).
+      - Copy `class`, `rules`, `risk_score`, `percentile`, `risk_level` from `nodes.json` exactly.
+      - Every Justification MUST cite the rule id(s) and at least one number from `nodes.json` / `metrics.json`, then explain in plain words what the file does and why that rule fits (or does not fit).
+      - When the class and the code's role disagree (e.g. a leaf that actually handles payments through a generic filename), do NOT change the class in the document: propose an override in Step 4.
+      - Files with `high_risk: true` (runtime cycle members) must be called out in the summary.
     </interpretation_rules>
 </step>
 
@@ -151,8 +156,15 @@ encoding: UTF-8
       3. FOR `not_found` / `*_target_not_found` / `workspace_package_entry_not_found`: decide whether it is generated code, a missing file, or a resolution gap; note it.
       4. FOR files in `parse_errors`: spot-check that their imports in `graph.json` match the file's import lines.
       5. ALSO consider dependencies no import can show: DI containers, framework registration (decorators, entry points), reflection.
-      6. NEVER change the computed metrics; model-inferred dependencies only affect the Justification text and may justify a STRICTER class, never a looser one.
+      6. NEVER change the computed metrics. Model-inferred dependencies go into the Justification text and, if they make a file riskier, into an override.
     </action>
+    <overrides>
+      - FILE: agent-os-adaptive/architecture-analysis/overrides.jsonl (one JSON object per line; append, never rewrite earlier lines)
+      - FORMAT: `{"node": "<path>", "to": "core|business|leaf", "by": "model", "reason": "<why>", "evidence": "<file:line>"}`
+      - STRICTER (leaf → business → core): append it, then re-run `aoa-classify`; it applies automatically.
+      - LOOSER (e.g. core → leaf): append it WITHOUT `approved_by`. It stays in `overrides.pending` in `nodes.json` until a human adds `"approved_by": "<name>"`. Tell the user which looser overrides are waiting for approval and why.
+      - After appending, RE-RUN `uv run --project ~/agent-os-adaptive aoa-classify .` and confirm the summary line's applied / pending counts.
+    </overrides>
 </step>
 
 <step number="5" name="classification_documentation">
@@ -163,41 +175,50 @@ encoding: UTF-8
       # Node Classification Analysis
 
       > Created: [CURRENT_DATE]
-      > Analysis Method: Computed dependency metrics (aoa-graph [GENERATOR_VERSION]) + model interpretation
+      > Analysis Method: Computed metrics (aoa-graph [GENERATOR_VERSION]) + rule-based classes (aoa-classify, rules [rules_version.default] / repo [rules_version.repo or none]) + model explanation
       > Source: commit [source.commit from metrics.json] (dirty: [source.dirty])
       > Graph: [summary.nodes] files, [summary.edges] edges, [summary.cycles] cycles, [summary.unresolved] unresolved imports
       > History window: [params.window_start] → [params.window_end]
+      > Classes: core [summary.core], business [summary.business], leaf [summary.leaf] (ranked [summary.ranked], tests [summary.tests], examples [summary.examples]); high_risk [summary.high_risk]; overrides applied [summary.overrides_applied], pending [summary.overrides_pending]
 
       ## Dependency Map
 
       See: @agent-os-adaptive/architecture-analysis/dependency_map.mermaid
-      Raw data: `graph.json`, `metrics.json`, `unresolved.json` in the same folder.
+      Raw data: `graph.json`, `metrics.json`, `unresolved.json`, `nodes.json`, `overrides.jsonl` in the same folder.
 
       ## Component Classifications
 
       ### Core Nodes (Require Careful Oversight)
 
-      | File | Fan-in | Fan-out | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
-      |------|--------|---------|--------------|-------|-------|---------|------------|---------------|
-      | [PATH] | [fan_in] | [fan_out] | [blast_radius] | [scc_id or -] | [churn] | [bugfix_count] | [HIGH/MEDIUM/LOW] | [REASONING citing metrics] |
+      | File | Rules | Score (pct) | Fan-in | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
+      |------|-------|-------------|--------|--------------|-------|-------|---------|------------|---------------|
+      | [PATH] | [rules from nodes.json] | [risk_score] (p[percentile]) | [fan_in] | [blast_radius] | [runtime_scc_id or -] | [churn] | [bugfix_count] | [risk_level] | [REASONING citing rule ids and numbers] |
 
       ### Business Logic Nodes (Standard Development)
 
-      | File | Fan-in | Fan-out | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
-      |------|--------|---------|--------------|-------|-------|---------|------------|---------------|
-      | [PATH] | [fan_in] | [fan_out] | [blast_radius] | [scc_id or -] | [churn] | [bugfix_count] | [HIGH/MEDIUM/LOW] | [REASONING citing metrics] |
+      | File | Rules | Score (pct) | Fan-in | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
+      |------|-------|-------------|--------|--------------|-------|-------|---------|------------|---------------|
+      | [PATH] | [rules from nodes.json] | [risk_score] (p[percentile]) | [fan_in] | [blast_radius] | [runtime_scc_id or -] | [churn] | [bugfix_count] | [risk_level] | [REASONING citing rule ids and numbers] |
 
       ### Leaf Nodes (Autonomous Development Candidates)
 
-      | File | Fan-in | Fan-out | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
-      |------|--------|---------|--------------|-------|-------|---------|------------|---------------|
-      | [PATH] | [fan_in] | [fan_out] | [blast_radius] | [scc_id or -] | [churn] | [bugfix_count] | [HIGH/MEDIUM/LOW] | [REASONING citing metrics] |
+      | File | Rules | Score (pct) | Fan-in | Blast radius | Cycle | Churn | Bug-fix | Risk Level | Justification |
+      |------|-------|-------------|--------|--------------|-------|-------|---------|------------|---------------|
+      | [PATH] | [rules from nodes.json] | [risk_score] (p[percentile]) | [fan_in] | [blast_radius] | [runtime_scc_id or -] | [churn] | [bugfix_count] | [risk_level] | [REASONING citing rule ids and numbers] |
+
+      For large repos list every core file, and for business / leaf the top 20 by `risk_score` plus any file the user asked about; state the total count of each class from `summary`. Test and example files may be summarized as one line each.
+
+      ## Overrides
+
+      | File | Computed → Final | By | Status (applied / pending approval) | Reason |
+      |------|------------------|----|-------------------------------------|--------|
+      | [PATH] | [computed_class] → [class or proposed] | [by] | [kind] | [reason] |
 
       ## Model-Inferred Dependencies (not in graph.json)
 
       | From | To | Evidence (file:line) | Effect on classification |
       |------|----|----------------------|--------------------------|
-      | [PATH] | [PATH or unknown] | [WHERE] | [none / made stricter] |
+      | [PATH] | [PATH or unknown] | [WHERE] | [none / override proposed] |
 
     </documentation_template>
 </step>
@@ -212,8 +233,10 @@ encoding: UTF-8
 </step_metadata>
 
 <verification_checklist>
-  - [ ] `graph.json`, `metrics.json`, `unresolved.json` generated by the tool (not hand-written)
-  - [ ] Every number in `node_classification.md` matches `metrics.json` exactly
+  - [ ] `graph.json`, `metrics.json`, `unresolved.json`, `nodes.json` generated by the tools (not hand-written)
+  - [ ] Every number in `node_classification.md` matches `metrics.json` / `nodes.json` exactly
+  - [ ] Every class in `node_classification.md` matches `class` in `nodes.json` (re-run `aoa-classify` after adding overrides)
+  - [ ] No override written by the model has `approved_by`; pending looser overrides are reported to the user
   - [ ] Every `dynamic_expression` entry in `unresolved.json` is addressed in the Model-Inferred Dependencies table (or marked unknown)
   - [ ] `dependency_map.mermaid` generated from `graph.json`
   - [ ] `node_classification.md` generated and populated
@@ -223,12 +246,14 @@ encoding: UTF-8
   ## ✅ Codebase Architecture Analysis Complete
 
   Computed with aoa-graph on commit [COMMIT]: [N] files, [M] edges, [C] cycles, [U] unresolved imports.
+  Classified by aoa-classify: core [CORE], business [BUSINESS], leaf [LEAF]; high-risk (runtime cycle) [HIGH_RISK]; overrides pending human approval: [PENDING].
 
   - **Raw metrics:** `agent-os-adaptive/architecture-analysis/metrics.json`
+  - **Classes (rule-based):** `agent-os-adaptive/architecture-analysis/nodes.json`
   - **Dependency Map:** @agent-os-adaptive/architecture-analysis/dependency_map.mermaid
   - **Node Classification:** @agent-os-adaptive/architecture-analysis/node_classification.md
 
-  These files provide a foundational understanding of the project's structure and will be used to guide future development. Re-run `/analyze-node-classes` after architectural changes; the tool's numbers are reproducible for a given commit.
+  These files provide a foundational understanding of the project's structure and will be used to guide future development. Re-run `/analyze-node-classes` after architectural changes; the tools' numbers and classes are reproducible for a given commit, rules version, and overrides file.
 </summary_template>
 
 <instructions>

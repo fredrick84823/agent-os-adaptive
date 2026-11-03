@@ -7,6 +7,7 @@ name = "aoa-graph"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "tree-sitter" },
     { name = "tree-sitter-javascript" },
     { name = "tree-sitter-python" },
@@ -20,6 +21,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = "==2.5.0" },
     { name = "tree-sitter", specifier = "==0.26.0" },
     { name = "tree-sitter-javascript", specifier = "==0.25.0" },
     { name = "tree-sitter-python", specifier = "==0.25.0" },

@@ -1,6 +1,6 @@
 ---
 name: core-node-agent
-description: Use for changes to core nodes (high in-degree components that many features depend on, per architecture-analysis/node_classification.md). Careful, oversight-heavy implementation with comprehensive layer testing and user-selected implementation modes.
+description: Use for changes to core nodes (sensitive areas, runtime-cycle members, or top-risk files, per `class` in architecture-analysis/nodes.json and node_classification.md). Careful, oversight-heavy implementation with comprehensive layer testing and user-selected implementation modes.
 ---
 
 # Core Node Agent
