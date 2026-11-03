@@ -1,0 +1,30 @@
+# aoa-eval 的評估對象：每個 repo 釘在一個 commit，標註（ground_truth/<name>.jsonl）只對這個 commit 有效。
+# 換 commit 就要重新檢查標註；aoa-eval 遇到標註的路徑不在圖上會直接報錯。
+
+[defaults]
+stability_commits = 4   # 往前取幾個 first-parent commit 算相鄰 commit 的分類 churn
+replay_days = 365       # 歷史回放：在「pinned commit 時間 − N 天」的 commit 分類，再看之後的 bug-fix commit
+
+[[repo]]
+name = "flask"
+url = "https://github.com/pallets/flask.git"
+commit = "49943b5a94413a530761350f04e896f76e8d620e"
+language = "python"
+
+[[repo]]
+name = "httpx"
+url = "https://github.com/encode/httpx.git"
+commit = "b5addb64f0161ff6bfe94c124ef76f6a1fba5254"
+language = "python"
+
+[[repo]]
+name = "zod"
+url = "https://github.com/colinhacks/zod.git"
+commit = "2554b70c3d4a80273381e61d527d820720626440"
+language = "typescript"
+
+[[repo]]
+name = "django"
+url = "https://github.com/django/django.git"
+commit = "308b6d6ac0927d2095d380c84d9c7d101c851d4f"
+language = "python"

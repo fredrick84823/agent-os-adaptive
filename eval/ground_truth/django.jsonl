@@ -1,0 +1,78 @@
+# django @ 308b6d6ac0927d2095d380c84d9c7d101c851d4f — initial labels by agent (Grok Bot), NEED HUMAN REVIEW.
+# Sample: 53 files from `aoa-eval sample django --per-class 16 --non-ranked 5` (stratified by predicted class, sha256 order, seed aoa-eval-1)
+# + 22 purposively added files (marked 'purposive'): key modules and runtime-cycle members of varying importance. Labelled blind. Definitions: eval/README.md.
+{"path": "django/conf/locale/bg/formats.py", "label": "leaf", "rationale": "Date/number format table for one locale."}
+{"path": "django/conf/locale/es_CO/__init__.py", "label": "leaf", "rationale": "Empty package marker."}
+{"path": "django/conf/locale/fr_BE/formats.py", "label": "leaf", "rationale": "Date/number format table for one locale."}
+{"path": "django/conf/locale/fy/formats.py", "label": "leaf", "rationale": "Date/number format table for one locale."}
+{"path": "django/conf/locale/hi/formats.py", "label": "leaf", "rationale": "Date/number format table for one locale."}
+{"path": "django/conf/locale/pt_BR/formats.py", "label": "leaf", "rationale": "Date/number format table for one locale."}
+{"path": "django/conf/locale/tr/formats.py", "label": "leaf", "rationale": "Date/number format table for one locale."}
+{"path": "django/contrib/admin/sites.py", "label": "core", "rationale": "AdminSite: admin URL routing, login/logout and has_permission checks; security boundary of the admin."}
+{"path": "django/contrib/admin/templatetags/base.py", "label": "business", "rationale": "InclusionAdminNode helper behind several admin template tags; admin rendering only."}
+{"path": "django/contrib/admin/views/__init__.py", "label": "leaf", "rationale": "Empty package marker."}
+{"path": "django/contrib/admin/views/main.py", "label": "business", "rationale": "ChangeList: admin list view filtering, search and pagination; one admin feature."}
+{"path": "django/contrib/auth/admin.py", "label": "core", "rationale": "UserAdmin incl. admin password-change view; auth-sensitive."}
+{"path": "django/contrib/contenttypes/apps.py", "label": "business", "rationale": "AppConfig wiring post_migrate handlers that create/rename ContentType rows; small but runs during migrate."}
+{"path": "django/contrib/gis/db/backends/postgis/models.py", "label": "leaf", "rationale": "Unmanaged models mirroring PostGIS metadata views; rarely used, read-only."}
+{"path": "django/contrib/gis/db/models/sql/conversion.py", "label": "business", "rationale": "AreaField/DistanceField converting GIS query results; GIS-only feature."}
+{"path": "django/contrib/gis/forms/fields.py", "label": "business", "rationale": "GIS form fields; GIS-only feature."}
+{"path": "django/contrib/gis/gdal/geomtype.py", "label": "business", "rationale": "OGR geometry type mapping used by GDAL wrappers and LayerMapping; GIS-only."}
+{"path": "django/contrib/gis/gdal/prototypes/raster.py", "label": "business", "rationale": "ctypes prototypes for GDAL raster functions; mistakes can crash the process, but only for GIS raster users."}
+{"path": "django/contrib/gis/gdal/raster/base.py", "label": "business", "rationale": "Base class for GDAL raster objects (metadata); GIS-only."}
+{"path": "django/contrib/gis/gdal/raster/source.py", "label": "business", "rationale": "GDALRaster class; GIS raster feature."}
+{"path": "django/contrib/gis/geos/prototypes/misc.py", "label": "business", "rationale": "ctypes prototypes for misc GEOS functions; GIS-only."}
+{"path": "django/contrib/gis/management/commands/__init__.py", "label": "leaf", "rationale": "Empty package marker."}
+{"path": "django/contrib/gis/ptr.py", "label": "business", "rationale": "CPointerBase used by all GDAL/GEOS wrappers for C pointer lifetime; foundational inside GIS, but GIS is an opt-in contrib app."}
+{"path": "django/contrib/postgres/search.py", "label": "business", "rationale": "PostgreSQL full-text search expressions; one feature for Postgres users."}
+{"path": "django/contrib/postgres/utils.py", "label": "leaf", "rationale": "Two small helpers (error-prefixing, installed-app check)."}
+{"path": "django/contrib/sessions/middleware.py", "label": "core", "rationale": "SessionMiddleware: loads/saves sessions and sets the session cookie with its security flags."}
+{"path": "django/contrib/sitemaps/views.py", "label": "business", "rationale": "Sitemap index/section views; one feature."}
+{"path": "django/contrib/syndication/apps.py", "label": "leaf", "rationale": "Trivial AppConfig."}
+{"path": "django/core/__init__.py", "label": "leaf", "rationale": "Empty package marker."}
+{"path": "django/core/cache/backends/base.py", "label": "core", "rationale": "BaseCache: key construction/validation and versioning shared by every cache backend (and cache-backed sessions); key bugs can serve one user's data to another."}
+{"path": "django/core/cache/backends/memcached.py", "label": "business", "rationale": "Memcached cache backends; used only when configured."}
+{"path": "django/core/checks/compatibility/__init__.py", "label": "leaf", "rationale": "Empty package marker."}
+{"path": "django/core/mail/handler.py", "label": "business", "rationale": "Mailer alias handler for the MAILERS setting; part of email sending."}
+{"path": "django/core/management/color.py", "label": "leaf", "rationale": "Terminal colour support for management command output."}
+{"path": "django/core/management/commands/diffsettings.py", "label": "leaf", "rationale": "Standalone diffsettings management command."}
+{"path": "django/db/backends/base/introspection.py", "label": "business", "rationale": "Base DB introspection used by inspectdb, migrations and flush; backend plumbing with moderate reach."}
+{"path": "django/db/backends/mysql/features.py", "label": "business", "rationale": "MySQL feature flags; affects SQL generation for MySQL users only."}
+{"path": "django/db/backends/oracle/introspection.py", "label": "business", "rationale": "Oracle introspection; Oracle users only."}
+{"path": "django/db/backends/sqlite3/operations.py", "label": "business", "rationale": "SQLite DatabaseOperations (quoting, date functions); SQLite users only."}
+{"path": "django/db/backends/utils.py", "label": "core", "rationale": "CursorWrapper that every query executes through, plus identifier truncation/quoting helpers used by all backends."}
+{"path": "django/db/models/fields/json.py", "label": "core", "rationale": "JSONField and key-transform lookups that generate SQL from user-supplied keys; this area has a history of SQL-injection CVEs."}
+{"path": "django/urls/exceptions.py", "label": "leaf", "rationale": "Two exception class definitions (Resolver404, NoReverseMatch)."}
+{"path": "django/utils/ipv6.py", "label": "business", "rationale": "IPv6 validation/normalisation used by validators and GenericIPAddressField."}
+{"path": "django/utils/translation/__init__.py", "label": "core", "rationale": "gettext/lazy translation API used by nearly every module (messages, forms, admin); lazy-evaluation bugs surface everywhere."}
+{"path": "django/utils/tree.py", "label": "core", "rationale": "tree.Node, the base of Q objects and the ORM WhereNode; every filter() builds on it."}
+{"path": "django/views/debug.py", "label": "core", "rationale": "Technical 500 page and SafeExceptionReporterFilter, which scrubs secrets from error reports; a bug leaks credentials."}
+{"path": "django/views/decorators/gzip.py", "label": "leaf", "rationale": "Single gzip_page decorator."}
+{"path": "scripts/tests.py", "label": "leaf", "rationale": "Tests for release scripts; not shipped."}
+{"path": "tests/admin_scripts/app_with_urls/urls_cbv.py", "label": "leaf", "rationale": "Test fixture."}
+{"path": "tests/tasks/tasks.py", "label": "leaf", "rationale": "Test fixture."}
+{"path": "tests/template_tests/filter_tests/test_dictsort.py", "label": "leaf", "rationale": "Test file."}
+{"path": "tests/test_client/urls.py", "label": "leaf", "rationale": "Test fixture."}
+{"path": "tests/utils_tests/test_module_loading.py", "label": "leaf", "rationale": "Test file."}
+{"path": "django/conf/__init__.py", "label": "core", "rationale": "purposive: settings object (LazySettings) every module reads; SECRET_KEY and all configuration."}
+{"path": "django/db/models/query.py", "label": "core", "rationale": "purposive: QuerySet API used by every ORM call."}
+{"path": "django/db/models/sql/compiler.py", "label": "core", "rationale": "purposive: SQL compiler; correctness and SQL-injection boundary for every query."}
+{"path": "django/http/request.py", "label": "core", "rationale": "purposive: HttpRequest incl. host validation (ALLOWED_HOSTS) and request parsing; security boundary."}
+{"path": "django/middleware/csrf.py", "label": "core", "rationale": "purposive: CSRF protection."}
+{"path": "django/utils/html.py", "label": "core", "rationale": "purposive: HTML escaping/format_html; XSS boundary."}
+{"path": "django/utils/functional.py", "label": "core", "rationale": "purposive: lazy(), cached_property, SimpleLazyObject used throughout Django."}
+{"path": "django/contrib/admin/options.py", "label": "core", "rationale": "purposive: ModelAdmin with per-object permission checks and lookup_allowed; admin security boundary."}
+{"path": "django/utils/deprecation.py", "label": "core", "rationale": "purposive: MiddlewareMixin, which every middleware's sync/async __call__ goes through on every request."}
+{"path": "django/contrib/admin/filters.py", "label": "business", "rationale": "purposive: admin list filters; one admin feature (runtime-cycle member)."}
+{"path": "django/contrib/admin/helpers.py", "label": "business", "rationale": "purposive: admin form rendering helpers (Fieldset, AdminField); admin-only (runtime-cycle member)."}
+{"path": "django/contrib/admin/decorators.py", "label": "leaf", "rationale": "purposive: thin @register/@display/@action decorators that set attributes (runtime-cycle member)."}
+{"path": "django/contrib/gis/geos/point.py", "label": "business", "rationale": "purposive: GEOS Point geometry; GIS-only (runtime-cycle member)."}
+{"path": "django/contrib/gis/geos/prepared.py", "label": "business", "rationale": "purposive: PreparedGeometry predicates; GIS-only (runtime-cycle member)."}
+{"path": "django/contrib/postgres/fields/hstore.py", "label": "business", "rationale": "purposive: HStoreField and its lookups; Postgres-only feature (runtime-cycle member)."}
+{"path": "django/core/checks/__init__.py", "label": "business", "rationale": "purposive: system-check framework entry/registry; failures show up at startup, not at request time (runtime-cycle hub)."}
+{"path": "django/utils/regex_helper.py", "label": "business", "rationale": "purposive: regex normalisation used by URL reversing; contained (runtime-cycle member)."}
+{"path": "django/utils/module_loading.py", "label": "business", "rationale": "purposive: import_string/autodiscover used to load configured backends (runtime-cycle member)."}
+{"path": "django/tasks/base.py", "label": "business", "rationale": "purposive: Task/TaskResult of the new background-tasks framework; opt-in (runtime-cycle member)."}
+{"path": "django/test/client.py", "label": "business", "rationale": "purposive: test Client/RequestFactory for users' test suites; not on the production path (runtime-cycle member)."}
+{"path": "django/contrib/humanize/templatetags/humanize.py", "label": "leaf", "rationale": "purposive: presentational template filters (intcomma, naturaltime)."}
+{"path": "django/contrib/flatpages/views.py", "label": "business", "rationale": "purposive: flatpage view incl. registration_required check; opt-in contrib app (runtime-cycle member)."}
