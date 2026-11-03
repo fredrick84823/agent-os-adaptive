@@ -10,7 +10,7 @@ It's an AI development framework that automatically adapts its approach based on
 
 - **🔍 Dependency Analysis** → Scans codebase and builds Mermaid dependency graphs  
 - **📊 Quantified Classification** → Uses in-degree/out-degree metrics for precise categorization
-- **🎯 Component-Level Precision** → Classifies individual functions/classes, not just features
+- **🎯 File-Level Precision** → Classifies individual files/modules (computed by `tools/aoa_graph`), not just features
 - **🔄 Mixed Approach Support** → Handles specs spanning multiple node types with phase-based implementation
 
 ### Classification Results:
@@ -59,6 +59,32 @@ done
 ```
 
 - Each instruction becomes a `.mdc` rule (e.g. `@plan-product`, `@execute-tasks`); their frontmatter already uses Cursor's `description` / `globs` / `alwaysApply` fields.
+
+### Step 2b: Install the Dependency-Graph Tool (`aoa-graph`)
+
+`/analyze-node-classes` no longer asks the model to estimate in/out-degrees. It runs `tools/aoa_graph`, a small Python CLI that parses **TypeScript / JavaScript and Python** with [tree-sitter](https://tree-sitter.github.io/) and writes deterministic numbers (same commit → byte-identical output).
+
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/), Python ≥ 3.10 (tested on 3.10 and 3.13; uv downloads one if missing) and `git` (for churn / bug-fix history). Dependencies are pinned in `pyproject.toml` / `uv.lock`.
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh   # if uv is not installed yet
+uv sync --project ~/agent-os-adaptive              # creates ~/agent-os-adaptive/.venv from uv.lock
+```
+
+Run it from your project root (the instruction does this for you):
+
+```bash
+uv run --project ~/agent-os-adaptive aoa-graph .
+# aoa-graph: 83 nodes, 180 edges, 2 cycles (22 nodes; runtime-only: 2 cycles), 2 unresolved, ... in 0.12s → ./agent-os-adaptive/architecture-analysis
+```
+
+| Output (in `agent-os-adaptive/architecture-analysis/`) | Contents |
+|---|---|
+| `graph.json` | File-level nodes (`id`, `language`, `is_test`, `loc`, Python `module`), internal edges with import `kinds`, external packages per file |
+| `metrics.json` | Per node: `fan_in`, `fan_out`, `test_fan_in`, `blast_radius` (transitive dependents), `in_cycle` / `scc_id` (Tarjan), `in_runtime_cycle` (ignoring type-only imports), `churn`, `churn_lines`, `bugfix_count`, `co_change` |
+| `unresolved.json` | Dynamic / unresolvable imports, files with parse errors — the part the model interprets |
+
+Useful options: `--since-days 180` (history window, anchored at the HEAD commit time), `--bugfix-pattern REGEX`, `--exclude 'docs/**'`, `--py-root DIR`, `--lang ts|py`, `--out DIR`, `--no-git`. Full output format and resolution rules: [`tools/aoa_graph/README.md`](tools/aoa_graph/README.md).
 
 ### Step 3: Projects Setup
 
@@ -161,6 +187,7 @@ your-project/
 │   │   ├── tech-stack.md          # Technology choices
 │   │   └── decisions.md           # Decision history
 │   ├── architecture-analysis/     # Dependency analysis (existing projects)
+│   │   ├── graph.json / metrics.json / unresolved.json  # Computed by aoa-graph
 │   │   ├── dependency_map.mermaid # Visual dependency graph
 │   │   └── node_classification.md# Component analysis
 │   └── specs/YYYY-MM-DD-feature/  # Feature specifications
@@ -181,10 +208,10 @@ See a complete example of Agent OS in action or just see examples folder in this
 
 The system now performs comprehensive dependency analysis to make precise classifications:
 
-1. **Codebase Scanning** - Identifies all functions, classes, and modules
-2. **Dependency Mapping** - Generates visual Mermaid dependency graphs
-3. **Impact Analysis** - Calculates "blast radius" of changes
-4. **Component Classification** - Uses in-degree/out-degree metrics for precise categorization
+1. **Codebase Scanning** - `tools/aoa_graph` parses TS/JS and Python files with tree-sitter (file/module granularity)
+2. **Dependency Mapping** - Writes `graph.json`; the Mermaid map is rendered from it
+3. **Impact Analysis** - `metrics.json` computes fan-in/out, "blast radius", cycles, git churn and bug-fix counts
+4. **Component Classification** - The model interprets those numbers (it does not estimate them)
 
 ### 📊 Classification Categories
 
@@ -229,7 +256,7 @@ The system now performs comprehensive dependency analysis to make precise classi
 ## 🔄 Enhanced Adaptive Workflow
 
 ### 1. Dependency-Based Code Analysis
-- **Codebase Scanning**: Scans all project files for functions and classes
+- **Codebase Scanning**: `tools/aoa_graph` parses every TS/JS and Python file into a file-level dependency graph
 - **Dependency Mapping**: Creates visual Mermaid graphs showing component relationships
 - **Impact Calculation**: Measures "blast radius" of proposed changes
 - **Component Classification**: Generates detailed classification tables with metrics
@@ -306,6 +333,9 @@ agent-os-adaptive/
 │   ├── analyze-node-classes.md # (NEW) Standalone, reusable node classification
 │   ├── create-spec.md     # Feature specification (uses analysis)
 │   └── execute-tasks.md   # Task execution (adaptive)
+├── tools/aoa_graph/       # Dependency-graph CLI (tree-sitter; TS/JS + Python)
+├── tests/                 # pytest suite + small TS / Python fixture repos
+├── pyproject.toml         # aoa-graph deps (pinned) + dev group; uv.lock locks them
 ├── standards/             # Development standards
 │   ├── tech-stack.md      # Technology preferences
 │   ├── code-style.md      # Coding conventions
@@ -323,6 +353,9 @@ agent-os-adaptive/
 │   ├── tech-stack.md             # Technology choices
 │   └── decisions.md              # Decision history
 ├── architecture-analysis/         # Project-wide analysis (NEW)
+│   ├── graph.json                # Computed dependency graph (aoa-graph)
+│   ├── metrics.json              # Computed per-file metrics (aoa-graph)
+│   ├── unresolved.json           # Imports the tool could not resolve
 │   ├── dependency_map.mermaid    # Visual dependency graph
 │   └── node_classification.md    # Component analysis table
 └── specs/YYYY-MM-DD-spec-name/   # Individual feature specs
@@ -343,7 +376,12 @@ This framework is designed to evolve with your development patterns. Contributio
 - Improved workflow automation
 - New idea of workflow
 
-Before opening a PR, run `python3 scripts/lint-instructions.py` (checks frontmatter, absolute paths, and `@~/agent-os-adaptive/` references).
+Before opening a PR, run:
+
+```bash
+python3 scripts/lint-instructions.py  # frontmatter, absolute paths, @~/agent-os-adaptive/ references
+uv run pytest                         # aoa-graph resolution, cycles, blast radius, git metrics, determinism
+```
 
 ## 📚 Related
 
