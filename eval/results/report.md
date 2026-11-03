@@ -4,7 +4,44 @@ Gate variant: `current` — **PASS**
 
 > 標註是 agent 的初始標註，尚未經人工複核（見 eval/README.md）。
 
-## Accuracy
+## Primary metrics: is core? / is leaf?
+
+兩個二元決策（全部標註檔案）：**core recall**＝真的 core 有多少被判成 core（優先，漏判代表敏感檔案走了較鬆的流程）；**leaf precision**＝判成 leaf 的有多少真的是 leaf（優先，誤判代表 AI 在不該放手的檔案上直接改）。core→leaf 必須是 0（gate）。kappa 是次要指標。
+
+| repo | variant | n | **core recall** | core precision | **leaf precision** | leaf recall | **core→leaf** | kappa |
+|---|---|---|---|---|---|---|---|---|
+| flask | before | 34 | 0.600 (6/10) | 0.500 (6/12) | 0.917 (11/12) | 0.733 (11/15) | 0 | 0.379 |
+| flask | hubs-only | 34 | 0.600 (6/10) | 0.600 (6/10) | 0.917 (11/12) | 0.733 (11/15) | 0 | 0.469 |
+| flask | catalog-only | 34 | 0.600 (6/10) | 0.500 (6/12) | 0.917 (11/12) | 0.733 (11/15) | 0 | 0.379 |
+| flask | all-barrels | 34 | 0.600 (6/10) | 0.600 (6/10) | 0.917 (11/12) | 0.733 (11/15) | 0 | 0.469 |
+| flask | **current** | 34 | 0.600 (6/10) | 0.600 (6/10) | 0.917 (11/12) | 0.733 (11/15) | 0 | 0.469 |
+| httpx | before | 31 | 0.778 (7/9) | 0.778 (7/9) | 1.000 (8/8) | 0.615 (8/13) | 0 | 0.571 |
+| httpx | hubs-only | 31 | 0.778 (7/9) | 0.778 (7/9) | 1.000 (8/8) | 0.615 (8/13) | 0 | 0.571 |
+| httpx | catalog-only | 31 | 0.778 (7/9) | 0.778 (7/9) | 1.000 (8/8) | 0.615 (8/13) | 0 | 0.571 |
+| httpx | all-barrels | 31 | 0.778 (7/9) | 0.778 (7/9) | 1.000 (8/8) | 0.615 (8/13) | 0 | 0.571 |
+| httpx | **current** | 31 | 0.778 (7/9) | 0.778 (7/9) | 1.000 (8/8) | 0.615 (8/13) | 0 | 0.571 |
+| zod | before | 63 | 0.769 (10/13) | 0.476 (10/21) | 0.952 (20/21) | 0.540 (20/37) | 0 | 0.405 |
+| zod | hubs-only | 63 | 0.769 (10/13) | 0.476 (10/21) | 0.952 (20/21) | 0.540 (20/37) | 0 | 0.405 |
+| zod | catalog-only | 63 | 0.923 (12/13) | 0.522 (12/23) | 0.950 (19/20) | 0.513 (19/37) | 0 | 0.387 |
+| zod | all-barrels | 63 | 1.000 (13/13) | 0.542 (13/24) | 0.870 (20/23) | 0.540 (20/37) | 0 | 0.394 |
+| zod | **current** | 63 | 0.923 (12/13) | 0.522 (12/23) | 0.950 (19/20) | 0.513 (19/37) | 0 | 0.387 |
+| django | before | 75 | 0.889 (16/18) | 0.444 (16/36) | 0.870 (20/23) | 0.769 (20/26) | 0 | 0.459 |
+| django | hubs-only | 75 | 0.778 (14/18) | 0.483 (14/29) | 0.870 (20/23) | 0.769 (20/26) | 0 | 0.486 |
+| django | catalog-only | 75 | 0.889 (16/18) | 0.444 (16/36) | 0.870 (20/23) | 0.769 (20/26) | 0 | 0.459 |
+| django | all-barrels | 75 | 0.778 (14/18) | 0.483 (14/29) | 0.870 (20/23) | 0.769 (20/26) | 0 | 0.486 |
+| django | **current** | 75 | 0.778 (14/18) | 0.483 (14/29) | 0.870 (20/23) | 0.769 (20/26) | 0 | 0.486 |
+
+Misses on `current`:
+
+- flask core missed (label core, predicted not core): `src/flask/config.py`, `src/flask/ctx.py`, `src/flask/globals.py`, `src/flask/helpers.py`
+- flask false leaf (predicted leaf, label not leaf): `src/flask/views.py`
+- httpx core missed (label core, predicted not core): `httpx/_models.py`, `httpx/_urlparse.py`
+- zod core missed (label core, predicted not core): `packages/zod/src/v4/core/parse.ts`
+- zod false leaf (predicted leaf, label not leaf): `packages/zod/src/locales/index.ts`
+- django core missed (label core, predicted not core): `django/core/cache/backends/base.py`, `django/db/backends/utils.py`, `django/utils/tree.py`, `django/views/debug.py`
+- django false leaf (predicted leaf, label not leaf): `django/contrib/contenttypes/apps.py`, `django/contrib/sitemaps/views.py`, `django/test/client.py`
+
+## Secondary: agreement (kappa) and cost
 
 | repo | variant | n (ranked) | kappa | weighted κ | kappa ranked | core→leaf | under | over | mean cost |
 |---|---|---|---|---|---|---|---|---|---|
@@ -33,26 +70,26 @@ Gate variant: `current` — **PASS**
 
 | repo | variant | rules | nodes | core | business | leaf | ranked core／business／leaf | high_risk |
 |---|---|---|---|---|---|---|---|---|
-| flask | before | 2026.11-2 | 83 | 12 | 10 | 61 | 12／10／2 | 11 |
-| flask | hubs-only | 2026.11-2 | 83 | 10 | 12 | 61 | 10／12／2 | 7 |
-| flask | catalog-only | 2026.11-2 | 83 | 12 | 10 | 61 | 12／10／2 | 11 |
-| flask | all-barrels | 2026.11-2 | 83 | 10 | 12 | 61 | 10／12／2 | 7 |
-| flask | current | 2026.11-2 | 83 | 10 | 12 | 61 | 10／12／2 | 7 |
-| httpx | before | 2026.11-2 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
-| httpx | hubs-only | 2026.11-2 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
-| httpx | catalog-only | 2026.11-2 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
-| httpx | all-barrels | 2026.11-2 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
-| httpx | current | 2026.11-2 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
-| zod | before | 2026.11-2 | 522 | 26 | 105 | 391 | 26／105／52 | 2 |
-| zod | hubs-only | 2026.11-2 | 522 | 26 | 105 | 391 | 26／105／52 | 2 |
-| zod | catalog-only | 2026.11-2 | 522 | 32 | 99 | 391 | 32／99／52 | 2 |
-| zod | all-barrels | 2026.11-2 | 522 | 31 | 93 | 398 | 31／93／59 | 2 |
-| zod | current | 2026.11-2 | 522 | 32 | 99 | 391 | 32／99／52 | 2 |
-| django | before | 2026.11-2 | 2984 | 374 | 205 | 2405 | 374／205／356 | 244 |
-| django | hubs-only | 2026.11-2 | 2984 | 277 | 302 | 2405 | 277／302／356 | 56 |
-| django | catalog-only | 2026.11-2 | 2984 | 374 | 205 | 2405 | 374／205／356 | 244 |
-| django | all-barrels | 2026.11-2 | 2984 | 277 | 302 | 2405 | 277／302／356 | 56 |
-| django | current | 2026.11-2 | 2984 | 277 | 302 | 2405 | 277／302／356 | 56 |
+| flask | before | 2026.11-3 | 83 | 12 | 10 | 61 | 12／10／2 | 11 |
+| flask | hubs-only | 2026.11-3 | 83 | 10 | 12 | 61 | 10／12／2 | 7 |
+| flask | catalog-only | 2026.11-3 | 83 | 12 | 10 | 61 | 12／10／2 | 11 |
+| flask | all-barrels | 2026.11-3 | 83 | 10 | 12 | 61 | 10／12／2 | 7 |
+| flask | current | 2026.11-3 | 83 | 10 | 12 | 61 | 10／12／2 | 7 |
+| httpx | before | 2026.11-3 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
+| httpx | hubs-only | 2026.11-3 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
+| httpx | catalog-only | 2026.11-3 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
+| httpx | all-barrels | 2026.11-3 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
+| httpx | current | 2026.11-3 | 60 | 9 | 14 | 37 | 9／14／0 | 2 |
+| zod | before | 2026.11-3 | 522 | 26 | 105 | 391 | 26／105／52 | 2 |
+| zod | hubs-only | 2026.11-3 | 522 | 26 | 105 | 391 | 26／105／52 | 2 |
+| zod | catalog-only | 2026.11-3 | 522 | 32 | 99 | 391 | 32／99／52 | 2 |
+| zod | all-barrels | 2026.11-3 | 522 | 31 | 93 | 398 | 31／93／59 | 2 |
+| zod | current | 2026.11-3 | 522 | 32 | 99 | 391 | 32／99／52 | 2 |
+| django | before | 2026.11-3 | 2984 | 374 | 205 | 2405 | 374／205／356 | 244 |
+| django | hubs-only | 2026.11-3 | 2984 | 277 | 302 | 2405 | 277／302／356 | 56 |
+| django | catalog-only | 2026.11-3 | 2984 | 374 | 205 | 2405 | 374／205／356 | 244 |
+| django | all-barrels | 2026.11-3 | 2984 | 277 | 302 | 2405 | 277／302／356 | 56 |
+| django | current | 2026.11-3 | 2984 | 277 | 302 | 2405 | 277／302／356 | 56 |
 
 ## Determinism
 
@@ -132,10 +169,10 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `src/flask/config.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/ctx.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/globals.py` | core | business | leaf_blast_guard | 14.6 | 21 |
-| `src/flask/helpers.py` | core | business | score_mid | 77.1 | 21 |
+| `src/flask/config.py` | core | business | default | 50.0 | 21 |
+| `src/flask/ctx.py` | core | business | default | 50.0 | 21 |
+| `src/flask/globals.py` | core | business | default | 14.6 | 21 |
+| `src/flask/helpers.py` | core | business | default | 77.1 | 21 |
 | `src/flask/views.py` | business | leaf | score_low | 2.1 | 0 |
 | `src/flask/debughelpers.py` | leaf | core | runtime_cycle | 29.2 | 21 |
 | `src/flask/blueprints.py` | business | core | runtime_cycle | 50.0 | 21 |
@@ -143,9 +180,9 @@ Gate variant: `current` — **PASS**
 | `src/flask/sansio/blueprints.py` | business | core | runtime_cycle | 50.0 | 21 |
 | `src/flask/templating.py` | business | core | runtime_cycle | 29.2 | 21 |
 | `src/flask/testing.py` | business | core | runtime_cycle | 81.2 | 21 |
-| `src/flask/logging.py` | leaf | business | leaf_blast_guard | 29.2 | 21 |
-| `src/flask/signals.py` | leaf | business | score_mid | 62.5 | 22 |
-| `src/flask/typing.py` | leaf | business | score_mid | 62.5 | 22 |
+| `src/flask/logging.py` | leaf | business | default | 29.2 | 21 |
+| `src/flask/signals.py` | leaf | business | default | 62.5 | 22 |
+| `src/flask/typing.py` | leaf | business | default | 62.5 | 22 |
 
 </details>
 
@@ -162,18 +199,18 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `src/flask/config.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/ctx.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/globals.py` | core | business | leaf_blast_guard | 14.6 | 21 |
-| `src/flask/helpers.py` | core | business | score_mid | 77.1 | 21 |
+| `src/flask/config.py` | core | business | default | 50.0 | 21 |
+| `src/flask/ctx.py` | core | business | default | 50.0 | 21 |
+| `src/flask/globals.py` | core | business | default | 14.6 | 21 |
+| `src/flask/helpers.py` | core | business | default | 77.1 | 21 |
 | `src/flask/views.py` | business | leaf | score_low | 2.1 | 0 |
 | `src/flask/debughelpers.py` | leaf | core | runtime_cycle | 29.2 | 21 |
 | `src/flask/blueprints.py` | business | core | runtime_cycle | 50.0 | 21 |
 | `src/flask/cli.py` | business | core | sensitive:crypto, sensitive:secrets, runtime_cycle | 85.4 | 21 |
 | `src/flask/templating.py` | business | core | runtime_cycle | 29.2 | 21 |
-| `src/flask/logging.py` | leaf | business | leaf_blast_guard | 29.2 | 21 |
-| `src/flask/signals.py` | leaf | business | score_mid | 62.5 | 22 |
-| `src/flask/typing.py` | leaf | business | score_mid | 62.5 | 22 |
+| `src/flask/logging.py` | leaf | business | default | 29.2 | 21 |
+| `src/flask/signals.py` | leaf | business | default | 62.5 | 22 |
+| `src/flask/typing.py` | leaf | business | default | 62.5 | 22 |
 
 </details>
 
@@ -190,10 +227,10 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `src/flask/config.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/ctx.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/globals.py` | core | business | leaf_blast_guard | 14.6 | 21 |
-| `src/flask/helpers.py` | core | business | score_mid | 77.1 | 21 |
+| `src/flask/config.py` | core | business | default | 50.0 | 21 |
+| `src/flask/ctx.py` | core | business | default | 50.0 | 21 |
+| `src/flask/globals.py` | core | business | default | 14.6 | 21 |
+| `src/flask/helpers.py` | core | business | default | 77.1 | 21 |
 | `src/flask/views.py` | business | leaf | score_low | 2.1 | 0 |
 | `src/flask/debughelpers.py` | leaf | core | runtime_cycle | 29.2 | 21 |
 | `src/flask/blueprints.py` | business | core | runtime_cycle | 50.0 | 21 |
@@ -201,9 +238,9 @@ Gate variant: `current` — **PASS**
 | `src/flask/sansio/blueprints.py` | business | core | runtime_cycle | 50.0 | 21 |
 | `src/flask/templating.py` | business | core | runtime_cycle | 29.2 | 21 |
 | `src/flask/testing.py` | business | core | runtime_cycle | 81.2 | 21 |
-| `src/flask/logging.py` | leaf | business | leaf_blast_guard | 29.2 | 21 |
-| `src/flask/signals.py` | leaf | business | score_mid | 62.5 | 22 |
-| `src/flask/typing.py` | leaf | business | score_mid | 62.5 | 22 |
+| `src/flask/logging.py` | leaf | business | default | 29.2 | 21 |
+| `src/flask/signals.py` | leaf | business | default | 62.5 | 22 |
+| `src/flask/typing.py` | leaf | business | default | 62.5 | 22 |
 
 </details>
 
@@ -220,18 +257,18 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `src/flask/config.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/ctx.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/globals.py` | core | business | leaf_blast_guard | 14.6 | 21 |
-| `src/flask/helpers.py` | core | business | score_mid | 77.1 | 21 |
+| `src/flask/config.py` | core | business | default | 50.0 | 21 |
+| `src/flask/ctx.py` | core | business | default | 50.0 | 21 |
+| `src/flask/globals.py` | core | business | default | 14.6 | 21 |
+| `src/flask/helpers.py` | core | business | default | 77.1 | 21 |
 | `src/flask/views.py` | business | leaf | score_low | 2.1 | 0 |
 | `src/flask/debughelpers.py` | leaf | core | runtime_cycle | 29.2 | 21 |
 | `src/flask/blueprints.py` | business | core | runtime_cycle | 50.0 | 21 |
 | `src/flask/cli.py` | business | core | sensitive:crypto, sensitive:secrets, runtime_cycle | 85.4 | 21 |
 | `src/flask/templating.py` | business | core | runtime_cycle | 29.2 | 21 |
-| `src/flask/logging.py` | leaf | business | leaf_blast_guard | 29.2 | 21 |
-| `src/flask/signals.py` | leaf | business | score_mid | 62.5 | 22 |
-| `src/flask/typing.py` | leaf | business | score_mid | 62.5 | 22 |
+| `src/flask/logging.py` | leaf | business | default | 29.2 | 21 |
+| `src/flask/signals.py` | leaf | business | default | 62.5 | 22 |
+| `src/flask/typing.py` | leaf | business | default | 62.5 | 22 |
 
 </details>
 
@@ -248,18 +285,18 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `src/flask/config.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/ctx.py` | core | business | score_mid | 50.0 | 21 |
-| `src/flask/globals.py` | core | business | leaf_blast_guard | 14.6 | 21 |
-| `src/flask/helpers.py` | core | business | score_mid | 77.1 | 21 |
+| `src/flask/config.py` | core | business | default | 50.0 | 21 |
+| `src/flask/ctx.py` | core | business | default | 50.0 | 21 |
+| `src/flask/globals.py` | core | business | default | 14.6 | 21 |
+| `src/flask/helpers.py` | core | business | default | 77.1 | 21 |
 | `src/flask/views.py` | business | leaf | score_low | 2.1 | 0 |
 | `src/flask/debughelpers.py` | leaf | core | runtime_cycle | 29.2 | 21 |
 | `src/flask/blueprints.py` | business | core | runtime_cycle | 50.0 | 21 |
 | `src/flask/cli.py` | business | core | sensitive:crypto, sensitive:secrets, runtime_cycle | 85.4 | 21 |
 | `src/flask/templating.py` | business | core | runtime_cycle | 29.2 | 21 |
-| `src/flask/logging.py` | leaf | business | leaf_blast_guard | 29.2 | 21 |
-| `src/flask/signals.py` | leaf | business | score_mid | 62.5 | 22 |
-| `src/flask/typing.py` | leaf | business | score_mid | 62.5 | 22 |
+| `src/flask/logging.py` | leaf | business | default | 29.2 | 21 |
+| `src/flask/signals.py` | leaf | business | default | 62.5 | 22 |
+| `src/flask/typing.py` | leaf | business | default | 62.5 | 22 |
 
 </details>
 
@@ -278,15 +315,15 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `httpx/_models.py` | core | business | score_mid | 69.6 | 20 |
-| `httpx/_urlparse.py` | core | business | score_mid | 52.2 | 20 |
+| `httpx/_models.py` | core | business | default | 69.6 | 20 |
+| `httpx/_urlparse.py` | core | business | default | 52.2 | 20 |
 | `httpx/_api.py` | business | core | sensitive:crypto, sensitive:public_api | 15.2 | 5 |
 | `httpx/_utils.py` | business | core | runtime_cycle | 52.2 | 20 |
-| `httpx/__version__.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_main.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/__init__.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/mock.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_types.py` | leaf | business | score_mid | 69.6 | 20 |
+| `httpx/__version__.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_main.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/__init__.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/mock.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_types.py` | leaf | business | default | 69.6 | 20 |
 
 </details>
 
@@ -303,15 +340,15 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `httpx/_models.py` | core | business | score_mid | 69.6 | 20 |
-| `httpx/_urlparse.py` | core | business | score_mid | 52.2 | 20 |
+| `httpx/_models.py` | core | business | default | 69.6 | 20 |
+| `httpx/_urlparse.py` | core | business | default | 52.2 | 20 |
 | `httpx/_api.py` | business | core | sensitive:crypto, sensitive:public_api | 15.2 | 5 |
 | `httpx/_utils.py` | business | core | runtime_cycle | 52.2 | 20 |
-| `httpx/__version__.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_main.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/__init__.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/mock.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_types.py` | leaf | business | score_mid | 69.6 | 20 |
+| `httpx/__version__.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_main.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/__init__.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/mock.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_types.py` | leaf | business | default | 69.6 | 20 |
 
 </details>
 
@@ -328,15 +365,15 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `httpx/_models.py` | core | business | score_mid | 69.6 | 20 |
-| `httpx/_urlparse.py` | core | business | score_mid | 52.2 | 20 |
+| `httpx/_models.py` | core | business | default | 69.6 | 20 |
+| `httpx/_urlparse.py` | core | business | default | 52.2 | 20 |
 | `httpx/_api.py` | business | core | sensitive:crypto, sensitive:public_api | 15.2 | 5 |
 | `httpx/_utils.py` | business | core | runtime_cycle | 52.2 | 20 |
-| `httpx/__version__.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_main.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/__init__.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/mock.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_types.py` | leaf | business | score_mid | 69.6 | 20 |
+| `httpx/__version__.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_main.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/__init__.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/mock.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_types.py` | leaf | business | default | 69.6 | 20 |
 
 </details>
 
@@ -353,15 +390,15 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `httpx/_models.py` | core | business | score_mid | 69.6 | 20 |
-| `httpx/_urlparse.py` | core | business | score_mid | 52.2 | 20 |
+| `httpx/_models.py` | core | business | default | 69.6 | 20 |
+| `httpx/_urlparse.py` | core | business | default | 52.2 | 20 |
 | `httpx/_api.py` | business | core | sensitive:crypto, sensitive:public_api | 15.2 | 5 |
 | `httpx/_utils.py` | business | core | runtime_cycle | 52.2 | 20 |
-| `httpx/__version__.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_main.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/__init__.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/mock.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_types.py` | leaf | business | score_mid | 69.6 | 20 |
+| `httpx/__version__.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_main.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/__init__.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/mock.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_types.py` | leaf | business | default | 69.6 | 20 |
 
 </details>
 
@@ -378,15 +415,15 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `httpx/_models.py` | core | business | score_mid | 69.6 | 20 |
-| `httpx/_urlparse.py` | core | business | score_mid | 52.2 | 20 |
+| `httpx/_models.py` | core | business | default | 69.6 | 20 |
+| `httpx/_urlparse.py` | core | business | default | 52.2 | 20 |
 | `httpx/_api.py` | business | core | sensitive:crypto, sensitive:public_api | 15.2 | 5 |
 | `httpx/_utils.py` | business | core | runtime_cycle | 52.2 | 20 |
-| `httpx/__version__.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_main.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/__init__.py` | leaf | business | leaf_blast_guard | 15.2 | 5 |
-| `httpx/_transports/mock.py` | leaf | business | leaf_blast_guard | 34.8 | 6 |
-| `httpx/_types.py` | leaf | business | score_mid | 69.6 | 20 |
+| `httpx/__version__.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_main.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/__init__.py` | leaf | business | default | 15.2 | 5 |
+| `httpx/_transports/mock.py` | leaf | business | default | 34.8 | 6 |
+| `httpx/_types.py` | leaf | business | default | 69.6 | 20 |
 
 </details>
 
@@ -405,9 +442,9 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `packages/zod/src/v3/types.ts` | core | business | score_mid | 55.5 | 10 |
-| `packages/zod/src/v4/classic/external.ts` | core | business | score_mid | 54.9 | 20 |
-| `packages/zod/src/v4/core/parse.ts` | core | business | score_mid | 53.3 | 134 |
+| `packages/zod/src/v3/types.ts` | core | business | default | 55.5 | 10 |
+| `packages/zod/src/v4/classic/external.ts` | core | business | default | 54.9 | 20 |
+| `packages/zod/src/v4/core/parse.ts` | core | business | default | 53.3 | 134 |
 | `packages/zod/src/locales/index.ts` | business | leaf | score_low | 1.9 | 1 |
 | `packages/resolution/src/index.cts` | leaf | core | sensitive:public_api | 43.4 | 0 |
 | `packages/resolution/src/index.ts` | leaf | core | sensitive:public_api | 42.1 | 0 |
@@ -420,16 +457,16 @@ Gate variant: `current` — **PASS**
 | `packages/zod/src/v4/core/memoizer.ts` | business | core | score_top | 96.5 | 134 |
 | `packages/zod/src/v4/core/to-json-schema.ts` | business | core | score_top | 97.5 | 134 |
 | `packages/zod/src/v4/locales/en.ts` | business | core | score_top | 94.0 | 134 |
-| `packages/zod/src/v4/core/versions.ts` | leaf | business | score_mid | 57.1 | 136 |
-| `packages/zod/src/v4/locales/ca.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/eo.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/it.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/ja.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/km.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/ro.ts` | leaf | business | score_mid | 63.1 | 134 |
-| `packages/zod/src/v4/mini/deep-partial.ts` | leaf | business | score_mid | 45.6 | 17 |
-| `scripts/compile-fuzz.ts` | leaf | business | leaf_boundary | 35.8 | 0 |
+| `packages/zod/src/v4/core/versions.ts` | leaf | business | default | 57.1 | 136 |
+| `packages/zod/src/v4/locales/ca.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/eo.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/it.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/ja.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/km.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/ro.ts` | leaf | business | default | 63.1 | 134 |
+| `packages/zod/src/v4/mini/deep-partial.ts` | leaf | business | default | 45.6 | 17 |
+| `scripts/compile-fuzz.ts` | leaf | business | default | 35.8 | 0 |
 
 </details>
 
@@ -446,9 +483,9 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `packages/zod/src/v3/types.ts` | core | business | score_mid | 55.5 | 10 |
-| `packages/zod/src/v4/classic/external.ts` | core | business | score_mid | 54.9 | 20 |
-| `packages/zod/src/v4/core/parse.ts` | core | business | score_mid | 53.3 | 134 |
+| `packages/zod/src/v3/types.ts` | core | business | default | 55.5 | 10 |
+| `packages/zod/src/v4/classic/external.ts` | core | business | default | 54.9 | 20 |
+| `packages/zod/src/v4/core/parse.ts` | core | business | default | 53.3 | 134 |
 | `packages/zod/src/locales/index.ts` | business | leaf | score_low | 1.9 | 1 |
 | `packages/resolution/src/index.cts` | leaf | core | sensitive:public_api | 43.4 | 0 |
 | `packages/resolution/src/index.ts` | leaf | core | sensitive:public_api | 42.1 | 0 |
@@ -461,16 +498,16 @@ Gate variant: `current` — **PASS**
 | `packages/zod/src/v4/core/memoizer.ts` | business | core | score_top | 96.5 | 134 |
 | `packages/zod/src/v4/core/to-json-schema.ts` | business | core | score_top | 97.5 | 134 |
 | `packages/zod/src/v4/locales/en.ts` | business | core | score_top | 94.0 | 134 |
-| `packages/zod/src/v4/core/versions.ts` | leaf | business | score_mid | 57.1 | 136 |
-| `packages/zod/src/v4/locales/ca.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/eo.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/it.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/ja.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/km.ts` | leaf | business | score_mid | 78.1 | 134 |
-| `packages/zod/src/v4/locales/ro.ts` | leaf | business | score_mid | 63.1 | 134 |
-| `packages/zod/src/v4/mini/deep-partial.ts` | leaf | business | score_mid | 45.6 | 17 |
-| `scripts/compile-fuzz.ts` | leaf | business | leaf_boundary | 35.8 | 0 |
+| `packages/zod/src/v4/core/versions.ts` | leaf | business | default | 57.1 | 136 |
+| `packages/zod/src/v4/locales/ca.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/eo.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/it.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/ja.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/km.ts` | leaf | business | default | 78.1 | 134 |
+| `packages/zod/src/v4/locales/ro.ts` | leaf | business | default | 63.1 | 134 |
+| `packages/zod/src/v4/mini/deep-partial.ts` | leaf | business | default | 45.6 | 17 |
+| `scripts/compile-fuzz.ts` | leaf | business | default | 35.8 | 0 |
 
 </details>
 
@@ -487,7 +524,7 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `packages/zod/src/v4/core/parse.ts` | core | business | score_mid | 84.4 | 132 |
+| `packages/zod/src/v4/core/parse.ts` | core | business | default | 84.4 | 132 |
 | `packages/zod/src/locales/index.ts` | business | leaf | score_low | 1.9 | 1 |
 | `packages/resolution/src/index.cts` | leaf | core | sensitive:public_api | 48.4 | 0 |
 | `packages/resolution/src/index.ts` | leaf | core | sensitive:public_api | 45.4 | 0 |
@@ -500,19 +537,19 @@ Gate variant: `current` — **PASS**
 | `packages/zod/src/v4/core/to-json-schema.ts` | business | core | score_top | 97.5 | 132 |
 | `packages/zod/src/v4/locales/en.ts` | business | core | score_top | 92.6 | 28 |
 | `packages/zod/src/v4/locales/index.ts` | business | core | score_boundary | 87.2 | 134 |
-| `packages/tsc/generate.ts` | leaf | business | leaf_boundary | 36.1 | 1 |
-| `packages/zod/src/v4/locales/ca.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/da.ts` | leaf | business | score_mid | 80.6 | 0 |
-| `packages/zod/src/v4/locales/eo.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/it.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/ja.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/lt.ts` | leaf | business | score_mid | 80.6 | 0 |
-| `packages/zod/src/v4/locales/nn.ts` | leaf | business | score_mid | 83.3 | 0 |
-| `packages/zod/src/v4/locales/no.ts` | leaf | business | score_mid | 80.6 | 0 |
-| `packages/zod/src/v4/locales/ro.ts` | leaf | business | score_mid | 53.8 | 0 |
-| `packages/zod/src/v4/mini/deep-partial.ts` | leaf | business | score_mid | 50.5 | 17 |
-| `scripts/compile-fuzz.ts` | leaf | business | leaf_boundary | 36.9 | 0 |
+| `packages/tsc/generate.ts` | leaf | business | default | 36.1 | 1 |
+| `packages/zod/src/v4/locales/ca.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/da.ts` | leaf | business | default | 80.6 | 0 |
+| `packages/zod/src/v4/locales/eo.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/it.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/ja.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/lt.ts` | leaf | business | default | 80.6 | 0 |
+| `packages/zod/src/v4/locales/nn.ts` | leaf | business | default | 83.3 | 0 |
+| `packages/zod/src/v4/locales/no.ts` | leaf | business | default | 80.6 | 0 |
+| `packages/zod/src/v4/locales/ro.ts` | leaf | business | default | 53.8 | 0 |
+| `packages/zod/src/v4/mini/deep-partial.ts` | leaf | business | default | 50.5 | 17 |
+| `scripts/compile-fuzz.ts` | leaf | business | default | 36.9 | 0 |
 
 </details>
 
@@ -543,17 +580,17 @@ Gate variant: `current` — **PASS**
 | `packages/zod/src/v4/core/memoizer.ts` | business | core | score_top | 94.3 | 3 |
 | `packages/zod/src/v4/core/to-json-schema.ts` | business | core | score_top | 97.0 | 128 |
 | `packages/zod/src/v4/locales/en.ts` | business | core | score_top | 95.4 | 7 |
-| `packages/tsc/generate.ts` | leaf | business | leaf_boundary | 36.9 | 1 |
-| `packages/zod/src/v4/locales/ca.ts` | leaf | business | score_mid | 71.6 | 0 |
-| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | score_mid | 71.6 | 0 |
-| `packages/zod/src/v4/locales/da.ts` | leaf | business | score_mid | 84.4 | 0 |
-| `packages/zod/src/v4/locales/eo.ts` | leaf | business | score_mid | 71.6 | 0 |
-| `packages/zod/src/v4/locales/it.ts` | leaf | business | score_mid | 71.6 | 0 |
-| `packages/zod/src/v4/locales/ja.ts` | leaf | business | score_mid | 71.6 | 0 |
-| `packages/zod/src/v4/locales/lt.ts` | leaf | business | score_mid | 84.4 | 0 |
-| `packages/zod/src/v4/locales/no.ts` | leaf | business | score_mid | 84.4 | 0 |
-| `packages/zod/src/v4/locales/ro.ts` | leaf | business | score_mid | 55.5 | 0 |
-| `scripts/compile-fuzz.ts` | leaf | business | leaf_boundary | 38.0 | 0 |
+| `packages/tsc/generate.ts` | leaf | business | default | 36.9 | 1 |
+| `packages/zod/src/v4/locales/ca.ts` | leaf | business | default | 71.6 | 0 |
+| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | default | 71.6 | 0 |
+| `packages/zod/src/v4/locales/da.ts` | leaf | business | default | 84.4 | 0 |
+| `packages/zod/src/v4/locales/eo.ts` | leaf | business | default | 71.6 | 0 |
+| `packages/zod/src/v4/locales/it.ts` | leaf | business | default | 71.6 | 0 |
+| `packages/zod/src/v4/locales/ja.ts` | leaf | business | default | 71.6 | 0 |
+| `packages/zod/src/v4/locales/lt.ts` | leaf | business | default | 84.4 | 0 |
+| `packages/zod/src/v4/locales/no.ts` | leaf | business | default | 84.4 | 0 |
+| `packages/zod/src/v4/locales/ro.ts` | leaf | business | default | 55.5 | 0 |
+| `scripts/compile-fuzz.ts` | leaf | business | default | 38.0 | 0 |
 
 </details>
 
@@ -570,7 +607,7 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `packages/zod/src/v4/core/parse.ts` | core | business | score_mid | 84.4 | 132 |
+| `packages/zod/src/v4/core/parse.ts` | core | business | default | 84.4 | 132 |
 | `packages/zod/src/locales/index.ts` | business | leaf | score_low | 1.9 | 1 |
 | `packages/resolution/src/index.cts` | leaf | core | sensitive:public_api | 48.4 | 0 |
 | `packages/resolution/src/index.ts` | leaf | core | sensitive:public_api | 45.4 | 0 |
@@ -583,19 +620,19 @@ Gate variant: `current` — **PASS**
 | `packages/zod/src/v4/core/to-json-schema.ts` | business | core | score_top | 97.5 | 132 |
 | `packages/zod/src/v4/locales/en.ts` | business | core | score_top | 92.6 | 28 |
 | `packages/zod/src/v4/locales/index.ts` | business | core | score_boundary | 87.2 | 134 |
-| `packages/tsc/generate.ts` | leaf | business | leaf_boundary | 36.1 | 1 |
-| `packages/zod/src/v4/locales/ca.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/da.ts` | leaf | business | score_mid | 80.6 | 0 |
-| `packages/zod/src/v4/locales/eo.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/it.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/ja.ts` | leaf | business | score_mid | 68.3 | 0 |
-| `packages/zod/src/v4/locales/lt.ts` | leaf | business | score_mid | 80.6 | 0 |
-| `packages/zod/src/v4/locales/nn.ts` | leaf | business | score_mid | 83.3 | 0 |
-| `packages/zod/src/v4/locales/no.ts` | leaf | business | score_mid | 80.6 | 0 |
-| `packages/zod/src/v4/locales/ro.ts` | leaf | business | score_mid | 53.8 | 0 |
-| `packages/zod/src/v4/mini/deep-partial.ts` | leaf | business | score_mid | 50.5 | 17 |
-| `scripts/compile-fuzz.ts` | leaf | business | leaf_boundary | 36.9 | 0 |
+| `packages/tsc/generate.ts` | leaf | business | default | 36.1 | 1 |
+| `packages/zod/src/v4/locales/ca.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/ckb.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/da.ts` | leaf | business | default | 80.6 | 0 |
+| `packages/zod/src/v4/locales/eo.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/it.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/ja.ts` | leaf | business | default | 68.3 | 0 |
+| `packages/zod/src/v4/locales/lt.ts` | leaf | business | default | 80.6 | 0 |
+| `packages/zod/src/v4/locales/nn.ts` | leaf | business | default | 83.3 | 0 |
+| `packages/zod/src/v4/locales/no.ts` | leaf | business | default | 80.6 | 0 |
+| `packages/zod/src/v4/locales/ro.ts` | leaf | business | default | 53.8 | 0 |
+| `packages/zod/src/v4/mini/deep-partial.ts` | leaf | business | default | 50.5 | 17 |
+| `scripts/compile-fuzz.ts` | leaf | business | default | 36.9 | 0 |
 
 </details>
 
@@ -614,8 +651,8 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `django/utils/tree.py` | core | business | score_mid | 75.7 | 602 |
-| `django/views/debug.py` | core | business | score_mid | 69.5 | 13 |
+| `django/utils/tree.py` | core | business | default | 75.7 | 602 |
+| `django/views/debug.py` | core | business | default | 69.5 | 13 |
 | `django/contrib/contenttypes/apps.py` | business | leaf | score_low | 29.1 | 0 |
 | `django/contrib/sitemaps/views.py` | business | leaf | score_low | 0.3 | 0 |
 | `django/test/client.py` | business | leaf | test_file | – | 2 |
@@ -639,9 +676,9 @@ Gate variant: `current` — **PASS**
 | `django/utils/ipv6.py` | business | core | runtime_cycle | 70.8 | 601 |
 | `django/utils/module_loading.py` | business | core | runtime_cycle | 94.2 | 601 |
 | `django/utils/regex_helper.py` | business | core | runtime_cycle | 89.1 | 601 |
-| `django/contrib/postgres/utils.py` | leaf | business | score_mid | 64.9 | 14 |
-| `django/core/management/color.py` | leaf | business | score_mid | 61.8 | 602 |
-| `scripts/tests.py` | leaf | business | score_mid | 57.9 | 0 |
+| `django/contrib/postgres/utils.py` | leaf | business | default | 64.9 | 14 |
+| `django/core/management/color.py` | leaf | business | default | 61.8 | 602 |
+| `scripts/tests.py` | leaf | business | default | 57.9 | 0 |
 
 </details>
 
@@ -658,10 +695,10 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `django/core/cache/backends/base.py` | core | business | score_mid | 70.8 | 601 |
-| `django/db/backends/utils.py` | core | business | score_mid | 63.3 | 601 |
-| `django/utils/tree.py` | core | business | score_mid | 75.7 | 602 |
-| `django/views/debug.py` | core | business | score_mid | 69.5 | 13 |
+| `django/core/cache/backends/base.py` | core | business | default | 70.8 | 601 |
+| `django/db/backends/utils.py` | core | business | default | 63.3 | 601 |
+| `django/utils/tree.py` | core | business | default | 75.7 | 602 |
+| `django/views/debug.py` | core | business | default | 69.5 | 13 |
 | `django/contrib/contenttypes/apps.py` | business | leaf | score_low | 29.1 | 0 |
 | `django/contrib/sitemaps/views.py` | business | leaf | score_low | 0.3 | 0 |
 | `django/test/client.py` | business | leaf | test_file | – | 2 |
@@ -680,10 +717,10 @@ Gate variant: `current` — **PASS**
 | `django/tasks/base.py` | business | core | runtime_cycle | 76.8 | 6 |
 | `django/utils/module_loading.py` | business | core | score_top | 94.2 | 601 |
 | `django/utils/regex_helper.py` | business | core | runtime_cycle | 89.1 | 601 |
-| `django/contrib/postgres/utils.py` | leaf | business | score_mid | 64.9 | 14 |
-| `django/core/management/color.py` | leaf | business | score_mid | 61.8 | 602 |
-| `django/urls/exceptions.py` | leaf | business | score_mid | 81.3 | 601 |
-| `scripts/tests.py` | leaf | business | score_mid | 57.9 | 0 |
+| `django/contrib/postgres/utils.py` | leaf | business | default | 64.9 | 14 |
+| `django/core/management/color.py` | leaf | business | default | 61.8 | 602 |
+| `django/urls/exceptions.py` | leaf | business | default | 81.3 | 601 |
+| `scripts/tests.py` | leaf | business | default | 57.9 | 0 |
 
 </details>
 
@@ -700,8 +737,8 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `django/utils/tree.py` | core | business | score_mid | 75.7 | 602 |
-| `django/views/debug.py` | core | business | score_mid | 69.5 | 13 |
+| `django/utils/tree.py` | core | business | default | 75.7 | 602 |
+| `django/views/debug.py` | core | business | default | 69.5 | 13 |
 | `django/contrib/contenttypes/apps.py` | business | leaf | score_low | 29.1 | 0 |
 | `django/contrib/sitemaps/views.py` | business | leaf | score_low | 0.3 | 0 |
 | `django/test/client.py` | business | leaf | test_file | – | 2 |
@@ -725,9 +762,9 @@ Gate variant: `current` — **PASS**
 | `django/utils/ipv6.py` | business | core | runtime_cycle | 70.8 | 601 |
 | `django/utils/module_loading.py` | business | core | runtime_cycle | 94.2 | 601 |
 | `django/utils/regex_helper.py` | business | core | runtime_cycle | 89.1 | 601 |
-| `django/contrib/postgres/utils.py` | leaf | business | score_mid | 64.9 | 14 |
-| `django/core/management/color.py` | leaf | business | score_mid | 61.8 | 602 |
-| `scripts/tests.py` | leaf | business | score_mid | 57.9 | 0 |
+| `django/contrib/postgres/utils.py` | leaf | business | default | 64.9 | 14 |
+| `django/core/management/color.py` | leaf | business | default | 61.8 | 602 |
+| `scripts/tests.py` | leaf | business | default | 57.9 | 0 |
 
 </details>
 
@@ -744,10 +781,10 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `django/core/cache/backends/base.py` | core | business | score_mid | 70.8 | 601 |
-| `django/db/backends/utils.py` | core | business | score_mid | 63.3 | 601 |
-| `django/utils/tree.py` | core | business | score_mid | 75.7 | 602 |
-| `django/views/debug.py` | core | business | score_mid | 69.5 | 13 |
+| `django/core/cache/backends/base.py` | core | business | default | 70.8 | 601 |
+| `django/db/backends/utils.py` | core | business | default | 63.3 | 601 |
+| `django/utils/tree.py` | core | business | default | 75.7 | 602 |
+| `django/views/debug.py` | core | business | default | 69.5 | 13 |
 | `django/contrib/contenttypes/apps.py` | business | leaf | score_low | 29.1 | 0 |
 | `django/contrib/sitemaps/views.py` | business | leaf | score_low | 0.3 | 0 |
 | `django/test/client.py` | business | leaf | test_file | – | 2 |
@@ -766,10 +803,10 @@ Gate variant: `current` — **PASS**
 | `django/tasks/base.py` | business | core | runtime_cycle | 76.8 | 6 |
 | `django/utils/module_loading.py` | business | core | score_top | 94.2 | 601 |
 | `django/utils/regex_helper.py` | business | core | runtime_cycle | 89.1 | 601 |
-| `django/contrib/postgres/utils.py` | leaf | business | score_mid | 64.9 | 14 |
-| `django/core/management/color.py` | leaf | business | score_mid | 61.8 | 602 |
-| `django/urls/exceptions.py` | leaf | business | score_mid | 81.3 | 601 |
-| `scripts/tests.py` | leaf | business | score_mid | 57.9 | 0 |
+| `django/contrib/postgres/utils.py` | leaf | business | default | 64.9 | 14 |
+| `django/core/management/color.py` | leaf | business | default | 61.8 | 602 |
+| `django/urls/exceptions.py` | leaf | business | default | 81.3 | 601 |
+| `scripts/tests.py` | leaf | business | default | 57.9 | 0 |
 
 </details>
 
@@ -786,10 +823,10 @@ Gate variant: `current` — **PASS**
 
 | path | label | pred | rules | pct | prod blast |
 |---|---|---|---|---|---|
-| `django/core/cache/backends/base.py` | core | business | score_mid | 70.8 | 601 |
-| `django/db/backends/utils.py` | core | business | score_mid | 63.3 | 601 |
-| `django/utils/tree.py` | core | business | score_mid | 75.7 | 602 |
-| `django/views/debug.py` | core | business | score_mid | 69.5 | 13 |
+| `django/core/cache/backends/base.py` | core | business | default | 70.8 | 601 |
+| `django/db/backends/utils.py` | core | business | default | 63.3 | 601 |
+| `django/utils/tree.py` | core | business | default | 75.7 | 602 |
+| `django/views/debug.py` | core | business | default | 69.5 | 13 |
 | `django/contrib/contenttypes/apps.py` | business | leaf | score_low | 29.1 | 0 |
 | `django/contrib/sitemaps/views.py` | business | leaf | score_low | 0.3 | 0 |
 | `django/test/client.py` | business | leaf | test_file | – | 2 |
@@ -808,9 +845,9 @@ Gate variant: `current` — **PASS**
 | `django/tasks/base.py` | business | core | runtime_cycle | 76.8 | 6 |
 | `django/utils/module_loading.py` | business | core | score_top | 94.2 | 601 |
 | `django/utils/regex_helper.py` | business | core | runtime_cycle | 89.1 | 601 |
-| `django/contrib/postgres/utils.py` | leaf | business | score_mid | 64.9 | 14 |
-| `django/core/management/color.py` | leaf | business | score_mid | 61.8 | 602 |
-| `django/urls/exceptions.py` | leaf | business | score_mid | 81.3 | 601 |
-| `scripts/tests.py` | leaf | business | score_mid | 57.9 | 0 |
+| `django/contrib/postgres/utils.py` | leaf | business | default | 64.9 | 14 |
+| `django/core/management/color.py` | leaf | business | default | 61.8 | 602 |
+| `django/urls/exceptions.py` | leaf | business | default | 81.3 | 601 |
+| `scripts/tests.py` | leaf | business | default | 57.9 | 0 |
 
 </details>

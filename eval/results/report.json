@@ -14,11 +14,11 @@
           "hubs-only": true
         },
         "nodes_sha256": {
-          "all-barrels": "c0b19af61edbd54e7c09c3af2dac7ec9697cca574f9fde1c06dba551d1c89950",
-          "before": "4baf322e651b65c512b80d02fd9dd8c95c7a74e0f4bdfd54d9ced60dc55cd0ba",
-          "catalog-only": "91f33a686df8a074a27cb53edd68870518b77a2786dead332bb76357e2d1e3b0",
-          "current": "c763dd2ab369517014284f96b75724c59d6773a6734347638e13783a820500d7",
-          "hubs-only": "d0461d9d216b43d9d6bbc4f5a7362e9bf9dca26d6c54dca3e87e5f48f8688ea2"
+          "all-barrels": "5d263c23dcb9f54a0ea469d9bc8e555c68b64ba17ff730a0aaf0da29aa5c4ceb",
+          "before": "834f56e9f51d15cea0a5d0d6fa54f86465eb99351a6e988c898c5fa8cd1b309f",
+          "catalog-only": "8153d0a7d2fd1f89f8925f9bc1794fc21b84f3e5819041cce1d54a56c756d6e0",
+          "current": "a243e52afb7fef98ad82ef74cdf9ee64a2707d100ec5ce664f59923ce96d9ba8",
+          "hubs-only": "a63afb3ef47513044b09f145d7e2b5fdf1a77f90832d9324197ad1307376ea59"
         },
         "ok": true
       },
@@ -55,6 +55,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.7059,
               "cost_total": 24.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 4,
+                "precision": 0.6,
+                "predicted": 10,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 20,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.9167,
+                "predicted": 12,
+                "recall": 0.7333,
+                "support": 15,
+                "tn": 18,
+                "tp": 11
+              },
               "kappa": 0.4687,
               "n": 34,
               "over_classified": 7,
@@ -84,6 +104,12 @@
               "under_classified": 5,
               "weighted_kappa": 0.5742
             },
+            "core_missed": [
+              "src/flask/config.py",
+              "src/flask/ctx.py",
+              "src/flask/globals.py",
+              "src/flask/helpers.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -94,7 +120,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Config object that every app uses (from_object/from_envvar/from_prefixed_env, SECRET_KEY lives here); a bug silently mis-configures apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -106,7 +132,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "App/request context push/pop and `g`; every request and every `current_app` access depends on it; subtle lifecycle bugs leak state between requests.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -118,7 +144,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Defines the `current_app`, `request`, `session`, `g` context-local proxies used by virtually all app and extension code.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -130,7 +156,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "url_for, flash, send_file/send_from_directory (path-traversal sensitive), stream_with_context: public helpers used by most apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -204,7 +230,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Creates the default app logger/handler; small, configuration-only, failure is immediately visible.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -216,7 +242,7 @@
                 "prod_blast_radius": 22,
                 "rationale": "Declares blinker signal objects only; no logic.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -228,10 +254,13 @@
                 "prod_blast_radius": 22,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "src/flask/views.py"
             ],
             "ranked_only": {
               "accuracy": 0.5,
@@ -255,6 +284,26 @@
               "core_to_leaf": 0,
               "cost_mean": 1.0,
               "cost_total": 24.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 4,
+                "precision": 0.6,
+                "predicted": 10,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 10,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.5,
+                "predicted": 2,
+                "recall": 0.2,
+                "support": 5,
+                "tn": 18,
+                "tp": 1
+              },
               "kappa": 0.1955,
               "n": 24,
               "over_classified": 7,
@@ -319,7 +368,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -392,11 +441,10 @@
               "leaf": 2
             },
             "rules": {
+              "default": 12,
               "example_code": 11,
-              "leaf_blast_guard": 4,
               "runtime_cycle": 7,
               "score_low": 2,
-              "score_mid": 8,
               "score_top": 1,
               "sensitive:auth": 1,
               "sensitive:crypto": 2,
@@ -431,6 +479,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.7647,
               "cost_total": 26.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 6,
+                "precision": 0.5,
+                "predicted": 12,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 18,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.9167,
+                "predicted": 12,
+                "recall": 0.7333,
+                "support": 15,
+                "tn": 18,
+                "tp": 11
+              },
               "kappa": 0.3786,
               "n": 34,
               "over_classified": 9,
@@ -460,6 +528,12 @@
               "under_classified": 5,
               "weighted_kappa": 0.5216
             },
+            "core_missed": [
+              "src/flask/config.py",
+              "src/flask/ctx.py",
+              "src/flask/globals.py",
+              "src/flask/helpers.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -470,7 +544,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Config object that every app uses (from_object/from_envvar/from_prefixed_env, SECRET_KEY lives here); a bug silently mis-configures apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -482,7 +556,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "App/request context push/pop and `g`; every request and every `current_app` access depends on it; subtle lifecycle bugs leak state between requests.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -494,7 +568,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Defines the `current_app`, `request`, `session`, `g` context-local proxies used by virtually all app and extension code.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -506,7 +580,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "url_for, flash, send_file/send_from_directory (path-traversal sensitive), stream_with_context: public helpers used by most apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -604,7 +678,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Creates the default app logger/handler; small, configuration-only, failure is immediately visible.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -616,7 +690,7 @@
                 "prod_blast_radius": 22,
                 "rationale": "Declares blinker signal objects only; no logic.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -628,10 +702,13 @@
                 "prod_blast_radius": 22,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "src/flask/views.py"
             ],
             "ranked_only": {
               "accuracy": 0.4167,
@@ -655,6 +732,26 @@
               "core_to_leaf": 0,
               "cost_mean": 1.0833,
               "cost_total": 26.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 6,
+                "precision": 0.5,
+                "predicted": 12,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 8,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.5,
+                "predicted": 2,
+                "recall": 0.2,
+                "support": 5,
+                "tn": 18,
+                "tp": 1
+              },
               "kappa": 0.0562,
               "n": 24,
               "over_classified": 9,
@@ -719,7 +816,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -792,11 +889,10 @@
               "leaf": 2
             },
             "rules": {
+              "default": 10,
               "example_code": 11,
-              "leaf_blast_guard": 4,
               "runtime_cycle": 11,
               "score_low": 2,
-              "score_mid": 6,
               "sensitive:auth": 1,
               "sensitive:crypto": 2,
               "sensitive:public_api": 1,
@@ -830,6 +926,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.7647,
               "cost_total": 26.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 6,
+                "precision": 0.5,
+                "predicted": 12,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 18,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.9167,
+                "predicted": 12,
+                "recall": 0.7333,
+                "support": 15,
+                "tn": 18,
+                "tp": 11
+              },
               "kappa": 0.3786,
               "n": 34,
               "over_classified": 9,
@@ -859,6 +975,12 @@
               "under_classified": 5,
               "weighted_kappa": 0.5216
             },
+            "core_missed": [
+              "src/flask/config.py",
+              "src/flask/ctx.py",
+              "src/flask/globals.py",
+              "src/flask/helpers.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -869,7 +991,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Config object that every app uses (from_object/from_envvar/from_prefixed_env, SECRET_KEY lives here); a bug silently mis-configures apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -881,7 +1003,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "App/request context push/pop and `g`; every request and every `current_app` access depends on it; subtle lifecycle bugs leak state between requests.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -893,7 +1015,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Defines the `current_app`, `request`, `session`, `g` context-local proxies used by virtually all app and extension code.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -905,7 +1027,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "url_for, flash, send_file/send_from_directory (path-traversal sensitive), stream_with_context: public helpers used by most apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1003,7 +1125,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Creates the default app logger/handler; small, configuration-only, failure is immediately visible.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -1015,7 +1137,7 @@
                 "prod_blast_radius": 22,
                 "rationale": "Declares blinker signal objects only; no logic.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -1027,10 +1149,13 @@
                 "prod_blast_radius": 22,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "src/flask/views.py"
             ],
             "ranked_only": {
               "accuracy": 0.4167,
@@ -1054,6 +1179,26 @@
               "core_to_leaf": 0,
               "cost_mean": 1.0833,
               "cost_total": 26.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 6,
+                "precision": 0.5,
+                "predicted": 12,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 8,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.5,
+                "predicted": 2,
+                "recall": 0.2,
+                "support": 5,
+                "tn": 18,
+                "tp": 1
+              },
               "kappa": 0.0562,
               "n": 24,
               "over_classified": 9,
@@ -1118,7 +1263,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -1191,11 +1336,10 @@
               "leaf": 2
             },
             "rules": {
+              "default": 10,
               "example_code": 11,
-              "leaf_blast_guard": 4,
               "runtime_cycle": 11,
               "score_low": 2,
-              "score_mid": 6,
               "sensitive:auth": 1,
               "sensitive:crypto": 2,
               "sensitive:public_api": 1,
@@ -1229,6 +1373,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.7059,
               "cost_total": 24.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 4,
+                "precision": 0.6,
+                "predicted": 10,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 20,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.9167,
+                "predicted": 12,
+                "recall": 0.7333,
+                "support": 15,
+                "tn": 18,
+                "tp": 11
+              },
               "kappa": 0.4687,
               "n": 34,
               "over_classified": 7,
@@ -1258,6 +1422,12 @@
               "under_classified": 5,
               "weighted_kappa": 0.5742
             },
+            "core_missed": [
+              "src/flask/config.py",
+              "src/flask/ctx.py",
+              "src/flask/globals.py",
+              "src/flask/helpers.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -1268,7 +1438,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Config object that every app uses (from_object/from_envvar/from_prefixed_env, SECRET_KEY lives here); a bug silently mis-configures apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1280,7 +1450,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "App/request context push/pop and `g`; every request and every `current_app` access depends on it; subtle lifecycle bugs leak state between requests.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1292,7 +1462,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Defines the `current_app`, `request`, `session`, `g` context-local proxies used by virtually all app and extension code.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1304,7 +1474,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "url_for, flash, send_file/send_from_directory (path-traversal sensitive), stream_with_context: public helpers used by most apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1378,7 +1548,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Creates the default app logger/handler; small, configuration-only, failure is immediately visible.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -1390,7 +1560,7 @@
                 "prod_blast_radius": 22,
                 "rationale": "Declares blinker signal objects only; no logic.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -1402,10 +1572,13 @@
                 "prod_blast_radius": 22,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "src/flask/views.py"
             ],
             "ranked_only": {
               "accuracy": 0.5,
@@ -1429,6 +1602,26 @@
               "core_to_leaf": 0,
               "cost_mean": 1.0,
               "cost_total": 24.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 4,
+                "precision": 0.6,
+                "predicted": 10,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 10,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.5,
+                "predicted": 2,
+                "recall": 0.2,
+                "support": 5,
+                "tn": 18,
+                "tp": 1
+              },
               "kappa": 0.1955,
               "n": 24,
               "over_classified": 7,
@@ -1493,7 +1686,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -1566,11 +1759,10 @@
               "leaf": 2
             },
             "rules": {
+              "default": 12,
               "example_code": 11,
-              "leaf_blast_guard": 4,
               "runtime_cycle": 7,
               "score_low": 2,
-              "score_mid": 8,
               "score_top": 1,
               "sensitive:auth": 1,
               "sensitive:crypto": 2,
@@ -1605,6 +1797,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.7059,
               "cost_total": 24.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 4,
+                "precision": 0.6,
+                "predicted": 10,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 20,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.9167,
+                "predicted": 12,
+                "recall": 0.7333,
+                "support": 15,
+                "tn": 18,
+                "tp": 11
+              },
               "kappa": 0.4687,
               "n": 34,
               "over_classified": 7,
@@ -1634,6 +1846,12 @@
               "under_classified": 5,
               "weighted_kappa": 0.5742
             },
+            "core_missed": [
+              "src/flask/config.py",
+              "src/flask/ctx.py",
+              "src/flask/globals.py",
+              "src/flask/helpers.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -1644,7 +1862,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Config object that every app uses (from_object/from_envvar/from_prefixed_env, SECRET_KEY lives here); a bug silently mis-configures apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1656,7 +1874,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "App/request context push/pop and `g`; every request and every `current_app` access depends on it; subtle lifecycle bugs leak state between requests.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1668,7 +1886,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Defines the `current_app`, `request`, `session`, `g` context-local proxies used by virtually all app and extension code.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1680,7 +1898,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "url_for, flash, send_file/send_from_directory (path-traversal sensitive), stream_with_context: public helpers used by most apps.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -1754,7 +1972,7 @@
                 "prod_blast_radius": 21,
                 "rationale": "Creates the default app logger/handler; small, configuration-only, failure is immediately visible.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -1766,7 +1984,7 @@
                 "prod_blast_radius": 22,
                 "rationale": "Declares blinker signal objects only; no logic.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -1778,10 +1996,13 @@
                 "prod_blast_radius": 22,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "src/flask/views.py"
             ],
             "ranked_only": {
               "accuracy": 0.5,
@@ -1805,6 +2026,26 @@
               "core_to_leaf": 0,
               "cost_mean": 1.0,
               "cost_total": 24.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 4,
+                "precision": 0.6,
+                "predicted": 10,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 10,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.5,
+                "predicted": 2,
+                "recall": 0.2,
+                "support": 5,
+                "tn": 18,
+                "tp": 1
+              },
               "kappa": 0.1955,
               "n": 24,
               "over_classified": 7,
@@ -1869,7 +2110,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -1942,11 +2183,10 @@
               "leaf": 2
             },
             "rules": {
+              "default": 12,
               "example_code": 11,
-              "leaf_blast_guard": 4,
               "runtime_cycle": 7,
               "score_low": 2,
-              "score_mid": 8,
               "score_top": 1,
               "sensitive:auth": 1,
               "sensitive:crypto": 2,
@@ -1971,11 +2211,11 @@
           "hubs-only": true
         },
         "nodes_sha256": {
-          "all-barrels": "85d73d05f5861c63e5f445ef0d5b528ee9468e803b83de92478d2763a6ea80b0",
-          "before": "360638d391aa70a20c2ca386c7ea30a136a5c4b77c58c1fa672331dc3a00f0ac",
-          "catalog-only": "277008f6cc280a744e8ed516054758529bda78aa1753d4e66cb4449244219c78",
-          "current": "c27b6e120d386fd392a5d3fe7640b991830907b1b33b55719fd002d6fc2f40f9",
-          "hubs-only": "c18724452b99f02b894e84ab182f3719fcd294ca10c7a29c59292188dbef31d9"
+          "all-barrels": "eb628fa350420c98be9251ce36ce94352a9f7a29b1b6d0feafa5ba5635a4829f",
+          "before": "19c283692d43df77dfa1da032d61deea28359178229672ffa671a5e395ac089a",
+          "catalog-only": "f4cd55b073b15024b574bed2c07a197e53c679c4711407231c99e8f5b75eb08e",
+          "current": "14d5b90154a0f0f0c97ae3745d9d8faaee7cf7454a503c0ab3ff8e898f8dc5d2",
+          "hubs-only": "3a1f5bedde17a5c8c782251e4393cd0d599ddc405e2c90e8b74b8830d462eeb1"
         },
         "ok": true
       },
@@ -2012,6 +2252,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4032,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 20,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": 1.0,
+                "predicted": 8,
+                "recall": 0.6154,
+                "support": 13,
+                "tn": 18,
+                "tp": 8
+              },
               "kappa": 0.5708,
               "n": 31,
               "over_classified": 7,
@@ -2041,6 +2301,10 @@
               "under_classified": 2,
               "weighted_kappa": 0.6675
             },
+            "core_missed": [
+              "httpx/_models.py",
+              "httpx/_urlparse.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -2051,7 +2315,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "Request, Response, Headers, Cookies: the core data model used by every request/response.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -2063,7 +2327,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "RFC 3986 URL parsing/normalisation (host, IDNA, percent-encoding); parsing bugs are security relevant (SSRF, host confusion).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -2100,7 +2364,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "Version string only.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2112,7 +2376,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Optional `httpx` command-line client (needs the cli extra); nothing in the library imports it.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2124,7 +2388,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Internal re-export of the transport classes; no logic.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2136,7 +2400,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "MockTransport test helper; a few lines.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2148,11 +2412,12 @@
                 "prod_blast_radius": 20,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
             ],
+            "false_leaf": [],
             "ranked_only": {
               "accuracy": 0.6087,
               "confusion": {
@@ -2175,6 +2440,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5435,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 12,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": null,
+                "predicted": 0,
+                "recall": 0.0,
+                "support": 5,
+                "tn": 18,
+                "tp": 0
+              },
               "kappa": 0.3571,
               "n": 23,
               "over_classified": 7,
@@ -2239,7 +2524,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -2312,9 +2597,8 @@
               "leaf": 0
             },
             "rules": {
-              "leaf_blast_guard": 6,
+              "default": 14,
               "runtime_cycle": 2,
-              "score_mid": 8,
               "score_top": 1,
               "sensitive:auth": 1,
               "sensitive:crypto": 4,
@@ -2348,6 +2632,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4032,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 20,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": 1.0,
+                "predicted": 8,
+                "recall": 0.6154,
+                "support": 13,
+                "tn": 18,
+                "tp": 8
+              },
               "kappa": 0.5708,
               "n": 31,
               "over_classified": 7,
@@ -2377,6 +2681,10 @@
               "under_classified": 2,
               "weighted_kappa": 0.6675
             },
+            "core_missed": [
+              "httpx/_models.py",
+              "httpx/_urlparse.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -2387,7 +2695,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "Request, Response, Headers, Cookies: the core data model used by every request/response.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -2399,7 +2707,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "RFC 3986 URL parsing/normalisation (host, IDNA, percent-encoding); parsing bugs are security relevant (SSRF, host confusion).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -2436,7 +2744,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "Version string only.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2448,7 +2756,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Optional `httpx` command-line client (needs the cli extra); nothing in the library imports it.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2460,7 +2768,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Internal re-export of the transport classes; no logic.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2472,7 +2780,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "MockTransport test helper; a few lines.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2484,11 +2792,12 @@
                 "prod_blast_radius": 20,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
             ],
+            "false_leaf": [],
             "ranked_only": {
               "accuracy": 0.6087,
               "confusion": {
@@ -2511,6 +2820,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5435,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 12,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": null,
+                "predicted": 0,
+                "recall": 0.0,
+                "support": 5,
+                "tn": 18,
+                "tp": 0
+              },
               "kappa": 0.3571,
               "n": 23,
               "over_classified": 7,
@@ -2575,7 +2904,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -2648,9 +2977,8 @@
               "leaf": 0
             },
             "rules": {
-              "leaf_blast_guard": 6,
+              "default": 14,
               "runtime_cycle": 2,
-              "score_mid": 8,
               "score_top": 1,
               "sensitive:auth": 1,
               "sensitive:crypto": 4,
@@ -2684,6 +3012,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4032,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 20,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": 1.0,
+                "predicted": 8,
+                "recall": 0.6154,
+                "support": 13,
+                "tn": 18,
+                "tp": 8
+              },
               "kappa": 0.5708,
               "n": 31,
               "over_classified": 7,
@@ -2713,6 +3061,10 @@
               "under_classified": 2,
               "weighted_kappa": 0.6675
             },
+            "core_missed": [
+              "httpx/_models.py",
+              "httpx/_urlparse.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -2723,7 +3075,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "Request, Response, Headers, Cookies: the core data model used by every request/response.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -2735,7 +3087,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "RFC 3986 URL parsing/normalisation (host, IDNA, percent-encoding); parsing bugs are security relevant (SSRF, host confusion).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -2772,7 +3124,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "Version string only.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2784,7 +3136,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Optional `httpx` command-line client (needs the cli extra); nothing in the library imports it.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2796,7 +3148,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Internal re-export of the transport classes; no logic.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2808,7 +3160,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "MockTransport test helper; a few lines.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -2820,11 +3172,12 @@
                 "prod_blast_radius": 20,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
             ],
+            "false_leaf": [],
             "ranked_only": {
               "accuracy": 0.6087,
               "confusion": {
@@ -2847,6 +3200,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5435,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 12,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": null,
+                "predicted": 0,
+                "recall": 0.0,
+                "support": 5,
+                "tn": 18,
+                "tp": 0
+              },
               "kappa": 0.3571,
               "n": 23,
               "over_classified": 7,
@@ -2911,7 +3284,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -2984,9 +3357,8 @@
               "leaf": 0
             },
             "rules": {
-              "leaf_blast_guard": 6,
+              "default": 14,
               "runtime_cycle": 2,
-              "score_mid": 8,
               "score_top": 1,
               "sensitive:auth": 1,
               "sensitive:crypto": 4,
@@ -3020,6 +3392,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4032,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 20,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": 1.0,
+                "predicted": 8,
+                "recall": 0.6154,
+                "support": 13,
+                "tn": 18,
+                "tp": 8
+              },
               "kappa": 0.5708,
               "n": 31,
               "over_classified": 7,
@@ -3049,6 +3441,10 @@
               "under_classified": 2,
               "weighted_kappa": 0.6675
             },
+            "core_missed": [
+              "httpx/_models.py",
+              "httpx/_urlparse.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -3059,7 +3455,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "Request, Response, Headers, Cookies: the core data model used by every request/response.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -3071,7 +3467,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "RFC 3986 URL parsing/normalisation (host, IDNA, percent-encoding); parsing bugs are security relevant (SSRF, host confusion).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -3108,7 +3504,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "Version string only.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3120,7 +3516,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Optional `httpx` command-line client (needs the cli extra); nothing in the library imports it.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3132,7 +3528,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Internal re-export of the transport classes; no logic.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3144,7 +3540,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "MockTransport test helper; a few lines.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3156,11 +3552,12 @@
                 "prod_blast_radius": 20,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
             ],
+            "false_leaf": [],
             "ranked_only": {
               "accuracy": 0.6087,
               "confusion": {
@@ -3183,6 +3580,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5435,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 12,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": null,
+                "predicted": 0,
+                "recall": 0.0,
+                "support": 5,
+                "tn": 18,
+                "tp": 0
+              },
               "kappa": 0.3571,
               "n": 23,
               "over_classified": 7,
@@ -3247,7 +3664,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -3320,9 +3737,8 @@
               "leaf": 0
             },
             "rules": {
-              "leaf_blast_guard": 6,
+              "default": 14,
               "runtime_cycle": 2,
-              "score_mid": 8,
               "score_top": 1,
               "sensitive:auth": 1,
               "sensitive:crypto": 4,
@@ -3356,6 +3772,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4032,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 20,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": 1.0,
+                "predicted": 8,
+                "recall": 0.6154,
+                "support": 13,
+                "tn": 18,
+                "tp": 8
+              },
               "kappa": 0.5708,
               "n": 31,
               "over_classified": 7,
@@ -3385,6 +3821,10 @@
               "under_classified": 2,
               "weighted_kappa": 0.6675
             },
+            "core_missed": [
+              "httpx/_models.py",
+              "httpx/_urlparse.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -3395,7 +3835,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "Request, Response, Headers, Cookies: the core data model used by every request/response.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -3407,7 +3847,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "RFC 3986 URL parsing/normalisation (host, IDNA, percent-encoding); parsing bugs are security relevant (SSRF, host confusion).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -3444,7 +3884,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "Version string only.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3456,7 +3896,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Optional `httpx` command-line client (needs the cli extra); nothing in the library imports it.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3468,7 +3908,7 @@
                 "prod_blast_radius": 5,
                 "rationale": "Internal re-export of the transport classes; no logic.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3480,7 +3920,7 @@
                 "prod_blast_radius": 6,
                 "rationale": "MockTransport test helper; a few lines.",
                 "rules": [
-                  "leaf_blast_guard"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3492,11 +3932,12 @@
                 "prod_blast_radius": 20,
                 "rationale": "Type aliases only; no runtime behaviour.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
             ],
+            "false_leaf": [],
             "ranked_only": {
               "accuracy": 0.6087,
               "confusion": {
@@ -3519,6 +3960,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5435,
               "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 12,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": null,
+                "predicted": 0,
+                "recall": 0.0,
+                "support": 5,
+                "tn": 18,
+                "tp": 0
+              },
               "kappa": 0.3571,
               "n": 23,
               "over_classified": 7,
@@ -3583,7 +4044,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -3656,9 +4117,8 @@
               "leaf": 0
             },
             "rules": {
-              "leaf_blast_guard": 6,
+              "default": 14,
               "runtime_cycle": 2,
-              "score_mid": 8,
               "score_top": 1,
               "sensitive:auth": 1,
               "sensitive:crypto": 4,
@@ -3682,11 +4142,11 @@
           "hubs-only": true
         },
         "nodes_sha256": {
-          "all-barrels": "7dfeeb6cf1d1216f1cbe806ebd705f2a2f93548cc039794f51d5dacd47caeadf",
-          "before": "21bef5faa7d177cc6eb31a9eba9e83d454fa5c2eaef68ece931d8923ce2aa6d1",
-          "catalog-only": "fd03e1f1d006e59f88ec4bcf8ba4953d633aac899cafa5fd6ec4cf3ff0592ee5",
-          "current": "a9fd3b306b28ae525543852b5854ed2c9f5ca44602ab06bdb4fa09dda339ccd4",
-          "hubs-only": "e129cdd8d184eec5a36fd3a89525f49048057e78a14ed0146e120b039b05984c"
+          "all-barrels": "9c22c2ffa4fdb23ba2ae3e3cf8da8339b36ce69b3892d680329b62ff7f9e83e1",
+          "before": "19f6f79d02241ef092c8fb7008a6453e86fae7f757df7a66b706286632d7aabc",
+          "catalog-only": "99dadde21ede101b05dadca7980d081e1cd3c78a5beeaadbe4c984abec07108a",
+          "current": "fd5b11ba8f2e019ac033fa9adb686ebf78b8acdd27a1b1b5a20ae66c0e45dc70",
+          "hubs-only": "c2b8c476d82894c03c3d9e7f4c45a73e8085f9d828e2011eb0bea5a37a3e3fb9"
         },
         "ok": true
       },
@@ -3723,6 +4183,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4048,
               "cost_total": 25.5,
+              "is_core": {
+                "fn": 0,
+                "fp": 11,
+                "precision": 0.5417,
+                "predicted": 24,
+                "recall": 1.0,
+                "support": 13,
+                "tn": 39,
+                "tp": 13
+              },
+              "is_leaf": {
+                "fn": 17,
+                "fp": 3,
+                "precision": 0.8696,
+                "predicted": 23,
+                "recall": 0.5405,
+                "support": 37,
+                "tn": 23,
+                "tp": 20
+              },
               "kappa": 0.3938,
               "n": 63,
               "over_classified": 22,
@@ -3752,6 +4232,7 @@
               "under_classified": 3,
               "weighted_kappa": 0.484
             },
+            "core_missed": [],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -3930,7 +4411,7 @@
                 "prod_blast_radius": 1,
                 "rationale": "Generator for TypeScript compiler performance benchmarks; not shipped.",
                 "rules": [
-                  "leaf_boundary"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3942,7 +4423,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Catalan error-message table; only affects users who opt in via z.config(z.locales.ca()).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3954,7 +4435,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Kurdish error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3966,7 +4447,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Danish error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3978,7 +4459,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Esperanto error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -3990,7 +4471,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Italian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4002,7 +4483,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Japanese error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4014,7 +4495,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Lithuanian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4026,7 +4507,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Norwegian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4038,7 +4519,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Romanian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4050,10 +4531,15 @@
                 "prod_blast_radius": 0,
                 "rationale": "Fuzzing script for the compiler; not shipped.",
                 "rules": [
-                  "leaf_boundary"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "packages/zod/src/locales/index.ts",
+              "packages/zod/src/v4/classic/coerce.ts",
+              "packages/zod/src/v4/mini/coerce.ts"
             ],
             "ranked_only": {
               "accuracy": 0.5614,
@@ -4077,6 +4563,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4474,
               "cost_total": 25.5,
+              "is_core": {
+                "fn": 0,
+                "fp": 11,
+                "precision": 0.5417,
+                "predicted": 24,
+                "recall": 1.0,
+                "support": 13,
+                "tn": 33,
+                "tp": 13
+              },
+              "is_leaf": {
+                "fn": 17,
+                "fp": 3,
+                "precision": 0.8235,
+                "predicted": 17,
+                "recall": 0.4516,
+                "support": 31,
+                "tn": 23,
+                "tp": 14
+              },
               "kappa": 0.3529,
               "n": 57,
               "over_classified": 22,
@@ -4141,7 +4647,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -4205,13 +4711,11 @@
               "leaf": 59
             },
             "rules": {
+              "default": 93,
               "example_code": 135,
-              "leaf_blast_guard": 6,
-              "leaf_boundary": 9,
               "runtime_cycle": 2,
               "score_boundary": 7,
               "score_low": 59,
-              "score_mid": 78,
               "score_top": 16,
               "sensitive:public_api": 6,
               "test_file": 204
@@ -4243,6 +4747,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5317,
               "cost_total": 33.5,
+              "is_core": {
+                "fn": 3,
+                "fp": 11,
+                "precision": 0.4762,
+                "predicted": 21,
+                "recall": 0.7692,
+                "support": 13,
+                "tn": 39,
+                "tp": 10
+              },
+              "is_leaf": {
+                "fn": 17,
+                "fp": 1,
+                "precision": 0.9524,
+                "predicted": 21,
+                "recall": 0.5405,
+                "support": 37,
+                "tn": 25,
+                "tp": 20
+              },
               "kappa": 0.4048,
               "n": 63,
               "over_classified": 21,
@@ -4272,6 +4796,11 @@
               "under_classified": 4,
               "weighted_kappa": 0.4545
             },
+            "core_missed": [
+              "packages/zod/src/v3/types.ts",
+              "packages/zod/src/v4/classic/external.ts",
+              "packages/zod/src/v4/core/parse.ts"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -4282,7 +4811,7 @@
                 "prod_blast_radius": 10,
                 "rationale": "purposive: the whole zod v3 schema implementation, still shipped as zod/v3 for existing users.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -4294,7 +4823,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "purposive: assembles the classic public namespace (`z.*`) and sets the default locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -4306,7 +4835,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "parse/safeParse/parseAsync/encode/decode implementations used by every validation call.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -4462,7 +4991,7 @@
                 "prod_blast_radius": 136,
                 "rationale": "purposive: version constant only.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4474,7 +5003,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Catalan error-message table; only affects users who opt in via z.config(z.locales.ca()).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4486,7 +5015,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Kurdish error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4498,7 +5027,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Esperanto error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4510,7 +5039,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Italian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4522,7 +5051,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Japanese error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4534,7 +5063,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Khmer error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4546,7 +5075,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Romanian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4558,7 +5087,7 @@
                 "prod_blast_radius": 17,
                 "rationale": "Niche DeepPartial helper for mini; removable without affecting other features.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4570,10 +5099,13 @@
                 "prod_blast_radius": 0,
                 "rationale": "Fuzzing script for the compiler; not shipped.",
                 "rules": [
-                  "leaf_boundary"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "packages/zod/src/locales/index.ts"
             ],
             "ranked_only": {
               "accuracy": 0.5614,
@@ -4597,6 +5129,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5877,
               "cost_total": 33.5,
+              "is_core": {
+                "fn": 3,
+                "fp": 11,
+                "precision": 0.4762,
+                "predicted": 21,
+                "recall": 0.7692,
+                "support": 13,
+                "tn": 33,
+                "tp": 10
+              },
+              "is_leaf": {
+                "fn": 17,
+                "fp": 1,
+                "precision": 0.9333,
+                "predicted": 15,
+                "recall": 0.4516,
+                "support": 31,
+                "tn": 25,
+                "tp": 14
+              },
               "kappa": 0.3633,
               "n": 57,
               "over_classified": 21,
@@ -4661,7 +5213,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -4725,13 +5277,11 @@
               "leaf": 52
             },
             "rules": {
+              "default": 105,
               "example_code": 135,
-              "leaf_blast_guard": 13,
-              "leaf_boundary": 7,
               "runtime_cycle": 2,
               "score_boundary": 1,
               "score_low": 52,
-              "score_mid": 85,
               "score_top": 17,
               "sensitive:public_api": 6,
               "test_file": 204
@@ -4763,6 +5313,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4127,
               "cost_total": 26.0,
+              "is_core": {
+                "fn": 1,
+                "fp": 11,
+                "precision": 0.5217,
+                "predicted": 23,
+                "recall": 0.9231,
+                "support": 13,
+                "tn": 39,
+                "tp": 12
+              },
+              "is_leaf": {
+                "fn": 18,
+                "fp": 1,
+                "precision": 0.95,
+                "predicted": 20,
+                "recall": 0.5135,
+                "support": 37,
+                "tn": 25,
+                "tp": 19
+              },
               "kappa": 0.3865,
               "n": 63,
               "over_classified": 24,
@@ -4792,6 +5362,9 @@
               "under_classified": 2,
               "weighted_kappa": 0.4835
             },
+            "core_missed": [
+              "packages/zod/src/v4/core/parse.ts"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -4802,7 +5375,7 @@
                 "prod_blast_radius": 132,
                 "rationale": "parse/safeParse/parseAsync/encode/decode implementations used by every validation call.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -4958,7 +5531,7 @@
                 "prod_blast_radius": 1,
                 "rationale": "Generator for TypeScript compiler performance benchmarks; not shipped.",
                 "rules": [
-                  "leaf_boundary"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4970,7 +5543,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Catalan error-message table; only affects users who opt in via z.config(z.locales.ca()).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4982,7 +5555,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Kurdish error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -4994,7 +5567,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Danish error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5006,7 +5579,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Esperanto error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5018,7 +5591,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Italian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5030,7 +5603,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Japanese error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5042,7 +5615,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Lithuanian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5054,7 +5627,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Norwegian Nynorsk error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5066,7 +5639,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Norwegian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5078,7 +5651,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Romanian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5090,7 +5663,7 @@
                 "prod_blast_radius": 17,
                 "rationale": "Niche DeepPartial helper for mini; removable without affecting other features.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5102,10 +5675,13 @@
                 "prod_blast_radius": 0,
                 "rationale": "Fuzzing script for the compiler; not shipped.",
                 "rules": [
-                  "leaf_boundary"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "packages/zod/src/locales/index.ts"
             ],
             "ranked_only": {
               "accuracy": 0.5439,
@@ -5129,6 +5705,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4561,
               "cost_total": 26.0,
+              "is_core": {
+                "fn": 1,
+                "fp": 11,
+                "precision": 0.5217,
+                "predicted": 23,
+                "recall": 0.9231,
+                "support": 13,
+                "tn": 33,
+                "tp": 12
+              },
+              "is_leaf": {
+                "fn": 18,
+                "fp": 1,
+                "precision": 0.9286,
+                "predicted": 14,
+                "recall": 0.4194,
+                "support": 31,
+                "tn": 25,
+                "tp": 13
+              },
               "kappa": 0.3431,
               "n": 57,
               "over_classified": 24,
@@ -5193,7 +5789,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -5257,13 +5853,11 @@
               "leaf": 52
             },
             "rules": {
+              "default": 99,
               "example_code": 135,
-              "leaf_blast_guard": 13,
-              "leaf_boundary": 9,
               "runtime_cycle": 2,
               "score_boundary": 9,
               "score_low": 52,
-              "score_mid": 77,
               "score_top": 15,
               "sensitive:public_api": 6,
               "test_file": 204
@@ -5295,6 +5889,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4127,
               "cost_total": 26.0,
+              "is_core": {
+                "fn": 1,
+                "fp": 11,
+                "precision": 0.5217,
+                "predicted": 23,
+                "recall": 0.9231,
+                "support": 13,
+                "tn": 39,
+                "tp": 12
+              },
+              "is_leaf": {
+                "fn": 18,
+                "fp": 1,
+                "precision": 0.95,
+                "predicted": 20,
+                "recall": 0.5135,
+                "support": 37,
+                "tn": 25,
+                "tp": 19
+              },
               "kappa": 0.3865,
               "n": 63,
               "over_classified": 24,
@@ -5324,6 +5938,9 @@
               "under_classified": 2,
               "weighted_kappa": 0.4835
             },
+            "core_missed": [
+              "packages/zod/src/v4/core/parse.ts"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -5334,7 +5951,7 @@
                 "prod_blast_radius": 132,
                 "rationale": "parse/safeParse/parseAsync/encode/decode implementations used by every validation call.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -5490,7 +6107,7 @@
                 "prod_blast_radius": 1,
                 "rationale": "Generator for TypeScript compiler performance benchmarks; not shipped.",
                 "rules": [
-                  "leaf_boundary"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5502,7 +6119,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Catalan error-message table; only affects users who opt in via z.config(z.locales.ca()).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5514,7 +6131,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Kurdish error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5526,7 +6143,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Danish error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5538,7 +6155,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Esperanto error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5550,7 +6167,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Italian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5562,7 +6179,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Japanese error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5574,7 +6191,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Lithuanian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5586,7 +6203,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Norwegian Nynorsk error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5598,7 +6215,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Norwegian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5610,7 +6227,7 @@
                 "prod_blast_radius": 0,
                 "rationale": "Romanian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5622,7 +6239,7 @@
                 "prod_blast_radius": 17,
                 "rationale": "Niche DeepPartial helper for mini; removable without affecting other features.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -5634,10 +6251,13 @@
                 "prod_blast_radius": 0,
                 "rationale": "Fuzzing script for the compiler; not shipped.",
                 "rules": [
-                  "leaf_boundary"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "packages/zod/src/locales/index.ts"
             ],
             "ranked_only": {
               "accuracy": 0.5439,
@@ -5661,6 +6281,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4561,
               "cost_total": 26.0,
+              "is_core": {
+                "fn": 1,
+                "fp": 11,
+                "precision": 0.5217,
+                "predicted": 23,
+                "recall": 0.9231,
+                "support": 13,
+                "tn": 33,
+                "tp": 12
+              },
+              "is_leaf": {
+                "fn": 18,
+                "fp": 1,
+                "precision": 0.9286,
+                "predicted": 14,
+                "recall": 0.4194,
+                "support": 31,
+                "tn": 25,
+                "tp": 13
+              },
               "kappa": 0.3431,
               "n": 57,
               "over_classified": 24,
@@ -5725,7 +6365,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -5789,13 +6429,11 @@
               "leaf": 52
             },
             "rules": {
+              "default": 99,
               "example_code": 135,
-              "leaf_blast_guard": 13,
-              "leaf_boundary": 9,
               "runtime_cycle": 2,
               "score_boundary": 9,
               "score_low": 52,
-              "score_mid": 77,
               "score_top": 15,
               "sensitive:public_api": 6,
               "test_file": 204
@@ -5827,6 +6465,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5317,
               "cost_total": 33.5,
+              "is_core": {
+                "fn": 3,
+                "fp": 11,
+                "precision": 0.4762,
+                "predicted": 21,
+                "recall": 0.7692,
+                "support": 13,
+                "tn": 39,
+                "tp": 10
+              },
+              "is_leaf": {
+                "fn": 17,
+                "fp": 1,
+                "precision": 0.9524,
+                "predicted": 21,
+                "recall": 0.5405,
+                "support": 37,
+                "tn": 25,
+                "tp": 20
+              },
               "kappa": 0.4048,
               "n": 63,
               "over_classified": 21,
@@ -5856,6 +6514,11 @@
               "under_classified": 4,
               "weighted_kappa": 0.4545
             },
+            "core_missed": [
+              "packages/zod/src/v3/types.ts",
+              "packages/zod/src/v4/classic/external.ts",
+              "packages/zod/src/v4/core/parse.ts"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -5866,7 +6529,7 @@
                 "prod_blast_radius": 10,
                 "rationale": "purposive: the whole zod v3 schema implementation, still shipped as zod/v3 for existing users.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -5878,7 +6541,7 @@
                 "prod_blast_radius": 20,
                 "rationale": "purposive: assembles the classic public namespace (`z.*`) and sets the default locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -5890,7 +6553,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "parse/safeParse/parseAsync/encode/decode implementations used by every validation call.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -6046,7 +6709,7 @@
                 "prod_blast_radius": 136,
                 "rationale": "purposive: version constant only.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6058,7 +6721,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Catalan error-message table; only affects users who opt in via z.config(z.locales.ca()).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6070,7 +6733,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Kurdish error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6082,7 +6745,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Esperanto error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6094,7 +6757,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Italian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6106,7 +6769,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Japanese error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6118,7 +6781,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Khmer error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6130,7 +6793,7 @@
                 "prod_blast_radius": 134,
                 "rationale": "Romanian error-message table; opt-in locale.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6142,7 +6805,7 @@
                 "prod_blast_radius": 17,
                 "rationale": "Niche DeepPartial helper for mini; removable without affecting other features.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6154,10 +6817,13 @@
                 "prod_blast_radius": 0,
                 "rationale": "Fuzzing script for the compiler; not shipped.",
                 "rules": [
-                  "leaf_boundary"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "packages/zod/src/locales/index.ts"
             ],
             "ranked_only": {
               "accuracy": 0.5614,
@@ -6181,6 +6847,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5877,
               "cost_total": 33.5,
+              "is_core": {
+                "fn": 3,
+                "fp": 11,
+                "precision": 0.4762,
+                "predicted": 21,
+                "recall": 0.7692,
+                "support": 13,
+                "tn": 33,
+                "tp": 10
+              },
+              "is_leaf": {
+                "fn": 17,
+                "fp": 1,
+                "precision": 0.9333,
+                "predicted": 15,
+                "recall": 0.4516,
+                "support": 31,
+                "tn": 25,
+                "tp": 14
+              },
               "kappa": 0.3633,
               "n": 57,
               "over_classified": 21,
@@ -6245,7 +6931,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -6309,13 +6995,11 @@
               "leaf": 52
             },
             "rules": {
+              "default": 105,
               "example_code": 135,
-              "leaf_blast_guard": 13,
-              "leaf_boundary": 7,
               "runtime_cycle": 2,
               "score_boundary": 1,
               "score_low": 52,
-              "score_mid": 85,
               "score_top": 17,
               "sensitive:public_api": 6,
               "test_file": 204
@@ -6337,11 +7021,11 @@
           "hubs-only": true
         },
         "nodes_sha256": {
-          "all-barrels": "e1626da62dfd2abe4755623bc62d6ab02fb1db9f56f2710bfe6e1c5a9b120509",
-          "before": "e451bd044bd03f0a6304bbac7b6a98ef47ddd6af8bebfb07bad36d678c1e509d",
-          "catalog-only": "9a567029a26b2f9d8b088f7e8ba59a6177cbbd69860c746f211dffad01faaba2",
-          "current": "314c5ab646c8f60feeafabc0c912a5ded97481dd30d769c8a44c72dfe9747cb8",
-          "hubs-only": "13e31642d5210b85290abea36e9ecc1a25274da8f11401f5fd6bbded7f718743"
+          "all-barrels": "a6f300da54f4963eec35e172f6b0bf5650e1fac1c02bd3d62c7d7c6437ff77e1",
+          "before": "1f9780ef6a19c3aecd71ba8755f1215e92906e4331c6e3a980fc35da8214650a",
+          "catalog-only": "eaa3ecc6203429637195fbc397a548e5d73f7867a9cc591abdae6d8dd16b23a6",
+          "current": "0672bfbd7c70fc73cdb4e1780789c1ced76581c568c69faafda5b1b40a4c8a0f",
+          "hubs-only": "d713166be6999cb09190e6186dd1d4698989570a5b05d02310949f84bb693b54"
         },
         "ok": true
       },
@@ -6378,6 +7062,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5333,
               "cost_total": 40.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 15,
+                "precision": 0.4828,
+                "predicted": 29,
+                "recall": 0.7778,
+                "support": 18,
+                "tn": 42,
+                "tp": 14
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 3,
+                "precision": 0.8696,
+                "predicted": 23,
+                "recall": 0.7692,
+                "support": 26,
+                "tn": 46,
+                "tp": 20
+              },
               "kappa": 0.4858,
               "n": 75,
               "over_classified": 19,
@@ -6407,6 +7111,12 @@
               "under_classified": 7,
               "weighted_kappa": 0.5766
             },
+            "core_missed": [
+              "django/core/cache/backends/base.py",
+              "django/db/backends/utils.py",
+              "django/utils/tree.py",
+              "django/views/debug.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -6417,7 +7127,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "BaseCache: key construction/validation and versioning shared by every cache backend (and cache-backed sessions); key bugs can serve one user's data to another.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -6429,7 +7139,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "CursorWrapper that every query executes through, plus identifier truncation/quoting helpers used by all backends.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -6441,7 +7151,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "tree.Node, the base of Q objects and the ORM WhereNode; every filter() builds on it.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -6453,7 +7163,7 @@
                 "prod_blast_radius": 13,
                 "rationale": "Technical 500 page and SafeExceptionReporterFilter, which scrubs secrets from error reports; a bug leaks credentials.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -6681,7 +7391,7 @@
                 "prod_blast_radius": 14,
                 "rationale": "Two small helpers (error-prefixing, installed-app check).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6693,7 +7403,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "Terminal colour support for management command output.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6705,7 +7415,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "Two exception class definitions (Resolver404, NoReverseMatch).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -6717,10 +7427,15 @@
                 "prod_blast_radius": 0,
                 "rationale": "Tests for release scripts; not shipped.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "django/contrib/contenttypes/apps.py",
+              "django/contrib/sitemaps/views.py",
+              "django/test/client.py"
             ],
             "ranked_only": {
               "accuracy": 0.6377,
@@ -6744,6 +7459,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5507,
               "cost_total": 38.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 15,
+                "precision": 0.4828,
+                "predicted": 29,
+                "recall": 0.7778,
+                "support": 18,
+                "tn": 36,
+                "tp": 14
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 2,
+                "precision": 0.8824,
+                "predicted": 17,
+                "recall": 0.7143,
+                "support": 21,
+                "tn": 46,
+                "tp": 15
+              },
               "kappa": 0.4596,
               "n": 69,
               "over_classified": 19,
@@ -6808,7 +7543,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -6891,13 +7626,11 @@
               "leaf": 356
             },
             "rules": {
+              "default": 302,
               "example_code": 6,
-              "leaf_blast_guard": 15,
-              "parse_error_uncertain": 1,
               "runtime_cycle": 56,
               "score_boundary": 35,
-              "score_low": 357,
-              "score_mid": 286,
+              "score_low": 356,
               "score_top": 75,
               "sensitive:auth": 65,
               "sensitive:crypto": 3,
@@ -6933,6 +7666,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4933,
               "cost_total": 37.0,
+              "is_core": {
+                "fn": 2,
+                "fp": 20,
+                "precision": 0.4444,
+                "predicted": 36,
+                "recall": 0.8889,
+                "support": 18,
+                "tn": 37,
+                "tp": 16
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 3,
+                "precision": 0.8696,
+                "predicted": 23,
+                "recall": 0.7692,
+                "support": 26,
+                "tn": 46,
+                "tp": 20
+              },
               "kappa": 0.4592,
               "n": 75,
               "over_classified": 23,
@@ -6962,6 +7715,10 @@
               "under_classified": 5,
               "weighted_kappa": 0.5557
             },
+            "core_missed": [
+              "django/utils/tree.py",
+              "django/views/debug.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -6972,7 +7729,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "tree.Node, the base of Q objects and the ORM WhereNode; every filter() builds on it.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -6984,7 +7741,7 @@
                 "prod_blast_radius": 13,
                 "rationale": "Technical 500 page and SafeExceptionReporterFilter, which scrubs secrets from error reports; a bug leaks credentials.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -7272,7 +8029,7 @@
                 "prod_blast_radius": 14,
                 "rationale": "Two small helpers (error-prefixing, installed-app check).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -7284,7 +8041,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "Terminal colour support for management command output.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -7296,10 +8053,15 @@
                 "prod_blast_radius": 0,
                 "rationale": "Tests for release scripts; not shipped.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "django/contrib/contenttypes/apps.py",
+              "django/contrib/sitemaps/views.py",
+              "django/test/client.py"
             ],
             "ranked_only": {
               "accuracy": 0.6087,
@@ -7323,6 +8085,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5072,
               "cost_total": 35.0,
+              "is_core": {
+                "fn": 2,
+                "fp": 20,
+                "precision": 0.4444,
+                "predicted": 36,
+                "recall": 0.8889,
+                "support": 18,
+                "tn": 31,
+                "tp": 16
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 2,
+                "precision": 0.8824,
+                "predicted": 17,
+                "recall": 0.7143,
+                "support": 21,
+                "tn": 46,
+                "tp": 15
+              },
               "kappa": 0.4313,
               "n": 69,
               "over_classified": 23,
@@ -7387,7 +8169,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -7458,13 +8240,11 @@
               "leaf": 356
             },
             "rules": {
+              "default": 205,
               "example_code": 6,
-              "leaf_blast_guard": 14,
-              "parse_error_uncertain": 1,
               "runtime_cycle": 244,
               "score_boundary": 14,
-              "score_low": 357,
-              "score_mid": 190,
+              "score_low": 356,
               "score_top": 29,
               "sensitive:auth": 65,
               "sensitive:crypto": 3,
@@ -7500,6 +8280,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.4933,
               "cost_total": 37.0,
+              "is_core": {
+                "fn": 2,
+                "fp": 20,
+                "precision": 0.4444,
+                "predicted": 36,
+                "recall": 0.8889,
+                "support": 18,
+                "tn": 37,
+                "tp": 16
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 3,
+                "precision": 0.8696,
+                "predicted": 23,
+                "recall": 0.7692,
+                "support": 26,
+                "tn": 46,
+                "tp": 20
+              },
               "kappa": 0.4592,
               "n": 75,
               "over_classified": 23,
@@ -7529,6 +8329,10 @@
               "under_classified": 5,
               "weighted_kappa": 0.5557
             },
+            "core_missed": [
+              "django/utils/tree.py",
+              "django/views/debug.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -7539,7 +8343,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "tree.Node, the base of Q objects and the ORM WhereNode; every filter() builds on it.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -7551,7 +8355,7 @@
                 "prod_blast_radius": 13,
                 "rationale": "Technical 500 page and SafeExceptionReporterFilter, which scrubs secrets from error reports; a bug leaks credentials.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -7839,7 +8643,7 @@
                 "prod_blast_radius": 14,
                 "rationale": "Two small helpers (error-prefixing, installed-app check).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -7851,7 +8655,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "Terminal colour support for management command output.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -7863,10 +8667,15 @@
                 "prod_blast_radius": 0,
                 "rationale": "Tests for release scripts; not shipped.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "django/contrib/contenttypes/apps.py",
+              "django/contrib/sitemaps/views.py",
+              "django/test/client.py"
             ],
             "ranked_only": {
               "accuracy": 0.6087,
@@ -7890,6 +8699,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5072,
               "cost_total": 35.0,
+              "is_core": {
+                "fn": 2,
+                "fp": 20,
+                "precision": 0.4444,
+                "predicted": 36,
+                "recall": 0.8889,
+                "support": 18,
+                "tn": 31,
+                "tp": 16
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 2,
+                "precision": 0.8824,
+                "predicted": 17,
+                "recall": 0.7143,
+                "support": 21,
+                "tn": 46,
+                "tp": 15
+              },
               "kappa": 0.4313,
               "n": 69,
               "over_classified": 23,
@@ -7954,7 +8783,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -8025,13 +8854,11 @@
               "leaf": 356
             },
             "rules": {
+              "default": 205,
               "example_code": 6,
-              "leaf_blast_guard": 14,
-              "parse_error_uncertain": 1,
               "runtime_cycle": 244,
               "score_boundary": 14,
-              "score_low": 357,
-              "score_mid": 190,
+              "score_low": 356,
               "score_top": 29,
               "sensitive:auth": 65,
               "sensitive:crypto": 3,
@@ -8067,6 +8894,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5333,
               "cost_total": 40.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 15,
+                "precision": 0.4828,
+                "predicted": 29,
+                "recall": 0.7778,
+                "support": 18,
+                "tn": 42,
+                "tp": 14
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 3,
+                "precision": 0.8696,
+                "predicted": 23,
+                "recall": 0.7692,
+                "support": 26,
+                "tn": 46,
+                "tp": 20
+              },
               "kappa": 0.4858,
               "n": 75,
               "over_classified": 19,
@@ -8096,6 +8943,12 @@
               "under_classified": 7,
               "weighted_kappa": 0.5766
             },
+            "core_missed": [
+              "django/core/cache/backends/base.py",
+              "django/db/backends/utils.py",
+              "django/utils/tree.py",
+              "django/views/debug.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -8106,7 +8959,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "BaseCache: key construction/validation and versioning shared by every cache backend (and cache-backed sessions); key bugs can serve one user's data to another.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -8118,7 +8971,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "CursorWrapper that every query executes through, plus identifier truncation/quoting helpers used by all backends.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -8130,7 +8983,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "tree.Node, the base of Q objects and the ORM WhereNode; every filter() builds on it.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -8142,7 +8995,7 @@
                 "prod_blast_radius": 13,
                 "rationale": "Technical 500 page and SafeExceptionReporterFilter, which scrubs secrets from error reports; a bug leaks credentials.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -8370,7 +9223,7 @@
                 "prod_blast_radius": 14,
                 "rationale": "Two small helpers (error-prefixing, installed-app check).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -8382,7 +9235,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "Terminal colour support for management command output.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -8394,7 +9247,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "Two exception class definitions (Resolver404, NoReverseMatch).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -8406,10 +9259,15 @@
                 "prod_blast_radius": 0,
                 "rationale": "Tests for release scripts; not shipped.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "django/contrib/contenttypes/apps.py",
+              "django/contrib/sitemaps/views.py",
+              "django/test/client.py"
             ],
             "ranked_only": {
               "accuracy": 0.6377,
@@ -8433,6 +9291,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5507,
               "cost_total": 38.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 15,
+                "precision": 0.4828,
+                "predicted": 29,
+                "recall": 0.7778,
+                "support": 18,
+                "tn": 36,
+                "tp": 14
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 2,
+                "precision": 0.8824,
+                "predicted": 17,
+                "recall": 0.7143,
+                "support": 21,
+                "tn": 46,
+                "tp": 15
+              },
               "kappa": 0.4596,
               "n": 69,
               "over_classified": 19,
@@ -8497,7 +9375,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -8580,13 +9458,11 @@
               "leaf": 356
             },
             "rules": {
+              "default": 302,
               "example_code": 6,
-              "leaf_blast_guard": 15,
-              "parse_error_uncertain": 1,
               "runtime_cycle": 56,
               "score_boundary": 35,
-              "score_low": 357,
-              "score_mid": 286,
+              "score_low": 356,
               "score_top": 75,
               "sensitive:auth": 65,
               "sensitive:crypto": 3,
@@ -8622,6 +9498,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5333,
               "cost_total": 40.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 15,
+                "precision": 0.4828,
+                "predicted": 29,
+                "recall": 0.7778,
+                "support": 18,
+                "tn": 42,
+                "tp": 14
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 3,
+                "precision": 0.8696,
+                "predicted": 23,
+                "recall": 0.7692,
+                "support": 26,
+                "tn": 46,
+                "tp": 20
+              },
               "kappa": 0.4858,
               "n": 75,
               "over_classified": 19,
@@ -8651,6 +9547,12 @@
               "under_classified": 7,
               "weighted_kappa": 0.5766
             },
+            "core_missed": [
+              "django/core/cache/backends/base.py",
+              "django/db/backends/utils.py",
+              "django/utils/tree.py",
+              "django/views/debug.py"
+            ],
             "core_to_leaf_paths": [],
             "errors": [
               {
@@ -8661,7 +9563,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "BaseCache: key construction/validation and versioning shared by every cache backend (and cache-backed sessions); key bugs can serve one user's data to another.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -8673,7 +9575,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "CursorWrapper that every query executes through, plus identifier truncation/quoting helpers used by all backends.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -8685,7 +9587,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "tree.Node, the base of Q objects and the ORM WhereNode; every filter() builds on it.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -8697,7 +9599,7 @@
                 "prod_blast_radius": 13,
                 "rationale": "Technical 500 page and SafeExceptionReporterFilter, which scrubs secrets from error reports; a bug leaks credentials.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 4.0
               },
@@ -8925,7 +9827,7 @@
                 "prod_blast_radius": 14,
                 "rationale": "Two small helpers (error-prefixing, installed-app check).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -8937,7 +9839,7 @@
                 "prod_blast_radius": 602,
                 "rationale": "Terminal colour support for management command output.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -8949,7 +9851,7 @@
                 "prod_blast_radius": 601,
                 "rationale": "Two exception class definitions (Resolver404, NoReverseMatch).",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               },
@@ -8961,10 +9863,15 @@
                 "prod_blast_radius": 0,
                 "rationale": "Tests for release scripts; not shipped.",
                 "rules": [
-                  "score_mid"
+                  "default"
                 ],
                 "severity": 0.5
               }
+            ],
+            "false_leaf": [
+              "django/contrib/contenttypes/apps.py",
+              "django/contrib/sitemaps/views.py",
+              "django/test/client.py"
             ],
             "ranked_only": {
               "accuracy": 0.6377,
@@ -8988,6 +9895,26 @@
               "core_to_leaf": 0,
               "cost_mean": 0.5507,
               "cost_total": 38.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 15,
+                "precision": 0.4828,
+                "predicted": 29,
+                "recall": 0.7778,
+                "support": 18,
+                "tn": 36,
+                "tp": 14
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 2,
+                "precision": 0.8824,
+                "predicted": 17,
+                "recall": 0.7143,
+                "support": 21,
+                "tn": 46,
+                "tp": 15
+              },
               "kappa": 0.4596,
               "n": 69,
               "over_classified": 19,
@@ -9052,7 +9979,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-2",
+            "default": "2026.11-3",
             "repo": null
           },
           "stability": {
@@ -9135,13 +10062,11 @@
               "leaf": 356
             },
             "rules": {
+              "default": 302,
               "example_code": 6,
-              "leaf_blast_guard": 15,
-              "parse_error_uncertain": 1,
               "runtime_cycle": 56,
               "score_boundary": 35,
-              "score_low": 357,
-              "score_mid": 286,
+              "score_low": 356,
               "score_top": 75,
               "sensitive:auth": 65,
               "sensitive:crypto": 3,

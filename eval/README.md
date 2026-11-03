@@ -2,7 +2,7 @@
 
 `aoa-classify` 把每個檔案分成 core／business／leaf。`aoa-eval` 拿幾個釘住 commit 的開源 repo，和人工（目前是 agent）標註比對，回答三個問題：
 
-1. **準不準**：Cohen's kappa、線性加權 kappa、per-class precision／recall、confusion matrix、非對稱成本。
+1. **準不準**：主要看兩個二元決策——**is core?** 的 **core recall**（真的 core 有沒有被抓到）與 **is leaf?** 的 **leaf precision**（判成 leaf 的是不是真的 leaf），加上硬性門檻 core → leaf = 0。次要：Cohen's kappa、線性加權 kappa、per-class precision／recall、confusion matrix、非對稱成本。
 2. **穩不穩**：同一 commit 跑兩次輸出要位元相同；相鄰 commit 之間，沒被改到的檔案不該換類別。
 3. **有沒有預測力**（選用）：在一年前的 commit 分類，之後的 bug-fix commit 改到的檔案是不是偏向 core。
 
@@ -21,7 +21,7 @@ uv run aoa-eval run --cache-dir /path/to/clones --no-fetch   # 用現成的完�
 ```
 
 - 輸出：`--out`（預設 `eval/results`）底下的 `report.json`、`report.md`；不含時間戳與絕對路徑，同樣輸入位元相同。
-- exit code：`0` 通過；`1` gate 失敗——gate 變體（`current`）有任何 **core → leaf**、同一 commit 兩次輸出不同、或指定了 `--min-kappa` 而 kappa 不到；`2` 設定或環境錯誤（repo 不存在、標註路徑不在圖上…）。
+- exit code：`0` 通過；`1` gate 失敗——gate 變體（`current`）有任何 **core → leaf**、同一 commit 兩次輸出不同、或指定了 `--min-core-recall`／`--min-leaf-precision`／`--min-kappa` 而沒達到（預設只檢查 core → leaf 與確定性）；`2` 設定或環境錯誤（repo 不存在、標註路徑不在圖上…）。
 - 分析在暫存 git worktree 裡跑，不會改快取 clone 的工作目錄；分類不讀被測 repo 的 `.aoa.toml`（評估的是預設規則本身）。
 
 ## 檔案
@@ -31,7 +31,7 @@ uv run aoa-eval run --cache-dir /path/to/clones --no-fetch   # 用現成的完�
 | `repos.toml` | 受測 repo：名稱、URL、完整 40 字元 commit SHA、穩定性／回放參數 |
 | `ground_truth/<repo>.jsonl` | 一行一個標註：`{"path", "label", "rationale"}`；`#` 開頭是註解 |
 | `aoa_eval/variants.py` | 並排比較的規則變體（格式同 `.aoa.toml` 的 `[classify]`） |
-| `aoa_eval/scoring.py` | kappa、per-class、成本矩陣 |
+| `aoa_eval/scoring.py` | is core／is leaf 二元指標、kappa、per-class、成本矩陣 |
 | `results/` | 進版控的基準報告，改規則的 PR 要一起更新 |
 
 ## 標註定義
@@ -59,6 +59,15 @@ uv run aoa-eval run --cache-dir /path/to/clones --no-fetch   # 用現成的完�
 
 ## 指標
 
+主要指標對應 AI coding 流程真正要做的兩個決策（見 `instructions/leaf-workflow.md`、`business-workflow.md`、`core-workflow.md`）：
+
+- **is core? → core recall**＝標註 core 且預測 core ÷ 標註 core。**優先 recall**：漏判的 core 會走 business 流程（AI 自己迭代、只審測試與範圍），敏感檔案少了逐步核准；多判 core 只是多花審查時間。報告同時列出每個漏判的檔案。
+- **is leaf? → leaf precision**＝標註 leaf 且預測 leaf ÷ 預測 leaf。**優先 precision**：判成 leaf 的檔案 AI 會直接改、人工審查可省，所以「判 leaf 的都要真的是 leaf」；leaf recall 低只代表有些安全的檔案多走了 business 流程。報告同時列出每個誤判為 leaf 的檔案。
+- **core → leaf**：仍是硬性 gate，必須為 0。
+- 預設 gate 不設 core recall／leaf precision 門檻（標註還沒人工複核）；要擋就加 `--min-core-recall`／`--min-leaf-precision`。
+
+次要指標：
+
 - **kappa**：扣掉「碰巧一致」後的一致度（1 完全一致、0 等於亂猜）。另報只算 ranked 檔案（排除測試與範例）的 kappa，因為測試檔幾乎都判對，會把整體數字墊高。
 - **線性加權 kappa**：類別有序，差一級（core↔business）的錯比差兩級（core↔leaf）輕。
 - **成本矩陣**（`scoring.COST[標註][預測]`）：低估風險比高估貴。
@@ -72,6 +81,21 @@ uv run aoa-eval run --cache-dir /path/to/clones --no-fetch   # 用現成的完�
   理由：判 leaf 的檔案 AI 會比較放手改，core 被當 leaf 是唯一會直接出事的錯；高估只是多花審查時間。數字是主觀設定，只用來排序錯誤嚴重度與比較變體。
 - **穩定性**：pinned commit 往前 4 個 first-parent commit，每對相鄰 commit 算「類別變了的檔案比例」，並分開算**沒被該 commit 改到的檔案**（理想上是 0；百分位是相對值，別的檔案變了也可能把它擠過門檻）。
 - **歷史回放**（`--replay`）：在 pinned commit 前 365 天的 commit 分類，數之後的 bug-fix commit（subject 符合 aoa-graph 的 bug-fix pattern）改到哪些 ranked 檔案；`lift` = 該類別被改到的比例 ÷ 全體被改到的比例。core lift > 1 表示 core 確實比較常出 bug。
+
+## Phase 4 基準（rules 2026.11-3，主要指標）
+
+2026.11-3 把 business 改成「預設類別」的表達方式（規則 id `default`），每個檔案的類別與 2026.11-2 相同，所以 confusion matrix、kappa 都沒變；這裡只是改用新的主要指標重看同一份結果（`current` 變體，全部標註檔案）：
+
+| repo | n | core recall | core precision | leaf precision | leaf recall | core→leaf | kappa |
+|---|---|---|---|---|---|---|---|
+| flask | 34 | 0.600 (6/10) | 0.600 (6/10) | 0.917 (11/12) | 0.733 (11/15) | 0 | 0.469 |
+| httpx | 31 | 0.778 (7/9) | 0.778 (7/9) | 1.000 (8/8) | 0.615 (8/13) | 0 | 0.571 |
+| zod | 63 | 0.923 (12/13) | 0.522 (12/23) | 0.950 (19/20) | 0.513 (19/37) | 0 | 0.387 |
+| django | 75 | 0.778 (14/18) | 0.483 (14/29) | 0.870 (20/23) | 0.769 (20/26) | 0 | 0.486 |
+
+- **core recall 是最弱的一環**：11 個漏判全部被判成 business（`default`），沒有掉到 leaf。flask `config.py`、`ctx.py`、`globals.py`、`helpers.py`（prod blast radius 都是 21，但百分位 p14.6–p77.1）；httpx `_models.py`、`_urlparse.py`（blast 20，p52–p70）；zod `v4/core/parse.ts`（blast 132，p84.4，差 0.6 點進 core 邊界）；django `core/cache/backends/base.py`、`db/backends/utils.py`（2026.11-2 的 hub 規則造成）、`utils/tree.py`（blast 601–602）、`views/debug.py`（blast 13）。共同點是 blast radius 大但測試多（detectability 高）把分數壓到中段。
+- **leaf precision 0.87–1.00**：誤判為 leaf 的 5 個檔案都標成 business（flask `views.py`、zod `locales/index.ts`、django `contrib/contenttypes/apps.py`、`contrib/sitemaps/views.py`、`test/client.py`），沒有 core。
+- 下一步要提高 core recall，候選是「prod blast radius 佔 ranked 檔案比例很高 → core」的結構規則，或降低 detectability 對高 blast radius 檔案的折扣；兩者都會讓 core precision 下降，需要先有人工複核過的標註再調。
 
 ## Phase 3 的發現與修正（rules 2026.11-1 → 2026.11-2）
 

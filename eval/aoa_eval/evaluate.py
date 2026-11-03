@@ -56,6 +56,9 @@ def accuracy(doc: dict, labels: list[dict]) -> dict:
         "ranked_only": scoring.score(pairs_ranked),
         "errors": errors,
         "core_to_leaf_paths": [x["path"] for x in errors if x["label"] == "core" and x["predicted"] == "leaf"],
+        # 兩個主要決策的錯誤清單
+        "core_missed": sorted(x["path"] for x in errors if x["label"] == "core"),
+        "false_leaf": sorted(x["path"] for x in errors if x["predicted"] == "leaf"),
     }
 
 
