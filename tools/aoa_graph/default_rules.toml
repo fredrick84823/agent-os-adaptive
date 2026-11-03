@@ -1,0 +1,108 @@
+# aoa-classify 預設規則（版本化：改這個檔就要改 version，nodes.json 會記錄用的是哪一版）。
+#
+# repo 層級的增改寫在專案根目錄的 .aoa.toml 的 [classify] 底下，欄位與本檔相同；
+# 合併規則見 tools/aoa_graph/README.md 的「設定檔」一節。
+
+version = "2026.11-1"
+
+# ---------------------------------------------------------------------------
+# 母體：哪些檔案不參與風險排名（直接判 leaf，理由寫在 rules 裡）
+# ---------------------------------------------------------------------------
+# 測試檔以 graph.json 的 is_test 為準；test_paths 可再補。
+test_paths = []
+# 不隨產品出貨的範例、文件站、benchmark 程式碼（任何深度，monorepo 的 packages/docs 也算）。
+example_paths = [
+  "**/examples/**", "**/example/**", "**/docs/**", "**/doc/**", "**/docs_src/**",
+  "**/samples/**", "**/sample/**", "**/demo/**", "**/demos/**",
+  "**/bench/**", "**/benchmarks/**", "**/benchmark/**",
+]
+
+# CODEOWNERS 式 path glob：命中就是 core（規則 id：config_core_path）。
+core_paths = []
+# 敏感規則的誤判豁免（只豁免 [[sensitive]]，不豁免循環與 core_paths）。
+not_sensitive = []
+# 停用的 [[sensitive]] 類別 id。
+disable = []
+
+# 覆蓋率檔（相對 repo 根目錄）；留空則依序找 coverage.json、coverage/lcov.info、lcov.info。
+coverage = ""
+
+[thresholds]
+# 風險分數的百分位（midrank，0–100）切分。
+core_top_percent = 10        # 百分位 ≥ 100 − 10 → core
+leaf_bottom_percent = 40     # 百分位 < 40 − margin → leaf 候選
+boundary_margin_percent = 5  # 不確定區：core 門檻往下擴 5、leaf 門檻往下縮 5（都往嚴格靠）
+leaf_max_prod_blast_radius = 2  # leaf 還要求：直接或遞移依賴它的非測試檔 ≤ 2 個
+
+[weights]
+churn = 0.25            # impact 的 churn 上調權重
+bugfix = 0.5            # cost_of_failure 的 bug-fix 權重
+direct_tests = 0.5      # detectability：直接 import 它的測試檔數
+transitive_tests = 0.25 # detectability：遞移可達它的測試檔數
+coverage = 1.0          # detectability：行覆蓋率（0–1）
+
+# ---------------------------------------------------------------------------
+# 敏感類別：命中即 core。
+#   keywords：與路徑 token 完全比對（路徑以 / _ - . 與 camelCase 切開、轉小寫；
+#             token 去掉結尾 s 也算命中，所以 session 也命中 sessions.py）。
+#             含 - 的 keyword 代表連續 token（hard-delete 命中 hard_delete.py）。
+#   paths：   CODEOWNERS 式 glob。
+#   packages：graph.json external 的套件名（Python 頂層模組、npm 套件名）。
+# ---------------------------------------------------------------------------
+
+[[sensitive]]
+id = "auth"
+description = "認證、授權、session、權限"
+keywords = [
+  "auth", "authn", "authz", "authentication", "authorization", "authorize", "authorizer",
+  "login", "logout", "signin", "signup", "session", "oauth", "oauth2", "oidc", "saml", "sso",
+  "jwt", "password", "passwd", "permission", "rbac", "acl", "credential", "csrf",
+]
+packages = [
+  "jwt", "jose", "authlib", "passlib", "bcrypt", "argon2", "oauthlib",
+  "jsonwebtoken", "bcryptjs", "passport", "next-auth", "@auth/core", "express-session",
+]
+
+[[sensitive]]
+id = "crypto"
+description = "加密、簽章、TLS"
+keywords = ["crypto", "cryptography", "cipher", "encrypt", "encryption", "decrypt", "hmac", "signing", "signer", "keystore", "kms", "tls"]
+packages = ["cryptography", "Crypto", "nacl", "itsdangerous", "hmac", "ssl", "crypto", "node:crypto", "tweetnacl", "cookie-signature"]
+
+[[sensitive]]
+id = "secrets"
+description = "secrets 與憑證處理"
+keywords = ["secret", "vault", "keyring", "dotenv"]
+packages = ["secrets", "keyring", "hvac", "dotenv", "@aws-sdk/client-secrets-manager"]
+
+[[sensitive]]
+id = "payments"
+description = "金流與計費"
+keywords = ["payment", "billing", "invoice", "checkout", "refund", "payout", "stripe", "paypal", "braintree", "adyen", "ledger"]
+packages = ["stripe", "braintree", "paypalrestsdk", "adyen", "@stripe/stripe-js", "@paypal/checkout-server-sdk"]
+
+[[sensitive]]
+id = "pii"
+description = "個資（PII）與法規遵循"
+keywords = ["pii", "gdpr", "ccpa", "hipaa", "compliance", "consent", "privacy", "kyc", "ssn", "personal"]
+
+[[sensitive]]
+id = "irreversible"
+description = "不可逆操作（永久刪除、清除資料）"
+keywords = ["purge", "wipe", "erase", "shred", "hard-delete"]
+
+[[sensitive]]
+id = "db_schema"
+description = "資料庫 schema 與 migrations"
+keywords = ["migration", "migrate", "alembic", "prisma", "ddl"]
+paths = ["**/migrations/**", "**/models.py", "**/db/schema*", "**/database/schema*"]
+packages = ["alembic", "@prisma/client", "knex"]
+
+[[sensitive]]
+id = "public_api"
+description = "對外公開的 API、契約與套件入口"
+keywords = ["api", "openapi", "graphql", "grpc", "endpoint", "webhook"]
+paths = ["**/routes/**"]
+# 另有結構規則 package_entrypoint：頂層 Python package 的 __init__.py、
+# 以及 repo 根目錄／src／含 package.json 的目錄（或其 src/）下的 index.*。
+entrypoints = true

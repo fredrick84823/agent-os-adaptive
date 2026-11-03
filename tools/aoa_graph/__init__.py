@@ -5,6 +5,8 @@
   metrics.json     每個節點的 fan_in / fan_out / blast_radius / SCC / churn / bugfix / co-change
   unresolved.json  動態或解析不到的 import，留給模型判讀
 
+aoa-classify（classify.py）再讀這些輸出，用確定性規則寫出 nodes.json（core／business／leaf）。
+
 同一個 commit 重跑，三個檔案位元完全相同（不含時間戳、不含絕對路徑）。
 """
 

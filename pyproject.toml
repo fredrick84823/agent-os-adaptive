@@ -10,10 +10,12 @@ dependencies = [
     "tree-sitter-javascript==0.25.0",
     "tree-sitter-python==0.25.0",
     "tree-sitter-typescript==0.23.2",
+    "tomli==2.5.0; python_version < '3.11'",
 ]
 
 [project.scripts]
 aoa-graph = "aoa_graph.cli:main"
+aoa-classify = "aoa_graph.classify:main"
 
 [dependency-groups]
 dev = [

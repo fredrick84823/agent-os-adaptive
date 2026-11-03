@@ -1,4 +1,4 @@
-"""aoa-graph CLI：python3 tools/aoa_graph <repo> [options]"""
+"""aoa-graph CLI：python3 tools/aoa_graph <repo> [options]；`aoa-graph classify …` 轉給 aoa-classify。"""
 from __future__ import annotations
 
 import argparse
@@ -173,6 +173,10 @@ def parse_args(argv=None) -> argparse.Namespace:
 
 
 def main(argv=None) -> int:
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv[:1] == ["classify"]:
+        from .classify import main as classify_main
+        return classify_main(argv[1:])
     args = parse_args(argv)
     root = Path(args.repo).resolve()
     if not root.is_dir():
