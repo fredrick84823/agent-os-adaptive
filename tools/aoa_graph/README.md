@@ -4,11 +4,14 @@
 `instructions/analyze-node-classes.md` 第一步就是跑這支工具；模型只解讀輸出，不再自己估度數。
 
 ```bash
-pip install -r requirements.txt          # 在本 repo 根目錄
-python3 tools/aoa_graph <repo> [--out DIR] [options]
+uv sync                                   # 在本 repo 根目錄；依 uv.lock 建立 .venv（安裝 uv：https://docs.astral.sh/uv/getting-started/installation/）
+uv run python tools/aoa_graph <repo> [--out DIR] [options]
+uv run aoa-graph <repo> [options]         # 同上，pyproject.toml 的 [project.scripts] 入口
+uv run --project ~/agent-os-adaptive aoa-graph .   # 從別的專案根目錄執行
+uv run pytest                             # 測試
 ```
 
-預設輸出到 `<repo>/agent-os-adaptive/architecture-analysis/`。`python3 tools/aoa_graph --help` 列出所有選項。
+預設輸出到 `<repo>/agent-os-adaptive/architecture-analysis/`。`uv run aoa-graph --help` 列出所有選項。
 
 ## 決定性
 
@@ -17,7 +20,7 @@ python3 tools/aoa_graph <repo> [--out DIR] [options]
 - 檔案清單來自 `git ls-files`（只看追蹤中的檔案）；非 git 目錄才退回檔案系統列舉。
 - 所有清單排序固定，JSON 以 `sort_keys` 輸出；不含時間戳、主機名稱、絕對路徑。
 - churn／bug-fix 的時間視窗以 **HEAD commit 的 committer 時間**往回算，不是「現在」。
-- tree-sitter 與 grammar 版本在 `requirements.txt` 固定。
+- tree-sitter 與 grammar 版本在 `pyproject.toml` 固定，並由 `uv.lock` 鎖定完整相依樹。
 
 工作目錄有未 commit 的修改時，`source.dirty` 會是 `true`，此時輸出只代表當下的工作目錄。
 

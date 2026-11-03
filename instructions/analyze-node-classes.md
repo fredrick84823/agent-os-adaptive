@@ -37,8 +37,8 @@ encoding: UTF-8
 
 <prerequisites>
   - An existing codebase to analyze (ideally a git repo; history metrics need git).
-  - The aoa-graph dependencies installed (README Step 2b):
-    `python3 -m venv ~/agent-os-adaptive/.venv && ~/agent-os-adaptive/.venv/bin/pip install -r ~/agent-os-adaptive/requirements.txt`
+  - [uv](https://docs.astral.sh/uv/getting-started/installation/) and the aoa-graph dependencies installed (README Step 2b):
+    `uv sync --project ~/agent-os-adaptive`
   - Write access to the project root to create `agent-os-adaptive/architecture-analysis/`.
 </prerequisites>
 
@@ -54,8 +54,8 @@ encoding: UTF-8
     <purpose>Compute the dependency graph and metrics with the tool</purpose>
     <action>
       1. From the project root, RUN:
-         `~/agent-os-adaptive/.venv/bin/python ~/agent-os-adaptive/tools/aoa_graph .`
-         (or `python3 ~/agent-os-adaptive/tools/aoa_graph .` if the dependencies are installed in that interpreter)
+         `uv run --project ~/agent-os-adaptive aoa-graph .`
+         (equivalent: `uv run --project ~/agent-os-adaptive python ~/agent-os-adaptive/tools/aoa_graph .`)
       2. ADD options only when needed:
          - `--exclude 'GLOB'` for generated or vendored code the tool still picks up
          - `--py-root DIR` when Python code is imported from a non-standard root (not repo root or `src/`)

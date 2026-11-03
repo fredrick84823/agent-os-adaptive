@@ -64,17 +64,17 @@ done
 
 `/analyze-node-classes` no longer asks the model to estimate in/out-degrees. It runs `tools/aoa_graph`, a small Python CLI that parses **TypeScript / JavaScript and Python** with [tree-sitter](https://tree-sitter.github.io/) and writes deterministic numbers (same commit → byte-identical output).
 
-Requires Python ≥ 3.10 (tested on 3.13) and `git` (for churn / bug-fix history).
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/), Python ≥ 3.10 (tested on 3.10 and 3.13; uv downloads one if missing) and `git` (for churn / bug-fix history). Dependencies are pinned in `pyproject.toml` / `uv.lock`.
 
 ```bash
-python3 -m venv ~/agent-os-adaptive/.venv
-~/agent-os-adaptive/.venv/bin/pip install -r ~/agent-os-adaptive/requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh   # if uv is not installed yet
+uv sync --project ~/agent-os-adaptive              # creates ~/agent-os-adaptive/.venv from uv.lock
 ```
 
 Run it from your project root (the instruction does this for you):
 
 ```bash
-~/agent-os-adaptive/.venv/bin/python ~/agent-os-adaptive/tools/aoa_graph .
+uv run --project ~/agent-os-adaptive aoa-graph .
 # aoa-graph: 83 nodes, 180 edges, 2 cycles (22 nodes; runtime-only: 2 cycles), 2 unresolved, ... in 0.12s → ./agent-os-adaptive/architecture-analysis
 ```
 
@@ -335,7 +335,7 @@ agent-os-adaptive/
 │   └── execute-tasks.md   # Task execution (adaptive)
 ├── tools/aoa_graph/       # Dependency-graph CLI (tree-sitter; TS/JS + Python)
 ├── tests/                 # pytest suite + small TS / Python fixture repos
-├── requirements.txt       # Runtime deps for tools/aoa_graph
+├── pyproject.toml         # aoa-graph deps (pinned) + dev group; uv.lock locks them
 ├── standards/             # Development standards
 │   ├── tech-stack.md      # Technology preferences
 │   ├── code-style.md      # Coding conventions
@@ -379,8 +379,8 @@ This framework is designed to evolve with your development patterns. Contributio
 Before opening a PR, run:
 
 ```bash
-python3 scripts/lint-instructions.py          # frontmatter, absolute paths, @~/agent-os-adaptive/ references
-pip install -r requirements-dev.txt && pytest  # aoa-graph resolution, cycles, blast radius, git metrics, determinism
+python3 scripts/lint-instructions.py  # frontmatter, absolute paths, @~/agent-os-adaptive/ references
+uv run pytest                         # aoa-graph resolution, cycles, blast radius, git metrics, determinism
 ```
 
 ## 📚 Related
