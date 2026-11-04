@@ -12,7 +12,7 @@ def _parse_coverage_py(text: str) -> dict[str, tuple[int, int]]:
     doc = json.loads(text)
     files = doc.get("files")
     if not isinstance(files, dict):
-        raise ValueError("coverage.py JSON 缺少 files")
+        raise ValueError("coverage.py JSON 缺少 files")  # noqa: TRY004 — 呼叫端只接 ValueError
     out = {}
     for path, info in files.items():
         s = info.get("summary", {})

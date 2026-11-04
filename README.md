@@ -305,7 +305,7 @@ The agent generates a detailed `node_classification.md` file that provides a com
 ```markdown
 # Node Classification Analysis
 
-> Analysis Method: Computed metrics (aoa-graph 0.1.0) + rule-based classes (aoa-classify, rules 2026.11-3 / repo none) + model explanation
+> Analysis Method: Computed metrics (aoa-graph 0.1.0) + rule-based classes (aoa-classify, rules 2026.11-4 / repo none) + model explanation
 > Classes: core 10, business 12, leaf 61 (ranked 24, tests 48, examples 11); high_risk 7; overrides applied 0, pending 0
 
 ## Component Classifications

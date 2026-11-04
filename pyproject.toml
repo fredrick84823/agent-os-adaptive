@@ -29,3 +29,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["tools/aoa_graph", "eval/aoa_eval"]
+
+[tool.ruff]
+line-length = 140
+# fixture repo 是被分析的樣本，刻意包含未使用的 import 與各種 import 寫法
+extend-exclude = ["tests/fixtures"]

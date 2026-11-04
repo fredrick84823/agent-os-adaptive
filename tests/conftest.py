@@ -5,7 +5,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from aoa_graph.cli import build, dump, parse_args
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -66,4 +65,4 @@ def py_result(tmp_path):
     return analyze(make_repo("py_repo", tmp_path))
 
 
-__all__ = ["make_repo", "analyze", "edge_set", "dump", "json", "HEAD_TIME", "DAY"]
+__all__ = ["DAY", "HEAD_TIME", "analyze", "dump", "edge_set", "json", "make_repo"]

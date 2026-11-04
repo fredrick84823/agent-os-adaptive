@@ -57,6 +57,7 @@ def test_py_cycle_and_blast_radius(py_result):
 
 def test_no_git_mode_skips_venv(tmp_path):
     import shutil
+
     from conftest import FIXTURES
     repo = tmp_path / "plain"
     shutil.copytree(FIXTURES / "py_repo", repo)

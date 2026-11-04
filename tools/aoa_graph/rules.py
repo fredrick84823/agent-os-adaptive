@@ -4,7 +4,7 @@ from __future__ import annotations
 import copy
 import re
 import sys
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 if sys.version_info >= (3, 11):
@@ -16,7 +16,13 @@ DEFAULT_RULES_PATH = Path(__file__).with_name("default_rules.toml")
 REPO_CONFIG_NAME = ".aoa.toml"
 
 LIST_KEYS = ("test_paths", "example_paths", "core_paths", "not_sensitive", "disable")
-TOP_KEYS = {"version", "coverage", "thresholds", "weights", "structure", "sensitive", *LIST_KEYS}
+TOP_KEYS = {"version", "coverage", "thresholds", "weights", "structure", "sensitive", "keyword_scope", "migrations",
+            *LIST_KEYS}
+# keyword_scope：敏感 keyword 比對路徑的哪一段（2026.11-4 起）
+KEYWORD_SCOPES = ("package", "repo")
+# [migrations]：Django migration 分組規則（2026.11-4 起）
+MIGRATION_KEYS = {"mode": ("grouped", "off"), "history_class": ("business", "leaf"),
+                  "superseded_class": ("leaf", "business"), "latest_core": int, "data_ops_core": bool}
 THRESHOLD_KEYS = {"core_top_percent", "leaf_bottom_percent", "boundary_margin_percent", "leaf_max_prod_blast_radius"}
 WEIGHT_KEYS = {"churn", "bugfix", "direct_tests", "transitive_tests", "coverage"}
 # [structure]：圖結構規則（runtime 循環的 hub、barrel 檔）。值的型別各自不同，見 _validate_structure。
@@ -57,6 +63,9 @@ def _validate(cfg: dict, where: str) -> None:
             if isinstance(v, bool) or not isinstance(v, (int, float)) or v < 0:
                 raise ConfigError(f"{where}.{table}.{k} 必須是 ≥ 0 的數字")
     _validate_structure(cfg.get("structure", {}), f"{where}.structure")
+    if "keyword_scope" in cfg and cfg["keyword_scope"] not in KEYWORD_SCOPES:
+        raise ConfigError(f"{where}.keyword_scope 必須是 {' | '.join(KEYWORD_SCOPES)}")
+    _validate_migrations(cfg.get("migrations", {}), f"{where}.migrations")
     for i, s in enumerate(cfg.get("sensitive", [])):
         if not isinstance(s, dict) or not isinstance(s.get("id"), str) or not s["id"]:
             raise ConfigError(f"{where}.sensitive[{i}] 需要字串 id")
@@ -82,6 +91,24 @@ def _validate_structure(t, where: str) -> None:
             raise ConfigError(f"{where}.{k} 必須是 ≥ 0 的數字")
 
 
+def _validate_migrations(t, where: str) -> None:
+    if not isinstance(t, dict):
+        raise ConfigError(f"{where} 必須是 table")
+    bad = set(t) - set(MIGRATION_KEYS)
+    if bad:
+        raise ConfigError(f"{where}: 不認得的欄位 {sorted(bad)}")
+    for k, v in t.items():
+        spec = MIGRATION_KEYS[k]
+        if spec is bool:
+            if not isinstance(v, bool):
+                raise ConfigError(f"{where}.{k} 必須是 true／false")
+        elif spec is int:
+            if isinstance(v, bool) or not isinstance(v, int) or v < 0:
+                raise ConfigError(f"{where}.{k} 必須是 ≥ 0 的整數")
+        elif v not in spec:
+            raise ConfigError(f"{where}.{k} 必須是 {' | '.join(spec)}")
+
+
 def load_default() -> dict:
     cfg = tomllib.loads(DEFAULT_RULES_PATH.read_text(encoding="utf-8"))
     _validate(cfg, "default_rules.toml")
@@ -105,7 +132,8 @@ def merge(default: dict, repo: dict) -> dict:
     """repo 設定覆蓋預設：
 
     - 清單欄位（core_paths、example_paths…）與 coverage：整個取代
-    - thresholds／weights／structure：逐欄覆蓋
+    - keyword_scope：取代
+    - thresholds／weights／structure／migrations：逐欄覆蓋
     - sensitive：同 id 時把 keywords／paths／packages 併入預設（replace = true 則整筆取代），新 id 附加在後
     - disable：移除指定 id 的敏感類別
     """
@@ -113,10 +141,10 @@ def merge(default: dict, repo: dict) -> dict:
     out["default_version"] = str(default.get("version", ""))
     out["repo_version"] = str(repo["version"]) if "version" in repo else None
     out.pop("version", None)
-    for k in (*LIST_KEYS, "coverage"):
+    for k in (*LIST_KEYS, "coverage", "keyword_scope"):
         if k in repo:
-            out[k] = list(repo[k]) if k != "coverage" else repo[k]
-    for table in ("thresholds", "weights", "structure"):
+            out[k] = list(repo[k]) if k in LIST_KEYS else repo[k]
+    for table in ("thresholds", "weights", "structure", "migrations"):
         out[table] = {**out.get(table, {}), **repo.get(table, {})}
     by_id = {s["id"]: s for s in out.get("sensitive", [])}
     order = [s["id"] for s in out.get("sensitive", [])]
@@ -144,7 +172,7 @@ def merge(default: dict, repo: dict) -> dict:
 # 比對
 # ---------------------------------------------------------------------------
 
-@lru_cache(maxsize=None)
+@cache
 def _glob_regex(pattern: str) -> re.Pattern:
     """CODEOWNERS／gitignore 式 glob（簡化版）。
 

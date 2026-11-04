@@ -52,6 +52,10 @@ uv run pytest                             # 測試
 ### Python 解析
 
 - 模組名稱：從檔案往上找最上層「含 `__init__.py` 的目錄」，其父目錄就是 root（`src/pkg/a.py` → `pkg.a`；中間沒有 `__init__.py` 的 namespace 子目錄會被跨過）。repo 根目錄、`src/` 與 `--py-root` 另以完整路徑再登記一次。
+- **專案匯入根目錄（monorepo）**：每個含 `pyproject.toml`／`setup.py`／`setup.cfg` 的目錄是一個 Python 專案，它的匯入根目錄＝專案目錄、`<專案>/src`，以及設定檔宣告的目錄（setuptools `package-dir`／`packages.find.where`、hatch wheel `packages`、poetry `packages[].from`、setup.cfg `package_dir`／`where`、setup.py `package_dir={"": …}`）。檔案依「最近的專案」登記與解析，所以每個服務各自的 `config.py`／`cache.py` 不會互相連；`tests/`（沒有 `__init__.py`）裡的 `import config` 也會連到自己服務的 `config.py`。
+- 同名候選的優先順序：importer 的推斷 root → importer 所屬專案的匯入根目錄 → repo 根目錄 → `src/`／`--py-root` → 別的專案。別的專案**只看得到 package（目錄）**、看不到頂層單檔模組，而且只有恰好一個專案提供時才連（`libs/x` 的 `x_lib` 會連；兩個服務都有 `server/` 就不猜）。
+- `--py-root DIR` 仍是覆寫：指定的目錄對所有檔案可見（排在 importer 自己的專案之後）。`--no-auto-py-roots` 關掉專案偵測，回到只有 repo 根目錄、`src/`、`--py-root` 的行為。
+- **可能是內部模組的 external**：被判成外部套件、但 repo 裡其實有同名模組（別專案的單檔模組、多個專案同名的 package、`sys.path` 加進來的目錄）的 import 會列在 `unresolved.json` 的 `likely_internal`，數量在 `metrics.json` 的 `summary.likely_internal_external`，CLI 也會印 warning。標準函式庫名稱不比對（固定清單，輸出不隨 Python 版本變）。
 - `import a.b.c` 連到最長的存在前綴；`from pkg import name` 若 `pkg.name` 是模組就連到它，否則連到 `pkg` 本身。
 - 相對 import 依 importer 所在 package 解析（包含檔名不是合法識別字的 Django migration）。
 - 沒有 `__init__.py` 的腳本目錄（`scripts/`、`tests/`）只對同目錄的檔案可見，避免 `import utils` 誤連到不相干的同名檔。
@@ -71,11 +75,17 @@ uv run pytest                             # 測試
   "generator": {"name": "aoa-graph", "version": "0.1.0"},
   "source": {"commit": "<sha>", "dirty": false},
   "granularity": "file",
+  "package_roots": ["", "services/api"],
+  "python_projects": [{"dir": "", "import_roots": ["", "src"]}, {"dir": "services/api", "import_roots": ["services/api"]}],
   "nodes": [{"id": "src/app/core.py", "language": "python", "module": "app.core", "is_test": false, "loc": 120}],
   "edges": [{"source": "src/app/core.py", "target": "src/app/db.py", "kinds": ["static"], "count": 1}],
   "external": [{"source": "src/app/db.py", "package": "sqlalchemy", "kinds": ["static"]}]
 }
 ```
+
+- `package_roots`：含 `pyproject.toml`／`setup.py`／`setup.cfg`／`package.json` 的目錄（repo 根目錄是 `""`）；aoa-classify 用它把服務目錄名排除在敏感 keyword 比對之外。
+- `python_projects`：偵測到的 Python 專案與各自的匯入根目錄（`--no-auto-py-roots` 時為空）。
+- Django migration（`<app>/migrations/NNNN_*.py` 且有 `class Migration`）的節點多一個 `django_migration: {"number", "data_ops": ["RunPython"|"RunSQL"…], "replaces": [squashed 取代的 migration 名稱]}`。
 
 ### metrics.json
 
@@ -101,7 +111,9 @@ uv run pytest                             # 測試
   "items": [{"source": "src/x.ts", "line": 12, "kind": "dynamic", "specifier": null,
              "expression": "import(`./plugins/${name}`)", "reason": "dynamic_expression"}],
   "parse_errors": ["src/uses-new-syntax.ts"],
-  "skipped_large_files": []
+  "skipped_large_files": [],
+  "likely_internal": [{"source": "services/a/tests/test_x.py", "line": 3, "specifier": "server.app",
+                       "candidates": ["services/a/server/app.py", "services/b/server/app.py"], "candidate_count": 2}]
 }
 ```
 
@@ -111,7 +123,8 @@ uv run pytest                             # 測試
 
 ## 已知限制
 
-- 靜態分析看不到：DI 容器、外掛註冊、設定檔驅動的路由、`sys.path` 操作、字串拼接的動態 import。這些交給模型依 `unresolved.json` 判讀。
+- 靜態分析看不到：DI 容器、外掛註冊、設定檔驅動的路由、`sys.path` 操作、字串拼接的動態 import。這些交給模型依 `unresolved.json` 判讀（`sys.path` 加進來的目錄通常會出現在 `likely_internal`）。
+- 專案偵測只認 `pyproject.toml`／`setup.py`／`setup.cfg`；沒有這些檔案的服務目錄（只有 `requirements.txt`、Dockerfile）不算專案，要用 `--py-root`。`setup.py` 只用 regex 找 `package_dir={"": …}`，不執行。
 - package.json `exports` 的 subpath pattern（`"./v4/*"`）只做 best-effort；tsconfig `extends` 只追相對路徑，不追 npm 套件（`@tsconfig/node20`）。
 - 檔案改名前的歷史不會接到新檔名上（`git log --no-renames`）。
 - shallow clone 的歷史不完整，`params.shallow` 會是 `true`。
@@ -168,8 +181,13 @@ uv run aoa-classify <repo> --check-diff main --fail-on business   # business 也
  ├─ 測試檔（graph is_test 或 test_paths）→ leaf［test_file］，不參與排名
  ├─ 範例／文件站／benchmark（example_paths）→ leaf［example_code］，不參與排名
  └─ 其餘（ranked）
+     0. Django migration（[migrations] mode = "grouped"）→ 由分組規則決定，不套下面的規則
+        migration_latest      每個 app 最新的 latest_core 個編號 → core
+        migration_data_ops    含 RunPython／RunSQL → core
+        migration_superseded  被同 app 的 squashed migration replaces → leaf
+        migration_history     其餘已套用的 schema 歷史 → business；同目錄的 __init__.py → migration_package
      1. core 規則，命中任一 → core
-        sensitive:<id>     硬規則：路徑 token／glob／import 的套件／套件入口（not_sensitive 可豁免）
+        sensitive:<id>     硬規則：路徑 token（只看套件根目錄以下）／glob／import 的套件／套件入口（not_sensitive 可豁免）
         runtime_cycle      位於 runtime 循環（SCC > 1，不含只有 type 的邊）的 hub → 另標 high_risk
                            循環 ≤ 3 個檔案：每個成員都是 hub；更大的循環：循環內被 ≥ max(2, ⌈10% × 循環大小⌉) 個成員
                            runtime import 才是 hub，其餘成員照風險分數分類（reasons 會寫「not a hub」）
@@ -199,6 +217,22 @@ uv run aoa-classify <repo> --check-diff main --fail-on business   # business 也
 | `barrel_catalog_max_internal_share` | 0.1 | 被 re-export 的檔案彼此之間的 runtime import ≤ share × 條目數 才算 catalog（容許少數別名檔） |
 
 為什麼：django @ `308b6d6a` 有一個 181 個檔案的 runtime 循環（`conf`、`db`、`apps`…互相 import），2026.11-1 把 181 個成員全判 core、244 個 high_risk；改成 hub 後 core 374 → 277、high_risk 244 → 56。zod 的 `v4/locales/index.ts` re-export 63 個 locale，每個 locale 因此繼承整個 `v4/core` 的 134 個 dependents；catalog 規則把這些 locale 的 `prod_blast_radius` 降到 0–2。前後的準確度比較見 [`eval/results/report.md`](../../eval/results/report.md)。
+
+### Monorepo：keyword 範圍 `keyword_scope` 與 Django migration `[migrations]`（rules 2026.11-4）
+
+**`keyword_scope = "package"`（預設）**：敏感 keyword 只比對最近的套件根目錄（`graph.json` 的 `package_roots`：含 `pyproject.toml`／`setup.py`／`setup.cfg`／`package.json` 的目錄）**以下**的路徑。`services/payment-service/app/main.py` 只比對 `app/main.py`，所以服務目錄叫 `payment-service`、`auth-service`、`signer-service` 不會讓整個服務的每個檔案都變 core；`services/payment-service/app/invoices.py` 仍因檔名命中 payments。glob（`paths`）與 `packages` 照舊比對完整路徑／套件。`"repo"` 回到 2026.11-3 的完整路徑比對；舊版 `graph.json` 沒有 `package_roots` 時也是完整路徑。
+
+**`[migrations]`**：2026.11-3 用 `**/migrations/**` 讓每個 migration 都是 core，Django 專案會因此多出上百個 core，而且大部分是早已套用、沒人會再改的歷史。2026.11-4 以每個 app 的 `migrations/` 目錄為一組：
+
+| 規則 id | 條件 | 類別 | 為什麼 |
+|---|---|---|---|
+| `migration_latest` | 編號在該 app 最大的 `latest_core`（預設 1）個之內（同編號的 merge migration 一起算） | core | 最可能還沒套用到每個環境（「未套用」靜態看不到，用最新代替）；下一個 migration 會依賴它 |
+| `migration_data_ops` | 檔內有 `RunPython`／`RunSQL`（`data_ops_core = true`） | core | 會改真實資料、通常不可逆 |
+| `migration_superseded` | 被同 app 的 squashed migration 的 `replaces` 列出 | `superseded_class`（預設 leaf） | squash 之後只有遷移到一半的資料庫還會跑它 |
+| `migration_history` | 其餘 | `history_class`（預設 business） | 已套用的 schema 歷史：改 schema 應該新增 migration，不改舊的；仍不判 leaf，因為改壞會讓全新環境建不起來 |
+| `migration_package` | 同目錄的 `__init__.py` | `history_class` | 空的 package 標記 |
+
+`core_paths` 仍優先；migration 不套敏感 keyword／glob、循環與分數門檻（仍算進百分位母體，不影響其他檔案的排名）。`mode = "off"` 回到 2026.11-3。只處理 Django 的命名慣例；Alembic `versions/` 仍走 `db_schema`。
 
 ### 風險分數
 
@@ -252,8 +286,14 @@ disable = ["pii"]                   # 停用預設敏感類別
 example_paths = ["**/examples/**"]  # 取代預設清單
 coverage = "coverage/lcov.info"
 
+keyword_scope = "package"          # 或 "repo"：keyword 比對完整路徑（2026.11-3）
+
 [classify.thresholds]
 core_top_percent = 15
+
+[classify.migrations]               # Django migration 分組；mode = "off" 回到每個 migration 都是 core
+latest_core = 2
+history_class = "leaf"
 
 [[classify.sensitive]]               # 同 id：keywords／paths／packages 併入預設（加 replace = true 則整筆取代）
 id = "auth"
@@ -265,7 +305,7 @@ description = "對外資料匯出"
 paths = ["src/export/**"]
 ```
 
-清單欄位（`core_paths`、`not_sensitive`、`disable`、`example_paths`、`test_paths`）與 `coverage` 整個取代預設值；`thresholds`、`weights`、`structure` 逐欄覆蓋。設定檔是人寫、進版控、會被 review 的，所以 `not_sensitive` 這種放寬可以寫在這裡；模型的放寬只能走 overrides 並等人工核准。
+清單欄位（`core_paths`、`not_sensitive`、`disable`、`example_paths`、`test_paths`）、`coverage` 與 `keyword_scope` 整個取代預設值；`thresholds`、`weights`、`structure`、`migrations` 逐欄覆蓋。設定檔是人寫、進版控、會被 review 的，所以 `not_sensitive` 這種放寬可以寫在這裡；模型的放寬只能走 overrides 並等人工核准。
 
 ## 覆寫 `overrides.jsonl`
 
@@ -286,7 +326,7 @@ paths = ["src/export/**"]
 
 ```json
 {
-  "rules_version": {"default": "2026.11-3", "repo": null},
+  "rules_version": {"default": "2026.11-4", "repo": null},
   "summary": {"core": 10, "business": 12, "leaf": 61, "ranked": 24, "tests": 48, "examples": 11, "high_risk": 7, "...": "..."},
   "overrides": {"applied": [], "pending": [], "ignored": []},
   "inputs": {"config": null, "coverage": null, "overrides": null, "unresolved_json": true},
@@ -315,6 +355,8 @@ paths = ["src/export/**"]
 
 - 敏感類別只看路徑、import 的套件與套件入口，**不讀程式內容**：在 `utils.py` 裡處理密碼、或用 `fetch` 直接打金流 API 都抓不到 → 用 `core_paths` 或 overrides 補。
 - `irreversible`（永久刪除）幾乎只能靠檔名，命中率最低。
+- `keyword_scope = "package"` 讓整個服務本身就是敏感領域的情況（例如一個專做金流的 `payment-service`）不再自動全部 core；這種服務用 `core_paths = ["services/payment-service/**"]` 明確標出來。
+- Django migration 的「未套用」靜態看不到，用每個 app 最新的 `latest_core` 個代替；`RunPython`／`RunSQL` 是文字比對（註解裡出現也算）。
 - barrel 檔（`index.ts` 一次 re-export 全部）會讓被它 re-export 的檔案 blast radius 偏大。`[structure]` 只處理 TS/JS 的 catalog barrel（條目彼此獨立）；條目互相依賴的 barrel（zod 的 `v4/core/index.ts`）照常傳遞，Python 的 `__init__.py` re-export 也還沒處理。
 - 大量檔案一起改的 commit（翻譯、格式化）會把 churn／bugfix 平均灌給每個檔案：zod 的 locale 檔 blast radius 降到 0 後仍落在 p68–p83（business），因為多數 ranked 檔案沒有歷史。
 - 百分位是 repo 內相對值：小 repo 的 ranked 檔案很少時，一兩個檔案就佔掉 10%。

@@ -4,7 +4,6 @@ import math
 from pathlib import Path
 
 import pytest
-
 from aoa_graph import classify as C
 from aoa_graph import cli, rules
 from aoa_graph.metrics import compute
@@ -249,7 +248,7 @@ def test_churn_and_bugfix_raise_score():
 
 
 def test_parse_error_never_leaf():
-    ids, (graph, metrics) = chain(20)
+    _ids, (graph, metrics) = chain(20)
     out = run(graph, metrics, unresolved={"parse_errors": ["m19.py"]})["nodes"]
     assert out["m19.py"]["class"] == "business" and out["m19.py"]["rules"] == ["default"]
     assert "parse error" in out["m19.py"]["reasons"][0]
@@ -298,7 +297,7 @@ def write_overrides(path: Path, entries) -> Path:
 
 
 def test_overrides_stricter_auto_looser_needs_human(tmp_path):
-    ids, (graph, metrics) = chain(20)
+    _ids, (graph, metrics) = chain(20)
     entries = C.load_overrides(write_overrides(tmp_path / "o.jsonl", [
         {"node": "m19.py", "to": "core", "by": "model", "reason": "loads plugins dynamically", "evidence": "m19.py:3"},
         {"node": "m00.py", "to": "leaf", "by": "model", "reason": "looks trivial"},

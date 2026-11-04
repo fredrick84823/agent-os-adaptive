@@ -7,6 +7,7 @@
       "determinism": {
         "graph_identical": true,
         "nodes_identical": {
+          "2026.11-3": true,
           "all-barrels": true,
           "before": true,
           "catalog-only": true,
@@ -14,16 +15,17 @@
           "hubs-only": true
         },
         "nodes_sha256": {
-          "all-barrels": "5d263c23dcb9f54a0ea469d9bc8e555c68b64ba17ff730a0aaf0da29aa5c4ceb",
-          "before": "834f56e9f51d15cea0a5d0d6fa54f86465eb99351a6e988c898c5fa8cd1b309f",
-          "catalog-only": "8153d0a7d2fd1f89f8925f9bc1794fc21b84f3e5819041cce1d54a56c756d6e0",
-          "current": "a243e52afb7fef98ad82ef74cdf9ee64a2707d100ec5ce664f59923ce96d9ba8",
-          "hubs-only": "a63afb3ef47513044b09f145d7e2b5fdf1a77f90832d9324197ad1307376ea59"
+          "2026.11-3": "0d278a3e20451f399307befcb671bea7fc6996339a998285b1702d0df44d813e",
+          "all-barrels": "7dba8e88bc89342a89422d2df7eb8bc5933bb2cb8c76d35fe220d123f23f38d6",
+          "before": "578f37a7a36d2dad1ff59c44f82f6889f4930a536ae940674e0b0e45f7f024a1",
+          "catalog-only": "f6337997bd54cc0bde76cd43bcfdaffff17b0d28d612e5c8674895d996d9e7fc",
+          "current": "16b76ee7a128b66ef9f0daa6cf1c55b468184483f7ef7b6c8e67ee71102ccd30",
+          "hubs-only": "13227394fd801b2e25d148933161a75df873d892e955e4014f299a16d8543a52"
         },
         "ok": true
       },
       "graph": {
-        "edges": 180,
+        "edges": 188,
         "nodes": 83,
         "nodes_in_runtime_cycles": 13,
         "runtime_cycles": 2
@@ -31,6 +33,430 @@
       "repo": "flask",
       "url": "https://github.com/pallets/flask.git",
       "variants": {
+        "2026.11-3": {
+          "accuracy": {
+            "all": {
+              "accuracy": 0.6471,
+              "confusion": {
+                "business": {
+                  "business": 5,
+                  "core": 3,
+                  "leaf": 1
+                },
+                "core": {
+                  "business": 4,
+                  "core": 6,
+                  "leaf": 0
+                },
+                "leaf": {
+                  "business": 3,
+                  "core": 1,
+                  "leaf": 11
+                }
+              },
+              "core_to_leaf": 0,
+              "cost_mean": 0.7059,
+              "cost_total": 24.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 4,
+                "precision": 0.6,
+                "predicted": 10,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 20,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.9167,
+                "predicted": 12,
+                "recall": 0.7333,
+                "support": 15,
+                "tn": 18,
+                "tp": 11
+              },
+              "kappa": 0.4687,
+              "n": 34,
+              "over_classified": 7,
+              "per_class": {
+                "business": {
+                  "f1": 0.4762,
+                  "precision": 0.4167,
+                  "predicted": 12,
+                  "recall": 0.5556,
+                  "support": 9
+                },
+                "core": {
+                  "f1": 0.6,
+                  "precision": 0.6,
+                  "predicted": 10,
+                  "recall": 0.6,
+                  "support": 10
+                },
+                "leaf": {
+                  "f1": 0.8148,
+                  "precision": 0.9167,
+                  "predicted": 12,
+                  "recall": 0.7333,
+                  "support": 15
+                }
+              },
+              "under_classified": 5,
+              "weighted_kappa": 0.5742
+            },
+            "core_missed": [
+              "src/flask/config.py",
+              "src/flask/ctx.py",
+              "src/flask/globals.py",
+              "src/flask/helpers.py"
+            ],
+            "core_to_leaf_paths": [],
+            "errors": [
+              {
+                "label": "core",
+                "path": "src/flask/config.py",
+                "percentile": 50.0,
+                "predicted": "business",
+                "prod_blast_radius": 21,
+                "rationale": "Config object that every app uses (from_object/from_envvar/from_prefixed_env, SECRET_KEY lives here); a bug silently mis-configures apps.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "core",
+                "path": "src/flask/ctx.py",
+                "percentile": 50.0,
+                "predicted": "business",
+                "prod_blast_radius": 21,
+                "rationale": "App/request context push/pop and `g`; every request and every `current_app` access depends on it; subtle lifecycle bugs leak state between requests.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "core",
+                "path": "src/flask/globals.py",
+                "percentile": 14.58,
+                "predicted": "business",
+                "prod_blast_radius": 21,
+                "rationale": "Defines the `current_app`, `request`, `session`, `g` context-local proxies used by virtually all app and extension code.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "core",
+                "path": "src/flask/helpers.py",
+                "percentile": 77.08,
+                "predicted": "business",
+                "prod_blast_radius": 21,
+                "rationale": "url_for, flash, send_file/send_from_directory (path-traversal sensitive), stream_with_context: public helpers used by most apps.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "business",
+                "path": "src/flask/views.py",
+                "percentile": 2.08,
+                "predicted": "leaf",
+                "prod_blast_radius": 0,
+                "rationale": "Class-based View/MethodView; used by a subset of apps, small and self-contained.",
+                "rules": [
+                  "score_low"
+                ],
+                "severity": 2.0
+              },
+              {
+                "label": "leaf",
+                "path": "src/flask/debughelpers.py",
+                "percentile": 29.17,
+                "predicted": "core",
+                "prod_blast_radius": 21,
+                "rationale": "Debug-mode-only diagnostics (nicer KeyError for files, template loading explanations); no effect in production.",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.5
+              },
+              {
+                "label": "business",
+                "path": "src/flask/blueprints.py",
+                "percentile": 50.0,
+                "predicted": "core",
+                "prod_blast_radius": 21,
+                "rationale": "Runtime Blueprint (static files, CLI group) on top of sansio/blueprints; only apps using blueprints are affected, and the logic is thin.",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "src/flask/cli.py",
+                "percentile": 85.42,
+                "predicted": "core",
+                "prod_blast_radius": 21,
+                "rationale": "`flask` command (run/shell/routes, app discovery, .env loading). Dev-time tooling, not on the production request path; bugs break the dev workflow, not served requests.",
+                "rules": [
+                  "sensitive:crypto",
+                  "sensitive:secrets",
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "src/flask/templating.py",
+                "percentile": 29.17,
+                "predicted": "core",
+                "prod_blast_radius": 21,
+                "rationale": "Jinja environment and render_template; a large feature, but isolated to template rendering.",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "leaf",
+                "path": "src/flask/logging.py",
+                "percentile": 29.17,
+                "predicted": "business",
+                "prod_blast_radius": 21,
+                "rationale": "Creates the default app logger/handler; small, configuration-only, failure is immediately visible.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "src/flask/signals.py",
+                "percentile": 62.5,
+                "predicted": "business",
+                "prod_blast_radius": 22,
+                "rationale": "Declares blinker signal objects only; no logic.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "src/flask/typing.py",
+                "percentile": 62.5,
+                "predicted": "business",
+                "prod_blast_radius": 22,
+                "rationale": "Type aliases only; no runtime behaviour.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              }
+            ],
+            "false_leaf": [
+              "src/flask/views.py"
+            ],
+            "ranked_only": {
+              "accuracy": 0.5,
+              "confusion": {
+                "business": {
+                  "business": 5,
+                  "core": 3,
+                  "leaf": 1
+                },
+                "core": {
+                  "business": 4,
+                  "core": 6,
+                  "leaf": 0
+                },
+                "leaf": {
+                  "business": 3,
+                  "core": 1,
+                  "leaf": 1
+                }
+              },
+              "core_to_leaf": 0,
+              "cost_mean": 1.0,
+              "cost_total": 24.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 4,
+                "precision": 0.6,
+                "predicted": 10,
+                "recall": 0.6,
+                "support": 10,
+                "tn": 10,
+                "tp": 6
+              },
+              "is_leaf": {
+                "fn": 4,
+                "fp": 1,
+                "precision": 0.5,
+                "predicted": 2,
+                "recall": 0.2,
+                "support": 5,
+                "tn": 18,
+                "tp": 1
+              },
+              "kappa": 0.1955,
+              "n": 24,
+              "over_classified": 7,
+              "per_class": {
+                "business": {
+                  "f1": 0.4762,
+                  "precision": 0.4167,
+                  "predicted": 12,
+                  "recall": 0.5556,
+                  "support": 9
+                },
+                "core": {
+                  "f1": 0.6,
+                  "precision": 0.6,
+                  "predicted": 10,
+                  "recall": 0.6,
+                  "support": 10
+                },
+                "leaf": {
+                  "f1": 0.2857,
+                  "precision": 0.5,
+                  "predicted": 2,
+                  "recall": 0.2,
+                  "support": 5
+                }
+              },
+              "under_classified": 5,
+              "weighted_kappa": 0.271
+            }
+          },
+          "replay": {
+            "base_rate": 0.125,
+            "bugfix_commits": 14,
+            "commit": "88a65bb374e87a18816a780dbd4ae69d307aa85c",
+            "core_share_of_files": 0.4167,
+            "days": 365,
+            "per_class": {
+              "business": {
+                "bugfix_touches": 1,
+                "files": 12,
+                "lift": 0.667,
+                "rate": 0.0833,
+                "touched_by_bugfix": 1
+              },
+              "core": {
+                "bugfix_touches": 7,
+                "files": 10,
+                "lift": 1.6,
+                "rate": 0.2,
+                "touched_by_bugfix": 2
+              },
+              "leaf": {
+                "bugfix_touches": 0,
+                "files": 2,
+                "lift": 0.0,
+                "rate": 0.0,
+                "touched_by_bugfix": 0
+              }
+            },
+            "ranked_files": 24,
+            "share_of_touched_files_in_core": 0.6667,
+            "touched_by_bugfix": 3
+          },
+          "rules_version": {
+            "default": "2026.11-4",
+            "repo": null
+          },
+          "stability": {
+            "churn_rate": 0.003012,
+            "commits": 5,
+            "pairs": [
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 83,
+                "files_touched": 1,
+                "from": "d04a0c15a83c78186cf31dc5d226b3110321b9e5",
+                "labelled_changes": [],
+                "to": "49943b5a94413a530761350f04e896f76e8d620e"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 83,
+                "files_touched": 0,
+                "from": "f2ef7a553e800989f5e7c4ed4487dfd011c6dd40",
+                "labelled_changes": [],
+                "to": "d04a0c15a83c78186cf31dc5d226b3110321b9e5"
+              },
+              {
+                "class_changes": 1,
+                "class_changes_untouched": 1,
+                "examples": [
+                  {
+                    "from": "core",
+                    "path": "src/flask/ctx.py",
+                    "to": "business",
+                    "touched": false
+                  }
+                ],
+                "files_common": 83,
+                "files_touched": 3,
+                "from": "d086db856be187255b8ec61ef409357393020f32",
+                "labelled_changes": [
+                  "src/flask/ctx.py"
+                ],
+                "to": "f2ef7a553e800989f5e7c4ed4487dfd011c6dd40"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 83,
+                "files_touched": 1,
+                "from": "329c32b916938d33fec41f40eb7ed854bf0b3e2b",
+                "labelled_changes": [],
+                "to": "d086db856be187255b8ec61ef409357393020f32"
+              }
+            ],
+            "untouched_churn_rate": 0.003058
+          },
+          "summary": {
+            "business": 12,
+            "core": 10,
+            "examples": 11,
+            "high_risk": 7,
+            "leaf": 61,
+            "nodes": 83,
+            "ranked": 24,
+            "ranked_by_class": {
+              "business": 12,
+              "core": 10,
+              "leaf": 2
+            },
+            "rules": {
+              "default": 12,
+              "example_code": 11,
+              "runtime_cycle": 7,
+              "score_low": 2,
+              "score_top": 1,
+              "sensitive:auth": 1,
+              "sensitive:crypto": 2,
+              "sensitive:public_api": 1,
+              "sensitive:secrets": 1,
+              "test_file": 48
+            },
+            "tests": 48
+          }
+        },
         "all-barrels": {
           "accuracy": {
             "all": {
@@ -368,7 +794,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -816,7 +1242,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -1263,7 +1689,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -1686,7 +2112,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -2110,7 +2536,7 @@
             "touched_by_bugfix": 3
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -2204,6 +2630,7 @@
       "determinism": {
         "graph_identical": true,
         "nodes_identical": {
+          "2026.11-3": true,
           "all-barrels": true,
           "before": true,
           "catalog-only": true,
@@ -2211,11 +2638,12 @@
           "hubs-only": true
         },
         "nodes_sha256": {
-          "all-barrels": "eb628fa350420c98be9251ce36ce94352a9f7a29b1b6d0feafa5ba5635a4829f",
-          "before": "19c283692d43df77dfa1da032d61deea28359178229672ffa671a5e395ac089a",
-          "catalog-only": "f4cd55b073b15024b574bed2c07a197e53c679c4711407231c99e8f5b75eb08e",
-          "current": "14d5b90154a0f0f0c97ae3745d9d8faaee7cf7454a503c0ab3ff8e898f8dc5d2",
-          "hubs-only": "3a1f5bedde17a5c8c782251e4393cd0d599ddc405e2c90e8b74b8830d462eeb1"
+          "2026.11-3": "5c4c89cebbf7661bd64490b4b3c58eb087d55290e3e32762264f5d83422514d2",
+          "all-barrels": "8679c97cb8ec44ac5337bdb2a6d3e832fa31775971ee5df390c1adfe8f6af035",
+          "before": "b0efb2606f22c0127f8e36240ac09184c543bd29c10a97bce4cd4710a33d5abd",
+          "catalog-only": "4b4436754e30e90e004c0cb65e6fead14f7ea2012d7e433a0fc8bdcbf4f505de",
+          "current": "23de6586d74c324f09cf2c86c85de043df0dff7401fbed22cf4b2387d754054f",
+          "hubs-only": "4412a895ebee4b6fa9c811abc538d28ccc21f6ab33db1644147dfafbdb978dd5"
         },
         "ok": true
       },
@@ -2228,6 +2656,386 @@
       "repo": "httpx",
       "url": "https://github.com/encode/httpx.git",
       "variants": {
+        "2026.11-3": {
+          "accuracy": {
+            "all": {
+              "accuracy": 0.7097,
+              "confusion": {
+                "business": {
+                  "business": 7,
+                  "core": 2,
+                  "leaf": 0
+                },
+                "core": {
+                  "business": 2,
+                  "core": 7,
+                  "leaf": 0
+                },
+                "leaf": {
+                  "business": 5,
+                  "core": 0,
+                  "leaf": 8
+                }
+              },
+              "core_to_leaf": 0,
+              "cost_mean": 0.4032,
+              "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 20,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": 1.0,
+                "predicted": 8,
+                "recall": 0.6154,
+                "support": 13,
+                "tn": 18,
+                "tp": 8
+              },
+              "kappa": 0.5708,
+              "n": 31,
+              "over_classified": 7,
+              "per_class": {
+                "business": {
+                  "f1": 0.6087,
+                  "precision": 0.5,
+                  "predicted": 14,
+                  "recall": 0.7778,
+                  "support": 9
+                },
+                "core": {
+                  "f1": 0.7778,
+                  "precision": 0.7778,
+                  "predicted": 9,
+                  "recall": 0.7778,
+                  "support": 9
+                },
+                "leaf": {
+                  "f1": 0.7619,
+                  "precision": 1.0,
+                  "predicted": 8,
+                  "recall": 0.6154,
+                  "support": 13
+                }
+              },
+              "under_classified": 2,
+              "weighted_kappa": 0.6675
+            },
+            "core_missed": [
+              "httpx/_models.py",
+              "httpx/_urlparse.py"
+            ],
+            "core_to_leaf_paths": [],
+            "errors": [
+              {
+                "label": "core",
+                "path": "httpx/_models.py",
+                "percentile": 69.57,
+                "predicted": "business",
+                "prod_blast_radius": 20,
+                "rationale": "Request, Response, Headers, Cookies: the core data model used by every request/response.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "core",
+                "path": "httpx/_urlparse.py",
+                "percentile": 52.17,
+                "predicted": "business",
+                "prod_blast_radius": 20,
+                "rationale": "RFC 3986 URL parsing/normalisation (host, IDNA, percent-encoding); parsing bugs are security relevant (SSRF, host confusion).",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "business",
+                "path": "httpx/_api.py",
+                "percentile": 15.22,
+                "predicted": "core",
+                "prod_blast_radius": 5,
+                "rationale": "Top-level convenience functions (httpx.get/post/stream) that build a one-off Client; thin delegation.",
+                "rules": [
+                  "sensitive:crypto",
+                  "sensitive:public_api"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "httpx/_utils.py",
+                "percentile": 52.17,
+                "predicted": "core",
+                "prod_blast_radius": 20,
+                "rationale": "Misc helpers: environment proxy discovery, URLPattern matching for mounts/no_proxy, header utilities.",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "leaf",
+                "path": "httpx/__version__.py",
+                "percentile": 34.78,
+                "predicted": "business",
+                "prod_blast_radius": 6,
+                "rationale": "Version string only.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "httpx/_main.py",
+                "percentile": 15.22,
+                "predicted": "business",
+                "prod_blast_radius": 5,
+                "rationale": "Optional `httpx` command-line client (needs the cli extra); nothing in the library imports it.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "httpx/_transports/__init__.py",
+                "percentile": 15.22,
+                "predicted": "business",
+                "prod_blast_radius": 5,
+                "rationale": "Internal re-export of the transport classes; no logic.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "httpx/_transports/mock.py",
+                "percentile": 34.78,
+                "predicted": "business",
+                "prod_blast_radius": 6,
+                "rationale": "MockTransport test helper; a few lines.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "httpx/_types.py",
+                "percentile": 69.57,
+                "predicted": "business",
+                "prod_blast_radius": 20,
+                "rationale": "Type aliases only; no runtime behaviour.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              }
+            ],
+            "false_leaf": [],
+            "ranked_only": {
+              "accuracy": 0.6087,
+              "confusion": {
+                "business": {
+                  "business": 7,
+                  "core": 2,
+                  "leaf": 0
+                },
+                "core": {
+                  "business": 2,
+                  "core": 7,
+                  "leaf": 0
+                },
+                "leaf": {
+                  "business": 5,
+                  "core": 0,
+                  "leaf": 0
+                }
+              },
+              "core_to_leaf": 0,
+              "cost_mean": 0.5435,
+              "cost_total": 12.5,
+              "is_core": {
+                "fn": 2,
+                "fp": 2,
+                "precision": 0.7778,
+                "predicted": 9,
+                "recall": 0.7778,
+                "support": 9,
+                "tn": 12,
+                "tp": 7
+              },
+              "is_leaf": {
+                "fn": 5,
+                "fp": 0,
+                "precision": null,
+                "predicted": 0,
+                "recall": 0.0,
+                "support": 5,
+                "tn": 18,
+                "tp": 0
+              },
+              "kappa": 0.3571,
+              "n": 23,
+              "over_classified": 7,
+              "per_class": {
+                "business": {
+                  "f1": 0.6087,
+                  "precision": 0.5,
+                  "predicted": 14,
+                  "recall": 0.7778,
+                  "support": 9
+                },
+                "core": {
+                  "f1": 0.7778,
+                  "precision": 0.7778,
+                  "predicted": 9,
+                  "recall": 0.7778,
+                  "support": 9
+                },
+                "leaf": {
+                  "f1": null,
+                  "precision": null,
+                  "predicted": 0,
+                  "recall": 0.0,
+                  "support": 5
+                }
+              },
+              "under_classified": 2,
+              "weighted_kappa": 0.436
+            }
+          },
+          "replay": {
+            "base_rate": 0.087,
+            "bugfix_commits": 3,
+            "commit": "e70d0b08c929e5140e38aa92a419de0c6d494148",
+            "core_share_of_files": 0.4348,
+            "days": 365,
+            "per_class": {
+              "business": {
+                "bugfix_touches": 0,
+                "files": 13,
+                "lift": 0.0,
+                "rate": 0.0,
+                "touched_by_bugfix": 0
+              },
+              "core": {
+                "bugfix_touches": 2,
+                "files": 10,
+                "lift": 2.3,
+                "rate": 0.2,
+                "touched_by_bugfix": 2
+              },
+              "leaf": {
+                "bugfix_touches": 0,
+                "files": 0,
+                "lift": null,
+                "rate": null,
+                "touched_by_bugfix": 0
+              }
+            },
+            "ranked_files": 23,
+            "share_of_touched_files_in_core": 1.0,
+            "touched_by_bugfix": 2
+          },
+          "rules_version": {
+            "default": "2026.11-4",
+            "repo": null
+          },
+          "stability": {
+            "churn_rate": 0.004167,
+            "commits": 5,
+            "pairs": [
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 60,
+                "files_touched": 1,
+                "from": "ae1b9f66238f75ced3ced5e4485408435de10768",
+                "labelled_changes": [],
+                "to": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254"
+              },
+              {
+                "class_changes": 1,
+                "class_changes_untouched": 1,
+                "examples": [
+                  {
+                    "from": "core",
+                    "path": "httpx/_status_codes.py",
+                    "to": "business",
+                    "touched": false
+                  }
+                ],
+                "files_common": 60,
+                "files_touched": 2,
+                "from": "ca097c96f97d8d2a5da09b8ca736c7e78a2467f6",
+                "labelled_changes": [
+                  "httpx/_status_codes.py"
+                ],
+                "to": "ae1b9f66238f75ced3ced5e4485408435de10768"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 60,
+                "files_touched": 0,
+                "from": "def4778d622e8bf49a9fea4dda78cca4cf666d8a",
+                "labelled_changes": [],
+                "to": "ca097c96f97d8d2a5da09b8ca736c7e78a2467f6"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 60,
+                "files_touched": 0,
+                "from": "435e1dac899adeb0c156c00721ecbb1124d75842",
+                "labelled_changes": [],
+                "to": "def4778d622e8bf49a9fea4dda78cca4cf666d8a"
+              }
+            ],
+            "untouched_churn_rate": 0.004219
+          },
+          "summary": {
+            "business": 14,
+            "core": 9,
+            "examples": 0,
+            "high_risk": 2,
+            "leaf": 37,
+            "nodes": 60,
+            "ranked": 23,
+            "ranked_by_class": {
+              "business": 14,
+              "core": 9,
+              "leaf": 0
+            },
+            "rules": {
+              "default": 14,
+              "runtime_cycle": 2,
+              "score_top": 1,
+              "sensitive:auth": 1,
+              "sensitive:crypto": 4,
+              "sensitive:public_api": 2,
+              "test_file": 37
+            },
+            "tests": 37
+          }
+        },
         "all-barrels": {
           "accuracy": {
             "all": {
@@ -2524,7 +3332,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -2904,7 +3712,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -3284,7 +4092,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -3664,7 +4472,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -4044,7 +4852,7 @@
             "touched_by_bugfix": 2
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -4135,6 +4943,7 @@
       "determinism": {
         "graph_identical": true,
         "nodes_identical": {
+          "2026.11-3": true,
           "all-barrels": true,
           "before": true,
           "catalog-only": true,
@@ -4142,11 +4951,12 @@
           "hubs-only": true
         },
         "nodes_sha256": {
-          "all-barrels": "9c22c2ffa4fdb23ba2ae3e3cf8da8339b36ce69b3892d680329b62ff7f9e83e1",
-          "before": "19f6f79d02241ef092c8fb7008a6453e86fae7f757df7a66b706286632d7aabc",
-          "catalog-only": "99dadde21ede101b05dadca7980d081e1cd3c78a5beeaadbe4c984abec07108a",
-          "current": "fd5b11ba8f2e019ac033fa9adb686ebf78b8acdd27a1b1b5a20ae66c0e45dc70",
-          "hubs-only": "c2b8c476d82894c03c3d9e7f4c45a73e8085f9d828e2011eb0bea5a37a3e3fb9"
+          "2026.11-3": "b3268611a4d45870b19ba171c63085cc48e8088bd390842d11f5051ade51176b",
+          "all-barrels": "f303177c3eec95f3e639cbf0d6918d86d62116887a3b850db2e728400af49974",
+          "before": "753de9735ec138d33c84d009f14134fb5a12740361feea1120e66030bcae2934",
+          "catalog-only": "a973e1bfddad3127d3980b671e8d11ccd55a643edb5fc33dc8866704e11ed40f",
+          "current": "8c66a25c936fa87ea7abc5628019255060d199848f7ec8908a919f78e2d7ce58",
+          "hubs-only": "35dd4ff05e0244d475d088defce70ae3e18a8a686c743c19edbee075cdc82f68"
         },
         "ok": true
       },
@@ -4159,6 +4969,582 @@
       "repo": "zod",
       "url": "https://github.com/colinhacks/zod.git",
       "variants": {
+        "2026.11-3": {
+          "accuracy": {
+            "all": {
+              "accuracy": 0.5873,
+              "confusion": {
+                "business": {
+                  "business": 6,
+                  "core": 6,
+                  "leaf": 1
+                },
+                "core": {
+                  "business": 1,
+                  "core": 12,
+                  "leaf": 0
+                },
+                "leaf": {
+                  "business": 13,
+                  "core": 5,
+                  "leaf": 19
+                }
+              },
+              "core_to_leaf": 0,
+              "cost_mean": 0.4127,
+              "cost_total": 26.0,
+              "is_core": {
+                "fn": 1,
+                "fp": 11,
+                "precision": 0.5217,
+                "predicted": 23,
+                "recall": 0.9231,
+                "support": 13,
+                "tn": 39,
+                "tp": 12
+              },
+              "is_leaf": {
+                "fn": 18,
+                "fp": 1,
+                "precision": 0.95,
+                "predicted": 20,
+                "recall": 0.5135,
+                "support": 37,
+                "tn": 25,
+                "tp": 19
+              },
+              "kappa": 0.3865,
+              "n": 63,
+              "over_classified": 24,
+              "per_class": {
+                "business": {
+                  "f1": 0.3636,
+                  "precision": 0.3,
+                  "predicted": 20,
+                  "recall": 0.4615,
+                  "support": 13
+                },
+                "core": {
+                  "f1": 0.6667,
+                  "precision": 0.5217,
+                  "predicted": 23,
+                  "recall": 0.9231,
+                  "support": 13
+                },
+                "leaf": {
+                  "f1": 0.6667,
+                  "precision": 0.95,
+                  "predicted": 20,
+                  "recall": 0.5135,
+                  "support": 37
+                }
+              },
+              "under_classified": 2,
+              "weighted_kappa": 0.4835
+            },
+            "core_missed": [
+              "packages/zod/src/v4/core/parse.ts"
+            ],
+            "core_to_leaf_paths": [],
+            "errors": [
+              {
+                "label": "core",
+                "path": "packages/zod/src/v4/core/parse.ts",
+                "percentile": 84.43,
+                "predicted": "business",
+                "prod_blast_radius": 132,
+                "rationale": "parse/safeParse/parseAsync/encode/decode implementations used by every validation call.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "business",
+                "path": "packages/zod/src/locales/index.ts",
+                "percentile": 1.91,
+                "predicted": "leaf",
+                "prod_blast_radius": 1,
+                "rationale": "Published `zod/locales` subpath entry; a one-line re-export of the v4 locale catalogue.",
+                "rules": [
+                  "score_low"
+                ],
+                "severity": 2.0
+              },
+              {
+                "label": "leaf",
+                "path": "packages/resolution/src/index.cts",
+                "percentile": 48.36,
+                "predicted": "core",
+                "prod_blast_radius": 0,
+                "rationale": "CJS variant of the module-resolution smoke-test script.",
+                "rules": [
+                  "sensitive:public_api"
+                ],
+                "severity": 1.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/resolution/src/index.ts",
+                "percentile": 45.36,
+                "predicted": "core",
+                "prod_blast_radius": 0,
+                "rationale": "Module-resolution smoke-test script; not shipped.",
+                "rules": [
+                  "sensitive:public_api"
+                ],
+                "severity": 1.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/core/versions.ts",
+                "percentile": 88.8,
+                "predicted": "core",
+                "prod_blast_radius": 134,
+                "rationale": "purposive: version constant only.",
+                "rules": [
+                  "score_boundary"
+                ],
+                "severity": 1.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/fr.ts",
+                "percentile": 88.25,
+                "predicted": "core",
+                "prod_blast_radius": 2,
+                "rationale": "French error-message table; opt-in locale.",
+                "rules": [
+                  "score_boundary"
+                ],
+                "severity": 1.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/km.ts",
+                "percentile": 90.71,
+                "predicted": "core",
+                "prod_blast_radius": 1,
+                "rationale": "Khmer error-message table; opt-in locale.",
+                "rules": [
+                  "score_top"
+                ],
+                "severity": 1.5
+              },
+              {
+                "label": "business",
+                "path": "packages/mini/src/index.ts",
+                "percentile": 43.44,
+                "predicted": "core",
+                "prod_blast_radius": 5,
+                "rationale": "One-line entry of the published `@zod/mini` alias package (re-exports zod/mini); public, but contains no logic and breakage is immediate.",
+                "rules": [
+                  "sensitive:public_api"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "packages/zod/src/v4/core/doc.ts",
+                "percentile": 89.89,
+                "predicted": "core",
+                "prod_blast_radius": 133,
+                "rationale": "purposive: code-writer used by the JIT compiler for fast object parsing; internal to the compile feature.",
+                "rules": [
+                  "score_boundary"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "packages/zod/src/v4/core/memoizer.ts",
+                "percentile": 96.45,
+                "predicted": "core",
+                "prod_blast_radius": 132,
+                "rationale": "Memoisation for parsing recursive/cyclic inputs; a contained parse feature.",
+                "rules": [
+                  "score_top"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "packages/zod/src/v4/core/to-json-schema.ts",
+                "percentile": 97.54,
+                "predicted": "core",
+                "prod_blast_radius": 132,
+                "rationale": "JSON Schema generation; a large but self-contained feature.",
+                "rules": [
+                  "score_top"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "packages/zod/src/v4/locales/en.ts",
+                "percentile": 92.62,
+                "predicted": "core",
+                "prod_blast_radius": 28,
+                "rationale": "Default English error messages loaded for every classic user; wrong text affects everyone's messages but never validation results.",
+                "rules": [
+                  "score_top"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "packages/zod/src/v4/locales/index.ts",
+                "percentile": 87.16,
+                "predicted": "core",
+                "prod_blast_radius": 134,
+                "rationale": "Public `z.locales` catalogue: re-exports every locale; no logic.",
+                "rules": [
+                  "score_boundary"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "leaf",
+                "path": "packages/tsc/generate.ts",
+                "percentile": 36.07,
+                "predicted": "business",
+                "prod_blast_radius": 1,
+                "rationale": "Generator for TypeScript compiler performance benchmarks; not shipped.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/ca.ts",
+                "percentile": 68.31,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Catalan error-message table; only affects users who opt in via z.config(z.locales.ca()).",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/ckb.ts",
+                "percentile": 68.31,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Kurdish error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/da.ts",
+                "percentile": 80.6,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Danish error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/eo.ts",
+                "percentile": 68.31,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Esperanto error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/it.ts",
+                "percentile": 68.31,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Italian error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/ja.ts",
+                "percentile": 68.31,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Japanese error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/lt.ts",
+                "percentile": 80.6,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Lithuanian error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/nn.ts",
+                "percentile": 83.33,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Norwegian Nynorsk error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/no.ts",
+                "percentile": 80.6,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Norwegian error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/locales/ro.ts",
+                "percentile": 53.83,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Romanian error-message table; opt-in locale.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "packages/zod/src/v4/mini/deep-partial.ts",
+                "percentile": 50.55,
+                "predicted": "business",
+                "prod_blast_radius": 17,
+                "rationale": "Niche DeepPartial helper for mini; removable without affecting other features.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "scripts/compile-fuzz.ts",
+                "percentile": 36.89,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Fuzzing script for the compiler; not shipped.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              }
+            ],
+            "false_leaf": [
+              "packages/zod/src/locales/index.ts"
+            ],
+            "ranked_only": {
+              "accuracy": 0.5439,
+              "confusion": {
+                "business": {
+                  "business": 6,
+                  "core": 6,
+                  "leaf": 1
+                },
+                "core": {
+                  "business": 1,
+                  "core": 12,
+                  "leaf": 0
+                },
+                "leaf": {
+                  "business": 13,
+                  "core": 5,
+                  "leaf": 13
+                }
+              },
+              "core_to_leaf": 0,
+              "cost_mean": 0.4561,
+              "cost_total": 26.0,
+              "is_core": {
+                "fn": 1,
+                "fp": 11,
+                "precision": 0.5217,
+                "predicted": 23,
+                "recall": 0.9231,
+                "support": 13,
+                "tn": 33,
+                "tp": 12
+              },
+              "is_leaf": {
+                "fn": 18,
+                "fp": 1,
+                "precision": 0.9286,
+                "predicted": 14,
+                "recall": 0.4194,
+                "support": 31,
+                "tn": 25,
+                "tp": 13
+              },
+              "kappa": 0.3431,
+              "n": 57,
+              "over_classified": 24,
+              "per_class": {
+                "business": {
+                  "f1": 0.3636,
+                  "precision": 0.3,
+                  "predicted": 20,
+                  "recall": 0.4615,
+                  "support": 13
+                },
+                "core": {
+                  "f1": 0.6667,
+                  "precision": 0.5217,
+                  "predicted": 23,
+                  "recall": 0.9231,
+                  "support": 13
+                },
+                "leaf": {
+                  "f1": 0.5778,
+                  "precision": 0.9286,
+                  "predicted": 14,
+                  "recall": 0.4194,
+                  "support": 31
+                }
+              },
+              "under_classified": 2,
+              "weighted_kappa": 0.4392
+            }
+          },
+          "replay": {
+            "base_rate": 0.5652,
+            "bugfix_commits": 204,
+            "commit": "8d336c4d15e1917d78b67b890f7182f26633b56f",
+            "core_share_of_files": 0.1884,
+            "days": 365,
+            "per_class": {
+              "business": {
+                "bugfix_touches": 131,
+                "files": 68,
+                "lift": 1.171,
+                "rate": 0.6618,
+                "touched_by_bugfix": 45
+              },
+              "core": {
+                "bugfix_touches": 185,
+                "files": 26,
+                "lift": 1.429,
+                "rate": 0.8077,
+                "touched_by_bugfix": 21
+              },
+              "leaf": {
+                "bugfix_touches": 35,
+                "files": 44,
+                "lift": 0.483,
+                "rate": 0.2727,
+                "touched_by_bugfix": 12
+              }
+            },
+            "ranked_files": 138,
+            "share_of_touched_files_in_core": 0.2692,
+            "touched_by_bugfix": 78
+          },
+          "rules_version": {
+            "default": "2026.11-4",
+            "repo": null
+          },
+          "stability": {
+            "churn_rate": 0.0,
+            "commits": 5,
+            "pairs": [
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 522,
+                "files_touched": 3,
+                "from": "b1f6ba06c5de0e600640917615e5df70fa73f060",
+                "labelled_changes": [],
+                "to": "2554b70c3d4a80273381e61d527d820720626440"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 522,
+                "files_touched": 2,
+                "from": "3a2080512f4bb43b22879968856d987aaccf6125",
+                "labelled_changes": [],
+                "to": "b1f6ba06c5de0e600640917615e5df70fa73f060"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 522,
+                "files_touched": 3,
+                "from": "1bd44af56281dc2908f17b4625076a892b4b7f83",
+                "labelled_changes": [],
+                "to": "3a2080512f4bb43b22879968856d987aaccf6125"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 522,
+                "files_touched": 2,
+                "from": "c504186332c00ef0059b685e6b93c4cc09891c77",
+                "labelled_changes": [],
+                "to": "1bd44af56281dc2908f17b4625076a892b4b7f83"
+              }
+            ],
+            "untouched_churn_rate": 0.0
+          },
+          "summary": {
+            "business": 99,
+            "core": 32,
+            "examples": 135,
+            "high_risk": 2,
+            "leaf": 391,
+            "nodes": 522,
+            "ranked": 183,
+            "ranked_by_class": {
+              "business": 99,
+              "core": 32,
+              "leaf": 52
+            },
+            "rules": {
+              "default": 99,
+              "example_code": 135,
+              "runtime_cycle": 2,
+              "score_boundary": 9,
+              "score_low": 52,
+              "score_top": 15,
+              "sensitive:public_api": 6,
+              "test_file": 204
+            },
+            "tests": 204
+          }
+        },
         "all-barrels": {
           "accuracy": {
             "all": {
@@ -4647,7 +6033,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -5213,7 +6599,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -5789,7 +7175,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -6365,7 +7751,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -6931,7 +8317,7 @@
             "touched_by_bugfix": 78
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -7014,6 +8400,7 @@
       "determinism": {
         "graph_identical": true,
         "nodes_identical": {
+          "2026.11-3": true,
           "all-barrels": true,
           "before": true,
           "catalog-only": true,
@@ -7021,11 +8408,12 @@
           "hubs-only": true
         },
         "nodes_sha256": {
-          "all-barrels": "a6f300da54f4963eec35e172f6b0bf5650e1fac1c02bd3d62c7d7c6437ff77e1",
-          "before": "1f9780ef6a19c3aecd71ba8755f1215e92906e4331c6e3a980fc35da8214650a",
-          "catalog-only": "eaa3ecc6203429637195fbc397a548e5d73f7867a9cc591abdae6d8dd16b23a6",
-          "current": "0672bfbd7c70fc73cdb4e1780789c1ced76581c568c69faafda5b1b40a4c8a0f",
-          "hubs-only": "d713166be6999cb09190e6186dd1d4698989570a5b05d02310949f84bb693b54"
+          "2026.11-3": "40cb9e9cec6d3a7871e3aef566e3aabd63df028adbeabc7d4d597f2b823ca8e9",
+          "all-barrels": "2c6dedbd8bfdb0ef704a275659cae9699fd4b2270b1583fa2f2bda1183f251da",
+          "before": "f1de07114b231f14203512eb8b5355d102d543760593edfdaa6c93cfcb6a0ed9",
+          "catalog-only": "88c4fcb011a0a86fe028a5ddfedf4b499849257727060ccbf67787bd9ac5ecc5",
+          "current": "856d22f496a6660675236054e064ff47633ee523197a84165d17e42521be6089",
+          "hubs-only": "9ca69474ea4e651e7a8397b63a6ddaa8f7d407fde8bbab8f011de4371a540bda"
         },
         "ok": true
       },
@@ -7038,7 +8426,7 @@
       "repo": "django",
       "url": "https://github.com/django/django.git",
       "variants": {
-        "all-barrels": {
+        "2026.11-3": {
           "accuracy": {
             "all": {
               "accuracy": 0.6533,
@@ -7543,7 +8931,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -7635,6 +9023,614 @@
               "sensitive:auth": 65,
               "sensitive:crypto": 3,
               "sensitive:db_schema": 64,
+              "sensitive:public_api": 4,
+              "sensitive:secrets": 3,
+              "test_file": 2043
+            },
+            "tests": 2043
+          }
+        },
+        "all-barrels": {
+          "accuracy": {
+            "all": {
+              "accuracy": 0.6533,
+              "confusion": {
+                "business": {
+                  "business": 15,
+                  "core": 13,
+                  "leaf": 3
+                },
+                "core": {
+                  "business": 4,
+                  "core": 14,
+                  "leaf": 0
+                },
+                "leaf": {
+                  "business": 4,
+                  "core": 2,
+                  "leaf": 20
+                }
+              },
+              "core_to_leaf": 0,
+              "cost_mean": 0.5333,
+              "cost_total": 40.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 15,
+                "precision": 0.4828,
+                "predicted": 29,
+                "recall": 0.7778,
+                "support": 18,
+                "tn": 42,
+                "tp": 14
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 3,
+                "precision": 0.8696,
+                "predicted": 23,
+                "recall": 0.7692,
+                "support": 26,
+                "tn": 46,
+                "tp": 20
+              },
+              "kappa": 0.4858,
+              "n": 75,
+              "over_classified": 19,
+              "per_class": {
+                "business": {
+                  "f1": 0.5556,
+                  "precision": 0.6522,
+                  "predicted": 23,
+                  "recall": 0.4839,
+                  "support": 31
+                },
+                "core": {
+                  "f1": 0.5957,
+                  "precision": 0.4828,
+                  "predicted": 29,
+                  "recall": 0.7778,
+                  "support": 18
+                },
+                "leaf": {
+                  "f1": 0.8163,
+                  "precision": 0.8696,
+                  "predicted": 23,
+                  "recall": 0.7692,
+                  "support": 26
+                }
+              },
+              "under_classified": 7,
+              "weighted_kappa": 0.5766
+            },
+            "core_missed": [
+              "django/core/cache/backends/base.py",
+              "django/db/backends/utils.py",
+              "django/utils/tree.py",
+              "django/views/debug.py"
+            ],
+            "core_to_leaf_paths": [],
+            "errors": [
+              {
+                "label": "core",
+                "path": "django/core/cache/backends/base.py",
+                "percentile": 70.75,
+                "predicted": "business",
+                "prod_blast_radius": 601,
+                "rationale": "BaseCache: key construction/validation and versioning shared by every cache backend (and cache-backed sessions); key bugs can serve one user's data to another.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "core",
+                "path": "django/db/backends/utils.py",
+                "percentile": 63.26,
+                "predicted": "business",
+                "prod_blast_radius": 601,
+                "rationale": "CursorWrapper that every query executes through, plus identifier truncation/quoting helpers used by all backends.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "core",
+                "path": "django/utils/tree.py",
+                "percentile": 75.72,
+                "predicted": "business",
+                "prod_blast_radius": 602,
+                "rationale": "tree.Node, the base of Q objects and the ORM WhereNode; every filter() builds on it.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "core",
+                "path": "django/views/debug.py",
+                "percentile": 69.47,
+                "predicted": "business",
+                "prod_blast_radius": 13,
+                "rationale": "Technical 500 page and SafeExceptionReporterFilter, which scrubs secrets from error reports; a bug leaks credentials.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 4.0
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/contenttypes/apps.py",
+                "percentile": 29.14,
+                "predicted": "leaf",
+                "prod_blast_radius": 0,
+                "rationale": "AppConfig wiring post_migrate handlers that create/rename ContentType rows; small but runs during migrate.",
+                "rules": [
+                  "score_low"
+                ],
+                "severity": 2.0
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/sitemaps/views.py",
+                "percentile": 0.27,
+                "predicted": "leaf",
+                "prod_blast_radius": 0,
+                "rationale": "Sitemap index/section views; one feature.",
+                "rules": [
+                  "score_low"
+                ],
+                "severity": 2.0
+              },
+              {
+                "label": "business",
+                "path": "django/test/client.py",
+                "percentile": null,
+                "predicted": "leaf",
+                "prod_blast_radius": 2,
+                "rationale": "purposive: test Client/RequestFactory for users' test suites; not on the production path (runtime-cycle member).",
+                "rules": [
+                  "test_file"
+                ],
+                "severity": 2.0
+              },
+              {
+                "label": "leaf",
+                "path": "django/contrib/admin/decorators.py",
+                "percentile": 86.31,
+                "predicted": "core",
+                "prod_blast_radius": 25,
+                "rationale": "purposive: thin @register/@display/@action decorators that set attributes (runtime-cycle member).",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.5
+              },
+              {
+                "label": "leaf",
+                "path": "django/contrib/gis/db/backends/postgis/models.py",
+                "percentile": 56.9,
+                "predicted": "core",
+                "prod_blast_radius": 2,
+                "rationale": "Unmanaged models mirroring PostGIS metadata views; rarely used, read-only.",
+                "rules": [
+                  "sensitive:db_schema"
+                ],
+                "severity": 1.5
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/admin/filters.py",
+                "percentile": 58.29,
+                "predicted": "core",
+                "prod_blast_radius": 25,
+                "rationale": "purposive: admin list filters; one admin feature (runtime-cycle member).",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/admin/helpers.py",
+                "percentile": 58.02,
+                "predicted": "core",
+                "prod_blast_radius": 25,
+                "rationale": "purposive: admin form rendering helpers (Fieldset, AdminField); admin-only (runtime-cycle member).",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/admin/views/main.py",
+                "percentile": 87.86,
+                "predicted": "core",
+                "prod_blast_radius": 25,
+                "rationale": "ChangeList: admin list view filtering, search and pagination; one admin feature.",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/flatpages/views.py",
+                "percentile": 53.74,
+                "predicted": "core",
+                "prod_blast_radius": 6,
+                "rationale": "purposive: flatpage view incl. registration_required check; opt-in contrib app (runtime-cycle member).",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/gis/forms/fields.py",
+                "percentile": 90.64,
+                "predicted": "core",
+                "prod_blast_radius": 32,
+                "rationale": "GIS form fields; GIS-only feature.",
+                "rules": [
+                  "score_top"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/gis/gdal/raster/source.py",
+                "percentile": 99.2,
+                "predicted": "core",
+                "prod_blast_radius": 63,
+                "rationale": "GDALRaster class; GIS raster feature.",
+                "rules": [
+                  "score_top"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/contrib/gis/geos/point.py",
+                "percentile": 78.13,
+                "predicted": "core",
+                "prod_blast_radius": 62,
+                "rationale": "purposive: GEOS Point geometry; GIS-only (runtime-cycle member).",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/core/checks/__init__.py",
+                "percentile": 84.97,
+                "predicted": "core",
+                "prod_blast_radius": 601,
+                "rationale": "purposive: system-check framework entry/registry; failures show up at startup, not at request time (runtime-cycle hub).",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/core/mail/handler.py",
+                "percentile": 96.1,
+                "predicted": "core",
+                "prod_blast_radius": 601,
+                "rationale": "Mailer alias handler for the MAILERS setting; part of email sending.",
+                "rules": [
+                  "score_top"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/db/backends/sqlite3/operations.py",
+                "percentile": 94.81,
+                "predicted": "core",
+                "prod_blast_radius": 6,
+                "rationale": "SQLite DatabaseOperations (quoting, date functions); SQLite users only.",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/tasks/base.py",
+                "percentile": 76.84,
+                "predicted": "core",
+                "prod_blast_radius": 6,
+                "rationale": "purposive: Task/TaskResult of the new background-tasks framework; opt-in (runtime-cycle member).",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/utils/module_loading.py",
+                "percentile": 94.22,
+                "predicted": "core",
+                "prod_blast_radius": 601,
+                "rationale": "purposive: import_string/autodiscover used to load configured backends (runtime-cycle member).",
+                "rules": [
+                  "score_top"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "business",
+                "path": "django/utils/regex_helper.py",
+                "percentile": 89.14,
+                "predicted": "core",
+                "prod_blast_radius": 601,
+                "rationale": "purposive: regex normalisation used by URL reversing; contained (runtime-cycle member).",
+                "rules": [
+                  "runtime_cycle"
+                ],
+                "severity": 1.0
+              },
+              {
+                "label": "leaf",
+                "path": "django/contrib/postgres/utils.py",
+                "percentile": 64.87,
+                "predicted": "business",
+                "prod_blast_radius": 14,
+                "rationale": "Two small helpers (error-prefixing, installed-app check).",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "django/core/management/color.py",
+                "percentile": 61.76,
+                "predicted": "business",
+                "prod_blast_radius": 602,
+                "rationale": "Terminal colour support for management command output.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "django/urls/exceptions.py",
+                "percentile": 81.34,
+                "predicted": "business",
+                "prod_blast_radius": 601,
+                "rationale": "Two exception class definitions (Resolver404, NoReverseMatch).",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              },
+              {
+                "label": "leaf",
+                "path": "scripts/tests.py",
+                "percentile": 57.91,
+                "predicted": "business",
+                "prod_blast_radius": 0,
+                "rationale": "Tests for release scripts; not shipped.",
+                "rules": [
+                  "default"
+                ],
+                "severity": 0.5
+              }
+            ],
+            "false_leaf": [
+              "django/contrib/contenttypes/apps.py",
+              "django/contrib/sitemaps/views.py",
+              "django/test/client.py"
+            ],
+            "ranked_only": {
+              "accuracy": 0.6377,
+              "confusion": {
+                "business": {
+                  "business": 15,
+                  "core": 13,
+                  "leaf": 2
+                },
+                "core": {
+                  "business": 4,
+                  "core": 14,
+                  "leaf": 0
+                },
+                "leaf": {
+                  "business": 4,
+                  "core": 2,
+                  "leaf": 15
+                }
+              },
+              "core_to_leaf": 0,
+              "cost_mean": 0.5507,
+              "cost_total": 38.0,
+              "is_core": {
+                "fn": 4,
+                "fp": 15,
+                "precision": 0.4828,
+                "predicted": 29,
+                "recall": 0.7778,
+                "support": 18,
+                "tn": 36,
+                "tp": 14
+              },
+              "is_leaf": {
+                "fn": 6,
+                "fp": 2,
+                "precision": 0.8824,
+                "predicted": 17,
+                "recall": 0.7143,
+                "support": 21,
+                "tn": 46,
+                "tp": 15
+              },
+              "kappa": 0.4596,
+              "n": 69,
+              "over_classified": 19,
+              "per_class": {
+                "business": {
+                  "f1": 0.566,
+                  "precision": 0.6522,
+                  "predicted": 23,
+                  "recall": 0.5,
+                  "support": 30
+                },
+                "core": {
+                  "f1": 0.5957,
+                  "precision": 0.4828,
+                  "predicted": 29,
+                  "recall": 0.7778,
+                  "support": 18
+                },
+                "leaf": {
+                  "f1": 0.7895,
+                  "precision": 0.8824,
+                  "predicted": 17,
+                  "recall": 0.7143,
+                  "support": 21
+                }
+              },
+              "under_classified": 6,
+              "weighted_kappa": 0.5464
+            }
+          },
+          "replay": {
+            "base_rate": 0.2854,
+            "bugfix_commits": 598,
+            "commit": "05ba1a9228128614fb3c475f1c4bdf0160f44dba",
+            "core_share_of_files": 0.2658,
+            "days": 365,
+            "per_class": {
+              "business": {
+                "bugfix_touches": 166,
+                "files": 318,
+                "lift": 0.915,
+                "rate": 0.261,
+                "touched_by_bugfix": 83
+              },
+              "core": {
+                "bugfix_touches": 430,
+                "files": 244,
+                "lift": 1.924,
+                "rate": 0.5492,
+                "touched_by_bugfix": 134
+              },
+              "leaf": {
+                "bugfix_touches": 69,
+                "files": 356,
+                "lift": 0.443,
+                "rate": 0.1264,
+                "touched_by_bugfix": 45
+              }
+            },
+            "ranked_files": 918,
+            "share_of_touched_files_in_core": 0.5115,
+            "touched_by_bugfix": 262
+          },
+          "rules_version": {
+            "default": "2026.11-4",
+            "repo": null
+          },
+          "stability": {
+            "churn_rate": 0.000251,
+            "commits": 5,
+            "pairs": [
+              {
+                "class_changes": 3,
+                "class_changes_untouched": 3,
+                "examples": [
+                  {
+                    "from": "core",
+                    "path": "django/contrib/admin/static/admin/js/admin/DateTimeShortcuts.js",
+                    "to": "business",
+                    "touched": false
+                  },
+                  {
+                    "from": "core",
+                    "path": "django/core/files/uploadhandler.py",
+                    "to": "business",
+                    "touched": false
+                  },
+                  {
+                    "from": "business",
+                    "path": "django/core/management/base.py",
+                    "to": "core",
+                    "touched": false
+                  }
+                ],
+                "files_common": 2984,
+                "files_touched": 2,
+                "from": "a05e16a7230fe33d3f43f4a3aaed103cebb42efc",
+                "labelled_changes": [],
+                "to": "308b6d6ac0927d2095d380c84d9c7d101c851d4f"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 2984,
+                "files_touched": 0,
+                "from": "f4c65fd6a517dd32bd2e732ae3543e550e56f206",
+                "labelled_changes": [],
+                "to": "a05e16a7230fe33d3f43f4a3aaed103cebb42efc"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 2984,
+                "files_touched": 1,
+                "from": "a6a5d1e67a62328a303257e511886e1a139a0558",
+                "labelled_changes": [],
+                "to": "f4c65fd6a517dd32bd2e732ae3543e550e56f206"
+              },
+              {
+                "class_changes": 0,
+                "class_changes_untouched": 0,
+                "examples": [],
+                "files_common": 2984,
+                "files_touched": 0,
+                "from": "3bdcd29a61be034b9c9a1cea744371c12339c48e",
+                "labelled_changes": [],
+                "to": "a6a5d1e67a62328a303257e511886e1a139a0558"
+              }
+            ],
+            "untouched_churn_rate": 0.000251
+          },
+          "summary": {
+            "business": 324,
+            "core": 255,
+            "examples": 6,
+            "high_risk": 56,
+            "leaf": 2405,
+            "nodes": 2984,
+            "ranked": 935,
+            "ranked_by_class": {
+              "business": 324,
+              "core": 255,
+              "leaf": 356
+            },
+            "rules": {
+              "default": 302,
+              "example_code": 6,
+              "migration_data_ops": 1,
+              "migration_history": 15,
+              "migration_latest": 7,
+              "migration_package": 7,
+              "runtime_cycle": 56,
+              "score_boundary": 35,
+              "score_low": 356,
+              "score_top": 75,
+              "sensitive:auth": 50,
+              "sensitive:crypto": 3,
+              "sensitive:db_schema": 34,
               "sensitive:public_api": 4,
               "sensitive:secrets": 3,
               "test_file": 2043
@@ -8169,7 +10165,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -8783,7 +10779,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -9345,21 +11341,21 @@
             "base_rate": 0.2854,
             "bugfix_commits": 598,
             "commit": "05ba1a9228128614fb3c475f1c4bdf0160f44dba",
-            "core_share_of_files": 0.2898,
+            "core_share_of_files": 0.2658,
             "days": 365,
             "per_class": {
               "business": {
                 "bugfix_touches": 166,
-                "files": 296,
-                "lift": 0.982,
-                "rate": 0.2804,
+                "files": 318,
+                "lift": 0.915,
+                "rate": 0.261,
                 "touched_by_bugfix": 83
               },
               "core": {
                 "bugfix_touches": 430,
-                "files": 266,
-                "lift": 1.765,
-                "rate": 0.5038,
+                "files": 244,
+                "lift": 1.924,
+                "rate": 0.5492,
                 "touched_by_bugfix": 134
               },
               "leaf": {
@@ -9375,7 +11371,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {
@@ -9445,28 +11441,32 @@
             "untouched_churn_rate": 0.000251
           },
           "summary": {
-            "business": 302,
-            "core": 277,
+            "business": 324,
+            "core": 255,
             "examples": 6,
             "high_risk": 56,
             "leaf": 2405,
             "nodes": 2984,
             "ranked": 935,
             "ranked_by_class": {
-              "business": 302,
-              "core": 277,
+              "business": 324,
+              "core": 255,
               "leaf": 356
             },
             "rules": {
               "default": 302,
               "example_code": 6,
+              "migration_data_ops": 1,
+              "migration_history": 15,
+              "migration_latest": 7,
+              "migration_package": 7,
               "runtime_cycle": 56,
               "score_boundary": 35,
               "score_low": 356,
               "score_top": 75,
-              "sensitive:auth": 65,
+              "sensitive:auth": 50,
               "sensitive:crypto": 3,
-              "sensitive:db_schema": 64,
+              "sensitive:db_schema": 34,
               "sensitive:public_api": 4,
               "sensitive:secrets": 3,
               "test_file": 2043
@@ -9979,7 +11979,7 @@
             "touched_by_bugfix": 262
           },
           "rules_version": {
-            "default": "2026.11-3",
+            "default": "2026.11-4",
             "repo": null
           },
           "stability": {

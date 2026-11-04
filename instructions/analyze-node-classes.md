@@ -60,7 +60,7 @@ encoding: UTF-8
          (equivalent: `uv run --project ~/agent-os-adaptive python ~/agent-os-adaptive/tools/aoa_graph .`)
       2. ADD options only when needed:
          - `--exclude 'GLOB'` for generated or vendored code the tool still picks up
-         - `--py-root DIR` when Python code is imported from a non-standard root (not repo root or `src/`)
+         - `--py-root DIR` when Python code is imported from a non-standard root that is not a detected project (every directory with `pyproject.toml` / `setup.py` / `setup.cfg` is auto-detected as its own import root, incl. `src/` layout); check `unresolved.json` `likely_internal` — non-empty means internal imports were treated as external
          - `--since-days N` to change the churn / bug-fix window (default 180, anchored at the HEAD commit)
       3. CONFIRM the summary line printed to stderr (nodes, edges, cycles, unresolved, parse errors).
       4. IF the command fails because dependencies are missing: show the install command from prerequisites and STOP; do not fall back to estimating numbers.
@@ -128,7 +128,8 @@ encoding: UTF-8
       Applied by `aoa-classify` (details: tools/aoa_graph/README.md). **Business is the DEFAULT class**: a file is core if it hits any core rule, leaf if it meets the leaf conditions, and business otherwise. Out-degree is NOT a criterion: depending on many files does not make a file safer or riskier to change for its dependents.
       1. Core rules (any one → core):
          - `config_core_path`: matches `core_paths` in the project's `.aoa.toml` (also applies to tests)
-         - `sensitive:<id>` (hard rules): auth, crypto, secrets, payments, pii, irreversible deletes, db_schema / migrations, public_api (incl. package entrypoints) — matched by path tokens, path globs, or imported packages
+         - `sensitive:<id>` (hard rules): auth, crypto, secrets, payments, pii, irreversible deletes, db_schema, public_api (incl. package entrypoints) — matched by path tokens below the package root (service directory names like `payment-service/` do not count), path globs, or imported packages
+         - `migration_latest` / `migration_data_ops`: Django migrations are classified per app instead of all being core — the newest one(s) and those with RunPython/RunSQL are core; older schema history is business (`migration_history`), squash-superseded ones leaf (`migration_superseded`)
          - `runtime_cycle`: hub of a runtime cycle (SCC size > 1, ignoring type-only edges; in cycles larger than 3 files only members imported by several other members count, the rest are scored normally and their `reasons` say "not a hub") → also `high_risk: true`. This replaces the old "bidirectional dependencies" criterion.
          - `score_top` / `score_boundary`: risk percentile ≥ 90, or within 5 points below it (leaning stricter)
       2. Leaf conditions (→ leaf):

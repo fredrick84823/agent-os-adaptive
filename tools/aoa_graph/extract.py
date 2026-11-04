@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from functools import lru_cache
+from functools import cache
 
 import tree_sitter as ts
 
@@ -18,7 +18,7 @@ class RawImport:
     expr: str | None = None  # spec 為 None 時的原始運算式（截斷）
 
 
-@lru_cache(maxsize=None)
+@cache
 def _language(lang: str) -> ts.Language:
     if lang in ("typescript", "tsx"):
         import tree_sitter_typescript as m
@@ -47,7 +47,7 @@ _PY_QUERY = """
 """
 
 
-@lru_cache(maxsize=None)
+@cache
 def _parser_and_query(lang: str) -> tuple[ts.Parser, ts.Query]:
     language = _language(lang)
     src = _PY_QUERY if lang == "python" else _JS_QUERY
