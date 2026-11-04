@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 
-from . import NAME, SCHEMA_VERSION, VERSION
+from . import NAME, SCHEMA_VERSION, VERSION, django_migrations, projects
 from .discover import LANG_GROUPS, is_test, language_of, list_repo_files, source_files
 from .extract import extract
 from .git_history import DEFAULT_BUGFIX_PATTERN, head_info, history_metrics
@@ -16,6 +16,12 @@ from .resolve_py import PyResolver
 from .resolve_ts import TsResolver
 
 DEFAULT_OUT = "agent-os-adaptive/architecture-analysis"
+# 標準函式庫的頂層模組：不拿來比對「其實是內部模組」。固定清單（3.10–3.14 的聯集），輸出不隨 Python 版本變動。
+STDLIB_TOP = frozenset(n for n in set(sys.stdlib_module_names) | {
+    "aifc", "asynchat", "asyncore", "audioop", "cgi", "cgitb", "chunk", "crypt", "distutils", "imghdr", "imp",
+    "lib2to3", "mailcap", "msilib", "nis", "nntplib", "ossaudiodev", "pipes", "smtpd", "sndhdr", "spwd",
+    "sunau", "telnetlib", "uu", "xdrlib", "tomllib", "annotationlib", "compression",
+} if not n.startswith("_"))
 
 
 def build(root: Path, args: argparse.Namespace) -> dict:
@@ -28,11 +34,15 @@ def build(root: Path, args: argparse.Namespace) -> dict:
     files, too_big = source_files(root, all_files, langs)
 
     ts_resolver = TsResolver(root, all_files)
-    py_resolver = PyResolver([f for f in files if f.endswith(".py")], tuple(args.py_root))
+    py_projects, package_roots = projects.detect(root, all_files)
+    if args.no_auto_py_roots:
+        py_projects = {}
+    py_resolver = PyResolver([f for f in files if f.endswith(".py")], tuple(args.py_root), py_projects)
 
     edges: dict[tuple[str, str], dict] = {}
     external: dict[tuple[str, str], set[str]] = {}
     unresolved: list[dict] = []
+    likely_internal: list[dict] = []
     parse_errors: list[str] = []
     nodes = []
     for f in files:
@@ -49,6 +59,9 @@ def build(root: Path, args: argparse.Namespace) -> dict:
         }
         if lang == "python":
             node["module"] = py_resolver.module_of(f)
+            mig = django_migrations.inspect(f, data)
+            if mig is not None:
+                node["django_migration"] = mig
         nodes.append(node)
         for raw in raws:
             if raw.spec is None:
@@ -70,6 +83,13 @@ def build(root: Path, args: argparse.Namespace) -> dict:
                     e["count"] += 1
                 elif status == "external":
                     external.setdefault((f, value), set()).add(raw.kind)
+                    if lang == "python" and value not in STDLIB_TOP:
+                        cands = py_resolver.hidden_candidates(raw.spec, f)
+                        if cands:
+                            likely_internal.append({
+                                "source": f, "line": raw.line, "specifier": raw.spec,
+                                "candidates": cands[:5], "candidate_count": len(cands),
+                            })
                 elif status == "unresolved":
                     unresolved.append({
                         "source": f, "line": raw.line, "kind": raw.kind,
@@ -107,6 +127,8 @@ def build(root: Path, args: argparse.Namespace) -> dict:
         "generator": generator,
         "source": source,
         "granularity": "file",
+        "package_roots": package_roots,
+        "python_projects": [{"dir": d, "import_roots": rs} for d, rs in sorted(py_projects.items())],
         "nodes": nodes,
         "edges": [
             {"source": s, "target": t, "kinds": sorted(edges[(s, t)]["kinds"]), "count": edges[(s, t)]["count"]}
@@ -124,6 +146,8 @@ def build(root: Path, args: argparse.Namespace) -> dict:
         "items": unresolved,
         "parse_errors": sorted(parse_errors),
         "skipped_large_files": sorted(too_big),
+        # 被當成外部套件、但 repo 裡其實有同名模組的 import（不可見的別專案單檔模組、多個專案同名 package…）
+        "likely_internal": sorted(likely_internal, key=lambda u: (u["source"], u["line"], u["specifier"])),
     }
     metrics = {
         "schema_version": SCHEMA_VERSION,
@@ -139,6 +163,8 @@ def build(root: Path, args: argparse.Namespace) -> dict:
             "nodes_in_runtime_cycles": sum(c["size"] for c in runtime_cycles),
             "unresolved": len(unresolved),
             "parse_errors": len(parse_errors),
+            "likely_internal_external": len(likely_internal),
+            "python_projects": len(py_projects),
         },
         "cycles": cycles,
         "runtime_cycles": runtime_cycles,
@@ -162,7 +188,10 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--exclude", action="append", default=[], metavar="GLOB",
                    help="額外排除的路徑 glob（可重複），例如 'docs/**'")
     p.add_argument("--py-root", action="append", default=[], metavar="DIR",
-                   help="額外的 Python 匯入根目錄（可重複）；repo 根目錄與 src/ 會自動加入")
+                   help="額外的共用 Python 匯入根目錄（可重複，所有檔案都看得到）；repo 根目錄、src/ "
+                        "與每個 pyproject.toml／setup.py／setup.cfg 專案的匯入根目錄會自動加入")
+    p.add_argument("--no-auto-py-roots", action="store_true",
+                   help="不自動偵測各 Python 專案的匯入根目錄（只用 repo 根目錄、src/ 與 --py-root）")
     p.add_argument("--since-days", type=int, default=180, help="churn／bug-fix 的時間視窗（以 HEAD 時間往回算，預設 180）")
     p.add_argument("--bugfix-pattern", default=DEFAULT_BUGFIX_PATTERN, help="判定 bug-fix commit 的 regex（比對 commit subject，不分大小寫）")
     p.add_argument("--co-change-top", type=int, default=3, help="每個節點列出幾個共同變更夥伴（0 = 不算）")
@@ -196,4 +225,12 @@ def main(argv=None) -> int:
         f"in {time.monotonic() - start:.2f}s → {out}",
         file=sys.stderr,
     )
+    li = result["unresolved"]["likely_internal"]
+    if li:
+        print(
+            f"aoa-graph: warning: {len(li)} import(s) treated as external match a module inside the repo "
+            f"(e.g. {li[0]['source']}:{li[0]['line']} '{li[0]['specifier']}' → {li[0]['candidates'][0]}); "
+            "see unresolved.json likely_internal — add --py-root or a pyproject.toml if they are internal",
+            file=sys.stderr,
+        )
     return 0

@@ -1,6 +1,7 @@
 """單一 repo 的評估：準確度（對標註）、確定性、相鄰 commit 穩定性、歷史回放。"""
 from __future__ import annotations
 
+import itertools
 import re
 from pathlib import Path
 
@@ -66,7 +67,7 @@ def stability(repo: Path, chain: list[str], per_commit: dict[str, dict[str, str]
     """chain：[pinned, parent, …]；per_commit：commit → {file: class}。比較每對相鄰 commit。"""
     pairs = []
     tot_common = tot_changed = tot_untouched_changed = tot_untouched = 0
-    for newer, older in zip(chain, chain[1:]):
+    for newer, older in itertools.pairwise(chain):
         a, b = per_commit[older], per_commit[newer]
         common = sorted(set(a) & set(b))
         touched = set(git(repo, "diff", "--no-renames", "--name-only", older, newer).split("\n")) - {""}

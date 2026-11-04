@@ -3,7 +3,7 @@
 # repo 層級的增改寫在專案根目錄的 .aoa.toml 的 [classify] 底下，欄位與本檔相同；
 # 合併規則見 tools/aoa_graph/README.md 的「設定檔」一節。
 
-version = "2026.11-3"
+version = "2026.11-4"
 
 # ---------------------------------------------------------------------------
 # 母體：哪些檔案不參與風險排名（直接判 leaf，理由寫在 rules 裡）
@@ -23,6 +23,13 @@ core_paths = []
 not_sensitive = []
 # 停用的 [[sensitive]] 類別 id。
 disable = []
+
+# 敏感 keyword 比對路徑的哪一段（2026.11-4 起）：
+#   "package"：只比對最近的套件根目錄（含 pyproject.toml／setup.py／setup.cfg／package.json 的目錄）以下的路徑，
+#              monorepo 的服務目錄名（`payment-service/`、`signer-service/`）不會讓底下每個檔案都變 core
+#   "repo"：   比對從 repo 根目錄起的完整路徑（2026.11-3 的行為）
+# paths（glob）與 packages 不受影響。
+keyword_scope = "package"
 
 # 覆蓋率檔（相對 repo 根目錄）；留空則依序找 coverage.json、coverage/lcov.info、lcov.info。
 coverage = ""
@@ -49,6 +56,21 @@ cycle_hub_min_share = 0.1    # 較大的循環：被 ≥ max(2, ⌈0.1 × 循環
 barrel_passthrough = "catalog"
 barrel_min_entries = 3
 barrel_catalog_max_internal_share = 0.1  # 條目之間的 runtime import 數 ≤ 0.1 × 條目數 才算 catalog（容許少數別名檔）
+
+[migrations]
+# Django migration（`<app>/migrations/NNNN_*.py` 且有 class Migration）的分組規則（2026.11-4 起）。
+# 以前 `**/migrations/**` 讓每個 migration 都是 core；大型 Django 專案會因此多出上百個 core。
+#   "grouped"：每個 app 的 migrations 目錄一組——
+#       最新 latest_core 個編號 → core（migration_latest；可能還沒套用到每個環境，下一個 migration 會依賴它）
+#       含 RunPython／RunSQL → core（migration_data_ops；data_ops_core = true 時）
+#       被同組 squashed migration 的 replaces 列出 → superseded_class（migration_superseded）
+#       其餘已套用的 schema 歷史 → history_class（migration_history；改 schema 要新增 migration，不改舊的）
+#   "off"：不分組，migrations 照一般敏感規則（db_schema 的 `**/migrations/**`）判 core（2026.11-3 的行為）
+mode = "grouped"
+latest_core = 1
+data_ops_core = true
+history_class = "business"
+superseded_class = "leaf"
 
 [weights]
 churn = 0.25            # impact 的 churn 上調權重

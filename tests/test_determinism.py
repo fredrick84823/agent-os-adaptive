@@ -1,6 +1,5 @@
 """同一個 commit 連跑 5 次，三個輸出檔位元完全相同；換一個 clone 路徑也相同。"""
 import pytest
-
 from aoa_graph.cli import main
 from conftest import DAY, make_repo
 

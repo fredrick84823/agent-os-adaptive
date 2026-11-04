@@ -82,6 +82,19 @@ uv run aoa-eval run --cache-dir /path/to/clones --no-fetch   # 用現成的完�
 - **穩定性**：pinned commit 往前 4 個 first-parent commit，每對相鄰 commit 算「類別變了的檔案比例」，並分開算**沒被該 commit 改到的檔案**（理想上是 0；百分位是相對值，別的檔案變了也可能把它擠過門檻）。
 - **歷史回放**（`--replay`）：在 pinned commit 前 365 天的 commit 分類，數之後的 bug-fix commit（subject 符合 aoa-graph 的 bug-fix pattern）改到哪些 ranked 檔案；`lift` = 該類別被改到的比例 ÷ 全體被改到的比例。core lift > 1 表示 core 確實比較常出 bug。
 
+## Phase 4b：monorepo 修正（rules 2026.11-4）
+
+在私有 Python monorepo（每個服務各有 `pyproject.toml`、同名的 `config.py`／`cache.py`；Django 後端）上跑出三個問題，這版修正：Python 匯入根目錄改成每個專案自動偵測（aoa-graph）、敏感 keyword 只比對套件根目錄以下的路徑（`keyword_scope`）、Django migration 分組（`[migrations]`）。報告多一個 `2026.11-3` 變體（keyword 比對完整路徑、migration 不分組）做對照。
+
+| repo | 標註指標（core recall／leaf precision／kappa／core→leaf） | 全部檔案 core／business／leaf：2026.11-3 → current | 圖 |
+|---|---|---|---|
+| flask | 不變 | 10／12／61 → 不變 | 邊 180 → 188（`examples/*` 各有 `pyproject.toml`，範例的測試現在連到範例套件） |
+| httpx | 不變 | 9／14／37 → 不變 | 不變 |
+| zod | 不變 | 32／99／391 → 不變 | 不變 |
+| django | 不變 | 277／302／2405 → **255／324／2405** | 不變 |
+
+django 的 30 個 `contrib/*/migrations` 檔：7 個最新（`migration_latest`）+ 1 個 RunPython（`migration_data_ops`）仍是 core，15 個舊的 schema 歷史與 7 個 `__init__.py` 改成 business。標註集沒有 migration，所以標註指標沒動；core→leaf 仍是 0，決定性通過。歷史回放（`--replay`）：django core lift 1.765 → 1.924（business 0.982 → 0.915）——移出 core 的舊 migration 之後很少被 bug-fix 改到；其他 repo 不變。
+
 ## Phase 4 基準（rules 2026.11-3，主要指標）
 
 2026.11-3 把 business 改成「預設類別」的表達方式（規則 id `default`），每個檔案的類別與 2026.11-2 相同，所以 confusion matrix、kappa 都沒變；這裡只是改用新的主要指標重看同一份結果（`current` 變體，全部標註檔案）：

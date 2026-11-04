@@ -207,7 +207,7 @@ class TsResolver:
         ext = posixpath.splitext(spec)[1].lower()
         if ext in ASSET_EXTS:
             return "asset", spec
-        if spec.startswith("./") or spec.startswith("../") or spec in (".", ".."):
+        if spec.startswith(("./", "../")) or spec in (".", ".."):
             target = posixpath.normpath(posixpath.join(posixpath.dirname(importer), spec))
             if target.startswith(".."):
                 return "unresolved", "outside_repo"
@@ -269,9 +269,9 @@ class TsResolver:
         for pattern in table:
             if "*" in pattern:
                 pre, _, suf = pattern.partition("*")
-                if spec.startswith(pre) and spec.endswith(suf) and len(spec) >= len(pre) + len(suf):
-                    if best is None or len(pre) > best[0]:
-                        best = (len(pre), pattern)
+                matches = spec.startswith(pre) and spec.endswith(suf) and len(spec) >= len(pre) + len(suf)
+                if matches and (best is None or len(pre) > best[0]):
+                    best = (len(pre), pattern)
             elif pattern == spec:
                 best = (10**9, pattern)
                 break

@@ -21,9 +21,9 @@ import math
 import sys
 from pathlib import Path
 
-from . import SCHEMA_VERSION, VERSION
-from . import coverage_input, rules
+from . import SCHEMA_VERSION, VERSION, coverage_input, rules
 from .metrics import tarjan_scc
+from .projects import nearest
 
 NAME = "aoa-classify"
 DEFAULT_DIR = "agent-os-adaptive/architecture-analysis"
@@ -34,6 +34,9 @@ STRICTNESS = {c: i for i, c in enumerate(CLASSES)}
 STRUCTURE_DEFAULTS = {"runtime_cycle_core": "all", "cycle_hub_all_max_size": 3, "cycle_hub_min_share": 0.1,
                       "barrel_passthrough": "off", "barrel_min_entries": 3,
                       "barrel_catalog_max_internal_share": 0.1}
+# cfg 沒有 [migrations]／keyword_scope 時（舊的呼叫端）維持 2026.11-3 的行為。
+MIGRATION_DEFAULTS = {"mode": "off", "latest_core": 1, "data_ops_core": True,
+                      "history_class": "business", "superseded_class": "leaf"}
 
 
 class InputError(ValueError):
@@ -132,7 +135,7 @@ def cycle_hubs(node_ids: list[str], edges: list[dict], m: dict, st: dict) -> dic
         if e["kinds"] != ["type"] and s in comp and t in comp and comp[s] == comp[t] and s != t:
             fan_in[t].add(s)
     out = {}
-    for c, ns in members.items():
+    for ns in members.values():
         size = len(ns)
         need = 0 if size <= st["cycle_hub_all_max_size"] else max(2, math.ceil(st["cycle_hub_min_share"] * size - 1e-9))
         for n in ns:
@@ -177,15 +180,27 @@ def is_package_entrypoint(node: dict, root: Path | None) -> bool:
         return False
     if (root / parent / "package.json").is_file():
         return True
-    if parent.endswith("/src") and (root / parent[: -len("/src")] / "package.json").is_file():
-        return True
-    return False
+    return bool(parent.endswith("/src") and (root / parent[:-len("/src")] / "package.json").is_file())
 
 
-def sensitive_hits(node: dict, packages: list[str], cfg: dict, root: Path | None) -> list[tuple[str, str]]:
+def keyword_path(nid: str, package_roots: set[str] | None, scope: str) -> str:
+    """敏感 keyword 要比對的路徑：scope = "package" 時去掉最近的套件根目錄（含）以上的部分。
+
+    monorepo 的服務目錄名（`payment-service/`、`signer-service/`）不再讓底下每個檔案都命中；
+    package_roots 為 None（舊版 graph.json 沒有這個欄位）或 scope = "repo" 時比對完整路徑。
+    """
+    if scope != "package" or not package_roots:
+        return nid
+    pr = nearest(nid, package_roots)
+    return nid[len(pr) + 1:] if pr else nid
+
+
+def sensitive_hits(node: dict, packages: list[str], cfg: dict, root: Path | None,
+                   package_roots: set[str] | None = None) -> list[tuple[str, str]]:
     """回傳 [(rule_id, reason)]，每個類別最多一筆（取第一個證據）。"""
     nid = node["id"]
-    toks = rules.path_tokens(nid)
+    kw_path = keyword_path(nid, package_roots, cfg.get("keyword_scope", "repo"))
+    toks = rules.path_tokens(kw_path)
     hits = []
     for cat in cfg["sensitive"]:
         rid = f"sensitive:{cat['id']}"
@@ -197,7 +212,8 @@ def sensitive_hits(node: dict, packages: list[str], cfg: dict, root: Path | None
             for kw in cat.get("keywords", []):
                 t = rules.keyword_hit(kw, toks)
                 if t:
-                    reason = f"path token '{t}' matches keyword '{kw}'"
+                    where = "" if kw_path == nid else f" (in '{kw_path}', below package root)"
+                    reason = f"path token '{t}' matches keyword '{kw}'{where}"
                     break
         if reason is None:
             for pkg in cat.get("packages", []):
@@ -209,6 +225,55 @@ def sensitive_hits(node: dict, packages: list[str], cfg: dict, root: Path | None
         if reason:
             hits.append((rid, f"{rid}: {reason} ({cat.get('description', '')})".replace(" ()", "")))
     return hits
+
+
+def migration_rules(nodes: dict[str, dict], mg: dict) -> dict[str, tuple[str, str, str]]:
+    """Django migration 分組規則：回傳 {node: (class, rule_id, reason)}。
+
+    以 migrations 目錄（一個 Django app）為一組：
+      - 編號最大的 latest_core 個編號 → core（migration_latest：可能還沒在每個環境套用、新的 migration 會接在它後面）
+      - 含 RunPython／RunSQL → core（migration_data_ops：資料遷移，碰到真實資料、通常不可逆）
+      - 被同組 squashed migration 的 replaces 列出 → superseded_class（migration_superseded）
+      - 其餘：已套用的 schema 歷史 → history_class（migration_history：改 schema 應該新增 migration，不改舊的）
+      - 同目錄的 __init__.py → history_class（migration_package）
+    """
+    if mg["mode"] != "grouped":
+        return {}
+    groups: dict[str, list[str]] = {}
+    for n, node in nodes.items():
+        if node.get("django_migration"):
+            groups.setdefault(n.rsplit("/", 1)[0] if "/" in n else "", []).append(n)
+    out = {}
+    for d, members in sorted(groups.items()):
+        nums = sorted({nodes[n]["django_migration"]["number"] for n in members}, reverse=True)
+        latest = set(nums[: mg["latest_core"]])
+        replaced = {r for n in members for r in nodes[n]["django_migration"].get("replaces", [])}
+        total = len(members)
+        for n in sorted(members):
+            info = nodes[n]["django_migration"]
+            num = info["number"]
+            stem = n.rsplit("/", 1)[-1][:-3]
+            if num in latest:
+                out[n] = ("core", "migration_latest",
+                          (f"migration_latest: newest migration in {d}/ (#{num:04d}, latest {mg['latest_core']} of "
+                          f"{total} in this app) — may not be applied everywhere yet; the next migration depends on it"))
+            elif info.get("data_ops") and mg["data_ops_core"]:
+                out[n] = ("core", "migration_data_ops",
+                          (f"migration_data_ops: {'/'.join(info['data_ops'])} in {d}/ #{num:04d} — data migration, "
+                          "touches real rows and is usually irreversible"))
+            elif stem in replaced:
+                out[n] = (mg["superseded_class"], "migration_superseded",
+                          (f"migration_superseded: replaced by a squashed migration in {d}/ — only databases "
+                          "migrated part-way still run it"))
+            else:
+                out[n] = (mg["history_class"], "migration_history",
+                          (f"migration_history: applied schema history in {d}/ (#{num:04d}, not among the latest "
+                          f"{mg['latest_core']}) — schema-only; change the schema with a new migration, not by editing this"))
+        init = f"{d}/__init__.py" if d else "__init__.py"
+        if init in nodes:
+            out[init] = (mg["history_class"], "migration_package",
+                         f"migration_package: package marker of {d}/ (Django migrations directory)")
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -311,6 +376,10 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
         entry_of.setdefault(t, []).append(b)
     reach = reverse_reach(node_ids, [e for e in edges if e not in cuts], set(prod), tests)
     hubs = cycle_hubs(node_ids, graph["edges"], m, st)
+    mg = {**MIGRATION_DEFAULTS, **cfg.get("migrations", {})}
+    mig_rules = migration_rules(nodes, mg)
+    kw_scope = cfg.get("keyword_scope", "repo")
+    pkg_roots = set(graph["package_roots"]) if "package_roots" in graph else None
 
     factors, scores = {}, {}
     for n in node_ids:
@@ -359,11 +428,15 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
                 reasons.append(f"{rid}: not ranked (" + ("test code" if n in tests else "example/docs code, not shipped") + ")")
             cls = "core" if "config_core_path" in rule_ids else "leaf"
         else:
-            if not rules.first_glob(cfg["not_sensitive"], n):
-                for rid, why in sensitive_hits(node, sorted(set(pkgs.get(n, []))), cfg, root):
+            # Django migration：由分組規則決定（config core_paths 仍優先）；不套敏感 keyword／glob、循環與分數門檻
+            mig = None if rule_ids else mig_rules.get(n)
+            if mig is None and not rules.first_glob(cfg["not_sensitive"], n):
+                for rid, why in sensitive_hits(node, sorted(set(pkgs.get(n, []))), cfg, root, pkg_roots):
                     rule_ids.append(rid)
                     reasons.append(why)
-            if mm.get("in_runtime_cycle"):
+            if mig is not None:
+                pass
+            elif mm.get("in_runtime_cycle"):
                 h = hubs[n]
                 where = (f"runtime cycle {mm.get('runtime_scc_id')} ({h['size']} files; imported by {h['fan_in']} "
                          f"other members at runtime")
@@ -383,8 +456,13 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
             score_txt = (f"risk {scores[n]:.3f} at p{p:g} (impact {f['impact']} × cost {f['cost_of_failure']} "
                          f"÷ detectability {f['detectability']}; prod blast {f['prod_blast_radius']}, "
                          f"churn {f['churn']}, bug-fix {f['bugfix_count']}, tests direct {f['test_fan_in']} / reach {f['test_reach']})")
+            # 0) Django migration 分組規則
+            if mig is not None:
+                cls = mig[0]
+                rule_ids.append(mig[1])
+                reasons.append(f"{mig[2]} — {score_txt}")
             # 1) core：命中任何 core 規則（硬規則已在上面加進 rule_ids；再看風險百分位）
-            if not rule_ids:
+            elif not rule_ids:
                 if p >= core_cut:
                     rule_ids.append("score_top")
                     reasons.append(f"score_top: top {th['core_top_percent']:g}% — {score_txt}")
@@ -393,7 +471,9 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
                     reasons.append(f"score_boundary: within {th['boundary_margin_percent']:g} points of the core cut (p{core_cut:g}), leaning stricter — {score_txt}")
             else:
                 reasons.append(f"score: {score_txt}")
-            if rule_ids:
+            if mig is not None:
+                pass  # cls 已由分組規則決定
+            elif rule_ids:
                 cls = "core"
             else:
                 # 2) leaf：低風險、非測試依賴者 ≤ N、沒有 parse error——三個條件都要成立
@@ -453,6 +533,9 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
             "thresholds": th,
             "weights": w,
             "structure": st,
+            "keyword_scope": kw_scope,
+            "package_roots_known": pkg_roots is not None,
+            "migrations": mg,
             "formula": "risk = log2(2 + prod_blast_radius) × (1 + w.churn·log2(1+churn)) × (1 + w.bugfix·log2(1+bugfix_count)) "
                        "÷ (1 + w.direct_tests·log2(1+test_fan_in) + w.transitive_tests·log2(1+test_reach) + w.coverage·coverage)",
             "percentile": "midrank over ranked (non-test, non-example) files",
@@ -476,6 +559,7 @@ def classify(graph: dict, metrics: dict, unresolved: dict | None, cfg: dict,
             "runtime_cycle_hubs": sum(1 for h in hubs.values() if h["hub"]) if st["runtime_cycle_core"] == "hubs" else len(hubs),
             "barrels": {k: sum(1 for b in barrels.values() if b["kind"] == k) for k in ("barrel", "catalog")},
             "barrel_edges_cut": len(cuts),
+            "django_migrations": {c: sum(1 for v in mig_rules.values() if v[0] == c) for c in CLASSES},
             "rules": dict(sorted(rule_counts.items())),
             "overrides_applied": len(applied),
             "overrides_pending": len(pending),
